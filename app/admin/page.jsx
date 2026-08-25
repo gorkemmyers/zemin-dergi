@@ -8,11 +8,10 @@ export default function AdminPage() {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
-  // Editör Giriş PIN'i
   const ADMIN_PIN = '1923';
 
   const [yazilar, setYazilar] = useState([]);
-  const [aktifSekme, setAktifSekme] = useState('beklemede'); // 'beklemede', 'onaylandi', 'reddedildi', 'tumu'
+  const [aktifSekme, setAktifSekme] = useState('beklemede');
   const [loading, setLoading] = useState(true);
   const [selectedYazi, setSelectedYazi] = useState(null);
 
@@ -54,29 +53,19 @@ export default function AdminPage() {
 
     if (!error && data) {
       setYazilar(data);
-      // İlk listelemede geçerli sekmedeki ilk yazıyı seç
       const filtrelenmis = data.filter((y) => y.durum === aktifSekme);
-      if (filtrelenmis.length > 0) {
-        setSelectedYazi(filtrelenmis[0]);
-      } else {
-        setSelectedYazi(null);
-      }
+      setSelectedYazi(filtrelenmis.length > 0 ? filtrelenmis[0] : null);
     }
     setLoading(false);
   }
 
-  // Sekme değiştiğinde ilk elemanı seç
   const handleSekmeDegistir = (sekme) => {
     setAktifSekme(sekme);
     const filtrelenmis = sekme === 'tumu' 
       ? yazilar 
       : yazilar.filter((y) => y.durum === sekme);
     
-    if (filtrelenmis.length > 0) {
-      setSelectedYazi(filtrelenmis[0]);
-    } else {
-      setSelectedYazi(null);
-    }
+    setSelectedYazi(filtrelenmis.length > 0 ? filtrelenmis[0] : null);
   };
 
   async function durumGuncelle(id, yeniDurum) {
@@ -89,22 +78,16 @@ export default function AdminPage() {
       .eq('id', id);
 
     if (!error) {
-      // Listeyi yerel olarak güncelle (hızlı tepki)
       const guncelListe = yazilar.map((y) =>
         y.id === id ? { ...y, durum: yeniDurum } : y
       );
       setYazilar(guncelListe);
 
-      // Aktif sekmede kalanları bul
       const kalanlar = aktifSekme === 'tumu'
         ? guncelListe
         : guncelListe.filter((y) => y.durum === aktifSekme);
 
-      if (kalanlar.length > 0) {
-        setSelectedYazi(kalanlar[0]);
-      } else {
-        setSelectedYazi(null);
-      }
+      setSelectedYazi(kalanlar.length > 0 ? kalanlar[0] : null);
     } else {
       alert('İşlem başarısız: ' + error.message);
     }
@@ -126,12 +109,10 @@ export default function AdminPage() {
     }
   }
 
-  // Sayaçlar
   const bekleyenSayisi = yazilar.filter((y) => y.durum === 'beklemede').length;
   const onaylananSayisi = yazilar.filter((y) => y.durum === 'onaylandi').length;
   const reddedilenSayisi = yazilar.filter((y) => y.durum === 'reddedildi').length;
 
-  // Gösterilecek liste
   const gorunenYazilar = aktifSekme === 'tumu'
     ? yazilar
     : yazilar.filter((y) => y.durum === aktifSekme);
@@ -140,7 +121,7 @@ export default function AdminPage() {
     return (
       <main className="min-h-[70vh] flex items-center justify-center px-6">
         <form onSubmit={handleLogin} className="border border-[#E3DDD3] bg-[#F7F5F0] p-8 max-w-sm w-full text-center space-y-4 shadow-sm">
-          <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Güvenlik</span>
+          <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Masa</span>
           <h2 className="font-editorial text-2xl font-bold text-[#1A1A1A]">Editör Girişi</h2>
           <p className="text-xs text-[#1A1A1A]/60">Yönetici paneline erişmek için PIN kodunu girin.</p>
           <input
@@ -161,15 +142,15 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-10">
-      {/* Üst Başlık & Çıkış */}
-      <header className="border-b border-[#E3DDD3] pb-6 mb-6 flex flex-col md:flex-row justify-between md:items-end gap-4">
+    <main className="max-w-7xl mx-auto px-6 py-8">
+      {/* Üst Bar */}
+      <header className="border-b border-[#E3DDD3] pb-4 mb-6 flex justify-between items-center">
         <div>
-          <span className="text-xs uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Masa</span>
-          <h1 className="font-editorial text-3xl font-bold text-[#1A1A1A] mt-1">Metin Değerlendirme & Arşiv</h1>
+          <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Zemin Dergi</span>
+          <h1 className="font-editorial text-2xl md:text-3xl font-bold text-[#1A1A1A]">Editoryal Masa</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={fetchYazilar} className="text-xs uppercase tracking-widest border border-[#E3DDD3] px-4 py-2 hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors">
+          <button onClick={fetchYazilar} className="text-xs uppercase tracking-widest border border-[#E3DDD3] px-3.5 py-1.5 hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors">
             Yenile
           </button>
           <button
@@ -177,18 +158,18 @@ export default function AdminPage() {
               sessionStorage.removeItem('zemin_admin_auth');
               setIsAuthenticated(false);
             }}
-            className="text-xs uppercase tracking-widest border border-red-200 text-red-700 px-4 py-2 hover:bg-red-50"
+            className="text-xs uppercase tracking-widest border border-red-200 text-red-700 px-3.5 py-1.5 hover:bg-red-50"
           >
-            Çıkış Yap
+            Çıkış
           </button>
         </div>
       </header>
 
-      {/* SEKME / FİLTRE BUTONLARI */}
+      {/* Sekmeler */}
       <div className="flex gap-2 border-b border-[#E3DDD3] pb-4 mb-6 overflow-x-auto text-xs uppercase tracking-wider font-semibold">
         <button
           onClick={() => handleSekmeDegistir('beklemede')}
-          className={`px-4 py-2 flex items-center gap-2 transition-colors ${
+          className={`px-3.5 py-2 flex items-center gap-2 transition-colors ${
             aktifSekme === 'beklemede'
               ? 'bg-[#4E141E] text-[#F7F5F0]'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-[#4E141E]'
@@ -204,13 +185,13 @@ export default function AdminPage() {
 
         <button
           onClick={() => handleSekmeDegistir('onaylandi')}
-          className={`px-4 py-2 flex items-center gap-2 transition-colors ${
+          className={`px-3.5 py-2 flex items-center gap-2 transition-colors ${
             aktifSekme === 'onaylandi'
               ? 'bg-[#5E7362] text-[#F7F5F0]'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-[#5E7362]'
           }`}
         >
-          <span>Yayındakiler (Onaylananlar)</span>
+          <span>Yayındakiler</span>
           <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
             aktifSekme === 'onaylandi' ? 'bg-[#F7F5F0] text-[#5E7362]' : 'bg-[#E3DDD3] text-[#1A1A1A]'
           }`}>
@@ -220,7 +201,7 @@ export default function AdminPage() {
 
         <button
           onClick={() => handleSekmeDegistir('reddedildi')}
-          className={`px-4 py-2 flex items-center gap-2 transition-colors ${
+          className={`px-3.5 py-2 flex items-center gap-2 transition-colors ${
             aktifSekme === 'reddedildi'
               ? 'bg-red-800 text-white'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-red-800'
@@ -236,13 +217,13 @@ export default function AdminPage() {
 
         <button
           onClick={() => handleSekmeDegistir('tumu')}
-          className={`px-4 py-2 transition-colors ${
+          className={`px-3.5 py-2 transition-colors ${
             aktifSekme === 'tumu'
               ? 'bg-[#1A1A1A] text-[#F7F5F0]'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-[#1A1A1A]'
           }`}
         >
-          Tüm Başvurular ({yazilar.length})
+          Tümü ({yazilar.length})
         </button>
       </div>
 
@@ -250,52 +231,46 @@ export default function AdminPage() {
         <div className="py-20 text-center text-xs uppercase tracking-widest text-[#1A1A1A]/50">Yükleniyor...</div>
       ) : gorunenYazilar.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-[#E3DDD3] bg-[#F7F5F0]">
-          <p className="font-editorial text-xl text-[#1A1A1A]/70 mb-2">Bu sekmede gösterilecek metin bulunmuyor.</p>
-          <span className="text-xs text-[#5E7362]">Gelen yeni başvurular otomatik olarak "Bekleyenler" sekmesine düşecektir.</span>
+          <p className="font-editorial text-lg text-[#1A1A1A]/70">Bu sekmede gösterilecek metin bulunmuyor.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Sol Kolon: Başvuru Listesi (Kompakt) */}
-          <div className="lg:col-span-5 space-y-3 max-h-[75vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Sol Kolon: Sade Satır Listesi */}
+          <div className="lg:col-span-5 divide-y divide-[#E3DDD3] border border-[#E3DDD3] bg-[#F7F5F0] max-h-[75vh] overflow-y-auto">
             {gorunenYazilar.map((y) => (
-              <div
+              <button
                 key={y.id}
                 onClick={() => setSelectedYazi(y)}
-                className={`p-4 border cursor-pointer transition-all ${
+                className={`w-full text-left p-4 flex flex-col gap-1 transition-all ${
                   selectedYazi?.id === y.id
-                    ? 'border-[#4E141E] bg-[#4E141E]/5 shadow-sm ring-1 ring-[#4E141E]'
-                    : 'border-[#E3DDD3] hover:border-[#1A1A1A]/50 bg-[#F7F5F0]'
+                    ? 'bg-[#4E141E]/10 border-l-4 border-l-[#4E141E]'
+                    : 'hover:bg-[#E3DDD3]/30 border-l-4 border-l-transparent'
                 }`}
               >
-                <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-semibold mb-1.5">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold">
                   <span className="text-[#5E7362]">{y.kategori}</span>
-                  <span className={`px-2 py-0.5 text-[9px] ${
-                    y.durum === 'onaylandi' ? 'bg-[#5E7362]/20 text-[#5E7362]' :
-                    y.durum === 'reddedildi' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-900'
-                  }`}>
-                    {y.durum.toUpperCase()}
+                  <span className="text-[#1A1A1A]/40 font-normal">
+                    {new Date(y.olusturulma_tarihi).toLocaleDateString('tr-TR')}
                   </span>
                 </div>
-                <h4 className="font-editorial font-bold text-lg text-[#1A1A1A] line-clamp-1 leading-snug">
+                <p className="font-editorial font-bold text-base text-[#1A1A1A] truncate">
                   {y.baslik}
-                </h4>
-                <div className="flex justify-between items-center mt-2 text-xs text-[#1A1A1A]/60">
-                  <span>{y.yazarlar?.ad_soyad}</span>
-                  <span className="text-[11px]">{y.yazarlar?.universite}</span>
-                </div>
-              </div>
+                </p>
+                <p className="text-xs text-[#1A1A1A]/70 truncate">
+                  {y.yazarlar?.ad_soyad} <span className="text-[#1A1A1A]/40">• {y.yazarlar?.universite}</span>
+                </p>
+              </button>
             ))}
           </div>
 
-          {/* Sağ Kolon: Detaylı İnceleme Masası */}
+          {/* Sağ Kolon: Okuma Masası */}
           <div className="lg:col-span-7 border border-[#E3DDD3] bg-[#F7F5F0] p-6 md:p-8 flex flex-col justify-between min-h-[75vh]">
             {selectedYazi ? (
               <div className="space-y-6">
-                {/* Üst Bilgiler */}
-                <div className="border-b border-[#E3DDD3] pb-6">
+                <div className="border-b border-[#E3DDD3] pb-4">
                   <div className="flex justify-between items-start gap-4">
                     <div>
-                      <span className="text-xs uppercase tracking-widest text-[#5E7362] font-semibold">{selectedYazi.kategori}</span>
+                      <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">{selectedYazi.kategori}</span>
                       <h2 className="font-editorial text-2xl md:text-3xl font-bold text-[#1A1A1A] mt-1 leading-tight">
                         {selectedYazi.baslik}
                       </h2>
@@ -306,29 +281,29 @@ export default function AdminPage() {
                         target="_blank"
                         className="text-xs uppercase tracking-widest font-semibold text-[#4E141E] border-b border-[#4E141E] pb-0.5 whitespace-nowrap"
                       >
-                        Sitede Gör ↗
+                        Sitede Aç ↗
                       </Link>
                     )}
                   </div>
 
-                  {/* Yazar Künyesi */}
-                  <div className="mt-4 p-4 bg-[#E3DDD3]/30 border border-[#E3DDD3] text-xs space-y-1.5">
-                    <p><span className="font-semibold text-[#1A1A1A]">Yazar:</span> {selectedYazi.yazarlar?.ad_soyad} — {selectedYazi.yazarlar?.universite} ({selectedYazi.yazarlar?.bolum})</p>
+                  {/* Yazar Bilgisi */}
+                  <div className="mt-4 p-3.5 bg-[#E3DDD3]/30 border border-[#E3DDD3] text-xs space-y-1">
+                    <p><span className="font-semibold text-[#1A1A1A]">Yazar:</span> {selectedYazi.yazarlar?.ad_soyad} ({selectedYazi.yazarlar?.universite} — {selectedYazi.yazarlar?.bolum})</p>
                     {selectedYazi.yazarlar?.instagram && (
                       <p><span className="font-semibold text-[#1A1A1A]">Instagram:</span> @{selectedYazi.yazarlar?.instagram}</p>
                     )}
                     {selectedYazi.yazarlar?.biyografi && (
-                      <p className="text-[#1A1A1A]/70 italic"><span className="font-semibold text-[#1A1A1A] not-italic">Biyografi:</span> "{selectedYazi.yazarlar?.biyografi}"</p>
+                      <p className="text-[#1A1A1A]/70 italic"><span className="font-semibold text-[#1A1A1A] not-italic">Biyo:</span> "{selectedYazi.yazarlar?.biyografi}"</p>
                     )}
                   </div>
                 </div>
 
-                {/* Metin Gövdesi */}
+                {/* Metin İçeriği */}
                 <div className="font-editorial text-[#1A1A1A] text-base leading-relaxed whitespace-pre-wrap max-h-[42vh] overflow-y-auto pr-3 border-b border-[#E3DDD3]/40 pb-6">
                   {selectedYazi.icerik}
                 </div>
 
-                {/* Aksiyon Butonları (Duruma Göre Değişir) */}
+                {/* Aksiyon Butonları */}
                 <div className="pt-2 flex flex-wrap gap-3">
                   {selectedYazi.durum === 'beklemede' && (
                     <>
@@ -336,11 +311,11 @@ export default function AdminPage() {
                         onClick={() => durumGuncelle(selectedYazi.id, 'onaylandi')}
                         className="flex-1 bg-[#4E141E] text-[#F7F5F0] py-3 text-xs uppercase tracking-widest font-semibold hover:opacity-95 transition-opacity"
                       >
-                        ✓ Yayına Al (Sitede Aç)
+                        ✓ Yayımla (Sitede Aç)
                       </button>
                       <button
                         onClick={() => durumGuncelle(selectedYazi.id, 'reddedildi')}
-                        className="border border-red-300 text-red-800 px-6 py-3 text-xs uppercase tracking-widest font-semibold hover:bg-red-50 transition-colors"
+                        className="border border-red-300 text-red-800 px-6 py-3 text-xs uppercase tracking-widest font-semibold hover:bg-red-50"
                       >
                         ✕ Reddet
                       </button>
@@ -351,13 +326,13 @@ export default function AdminPage() {
                     <>
                       <button
                         onClick={() => durumGuncelle(selectedYazi.id, 'beklemede')}
-                        className="flex-1 border border-[#1A1A1A] text-[#1A1A1A] py-3 text-xs uppercase tracking-widest font-semibold hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors"
+                        className="flex-1 border border-[#1A1A1A] text-[#1A1A1A] py-3 text-xs uppercase tracking-widest font-semibold hover:bg-[#1A1A1A] hover:text-[#F7F5F0]"
                       >
                         Yayından Kaldır (Beklemeye Al)
                       </button>
                       <button
                         onClick={() => durumGuncelle(selectedYazi.id, 'reddedildi')}
-                        className="border border-red-300 text-red-800 px-6 py-3 text-xs uppercase tracking-widest font-semibold hover:bg-red-50 transition-colors"
+                        className="border border-red-300 text-red-800 px-6 py-3 text-xs uppercase tracking-widest font-semibold hover:bg-red-50"
                       >
                         Reddet
                       </button>
@@ -368,9 +343,9 @@ export default function AdminPage() {
                     <>
                       <button
                         onClick={() => durumGuncelle(selectedYazi.id, 'onaylandi')}
-                        className="flex-1 bg-[#5E7362] text-[#F7F5F0] py-3 text-xs uppercase tracking-widest font-semibold hover:opacity-95 transition-opacity"
+                        className="flex-1 bg-[#5E7362] text-[#F7F5F0] py-3 text-xs uppercase tracking-widest font-semibold hover:opacity-95"
                       >
-                        ✓ Fikrimi Değiştirdim, Yayına Al
+                        ✓ Tekrar Yayına Al
                       </button>
                       <button
                         onClick={() => durumGuncelle(selectedYazi.id, 'beklemede')}
@@ -390,7 +365,7 @@ export default function AdminPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-20 text-xs text-[#1A1A1A]/50">İncelemek için sol listeden bir metin seçin.</div>
+              <div className="text-center py-20 text-xs text-[#1A1A1A]/50">İncelemek için sol listeden bir başlığa tıklayın.</div>
             )}
           </div>
         </div>
