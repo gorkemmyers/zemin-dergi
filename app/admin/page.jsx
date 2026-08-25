@@ -9,15 +9,12 @@ export default function AdminPage() {
   const [pinError, setPinError] = useState(false);
   const ADMIN_PIN = '1923';
 
-  // Ana Panel Modu: 'yazilar' veya 'dergiler'
   const [panelModu, setPanelModu] = useState('yazilar');
 
-  // Yazı Yönetimi State'leri
   const [yazilar, setYazilar] = useState([]);
   const [aktifYaziSekme, setAktifYaziSekme] = useState('beklemede');
   const [selectedYazi, setSelectedYazi] = useState(null);
 
-  // Dergi Yönetimi State'leri
   const [dergiler, setDergiler] = useState([]);
   const [selectedDergi, setSelectedDergi] = useState(null);
   const [dergiForm, setDergiForm] = useState({
@@ -80,7 +77,6 @@ export default function AdminPage() {
     setLoading(false);
   }
 
-  // --- YAZI İŞLEMLERİ ---
   async function yaziDurumGuncelle(id, yeniDurum) {
     const { error } = await supabase
       .from('yazilar')
@@ -92,7 +88,7 @@ export default function AdminPage() {
       setYazilar(guncel);
       setSelectedYazi((prev) => (prev?.id === id ? { ...prev, durum: yeniDurum } : prev));
     } else {
-      alert('Durum güncellenemedi: ' + error.message);
+      alert('Durum guncellenemedi: ' + error.message);
     }
   }
 
@@ -108,23 +104,22 @@ export default function AdminPage() {
       setYazilar(guncel);
       if (selectedYazi?.id === yaziId) setSelectedYazi({ ...selectedYazi, dergi_id: yeniDergiId });
     } else {
-      alert('Dergi bağlantısı güncellenemedi: ' + error.message);
+      alert('Dergi baglantisi guncellenemedi: ' + error.message);
     }
   }
 
   async function yaziSil(id) {
-    if (!confirm('Bu yazıyı silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Bu yaziyi silmek istediginizden emin misiniz?')) return;
     const { error } = await supabase.from('yazilar').delete().eq('id', id);
     if (!error) {
       const guncel = yazilar.filter((y) => y.id !== id);
       setYazilar(guncel);
       setSelectedYazi(guncel[0] || null);
     } else {
-      alert('Yazı silinemedi: ' + error.message);
+      alert('Yazi silinemedi: ' + error.message);
     }
   }
 
-  // --- DERGİ İŞLEMLERİ ---
   async function dergiKaydet(e) {
     e.preventDefault();
 
@@ -145,36 +140,36 @@ export default function AdminPage() {
         .eq('id', selectedDergi.id);
 
       if (!error) {
-        alert('Dergi sayısı güncellendi.');
+        alert('Dergi sayisi guncellendi.');
         fetchTumVeriler();
         setIsEditingDergi(false);
       } else {
-        alert('Güncelleme hatası: ' + error.message);
+        alert('Guncelleme hatasi: ' + error.message);
       }
     } else {
       const { error } = await supabase.from('dergiler').insert([payload]);
 
       if (!error) {
-        alert('Yeni dergi sayısı başarıyla oluşturuldu.');
+        alert('Yeni dergi sayisi olusturuldu.');
         setDergiForm({ sayi_no: '', baslik: '', tema_aciklama: '', kapak_url: '', pdf_url: '', durum: 'hazirlikta' });
         fetchTumVeriler();
       } else {
-        alert('Dergi oluşturma hatası: ' + error.message);
+        alert('Dergi olusturma hatasi: ' + error.message);
       }
     }
   }
 
   async function dergiSil(id) {
-    if (!confirm('Bu dergi sayısını silmek istediğinizden emin misiniz? (İçindeki yazılar silinmez, sadece bağı kalkar)')) return;
+    if (!confirm('Bu dergi sayisini silmek istediginizden emin misiniz?')) return;
     const { error } = await supabase.from('dergiler').delete().eq('id', id);
     if (!error) {
-      alert('Dergi sayısı silindi.');
+      alert('Dergi sayisi silindi.');
       fetchTumVeriler();
       setSelectedDergi(null);
       setIsEditingDergi(false);
       setDergiForm({ sayi_no: '', baslik: '', tema_aciklama: '', kapak_url: '', pdf_url: '', durum: 'hazirlikta' });
     } else {
-      alert('Silme hatası: ' + error.message);
+      alert('Silme hatasi: ' + error.message);
     }
   }
 
@@ -182,9 +177,9 @@ export default function AdminPage() {
     return (
       <main className="min-h-[70vh] flex items-center justify-center px-6">
         <form onSubmit={handleLogin} className="border-2 border-zemin-bordo bg-zemin-kagit p-8 max-w-sm w-full text-center space-y-4 shadow-[4px_4px_0px_#4E141E]">
-          <span className="text-[10px] uppercase tracking-widest text-zemin-yesil font-bold">Editoryal Giriş</span>
+          <span className="text-[10px] uppercase tracking-widest text-zemin-yesil font-bold">Editoryal Giris</span>
           <h2 className="font-serif text-3xl font-black text-zemin-bordo">Masa Kilidi</h2>
-          <p className="text-xs text-zemin-metin/70">Yönetim paneline erişmek için PIN kodunu girin.</p>
+          <p className="text-xs text-zemin-metin/70">Yonetim paneline erismek icin PIN kodunu girin.</p>
           <input
             type="password"
             maxLength={6}
@@ -193,9 +188,9 @@ export default function AdminPage() {
             onChange={(e) => setPinInput(e.target.value)}
             className="w-full text-center tracking-widest text-xl font-bold border-2 border-zemin-cizgi bg-zemin-bej p-3 outline-none focus:border-zemin-bordo"
           />
-          {pinError && <p className="text-xs text-red-700 font-bold">Hatalı PIN kodu.</p>}
+          {pinError && <p className="text-xs text-red-700 font-bold">Hatali PIN kodu.</p>}
           <button type="submit" className="w-full bg-zemin-bordo text-zemin-bej py-3 text-xs uppercase tracking-widest font-bold shadow-[2px_2px_0px_#2D4F38]">
-            Giriş Yap
+            Giris Yap
           </button>
         </form>
       </main>
@@ -204,10 +199,9 @@ export default function AdminPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-      {/* Üst Bar */}
       <header className="border-b-2 border-zemin-bordo pb-4 mb-6 flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <span className="text-[10px] uppercase tracking-widest bg-zemin-yesil text-zemin-bej px-2 py-0.5 font-bold">ZEMİN YÖNETİM</span>
+          <span className="text-[10px] uppercase tracking-widest bg-zemin-yesil text-zemin-bej px-2 py-0.5 font-bold">ZEMIN YONETIM</span>
           <h1 className="font-serif text-3xl font-black text-zemin-bordo mt-1">Editoryal Masa</h1>
         </div>
 
@@ -219,7 +213,7 @@ export default function AdminPage() {
                 panelModu === 'yazilar' ? 'bg-zemin-bordo text-zemin-bej shadow-sm' : 'text-zemin-metin/70'
               }`}
             >
-              Yazı İnceleme ({yazilar.filter((y) => y.durum === 'beklemede').length} Bekleyen)
+              Yazi Inceleme ({yazilar.filter((y) => y.durum === 'beklemede').length} Bekleyen)
             </button>
             <button
               onClick={() => setPanelModu('dergiler')}
@@ -227,7 +221,7 @@ export default function AdminPage() {
                 panelModu === 'dergiler' ? 'bg-zemin-bordo text-zemin-bej shadow-sm' : 'text-zemin-metin/70'
               }`}
             >
-              Dergi Yönetimi ({dergiler.length})
+              Dergi Yonetimi ({dergiler.length})
             </button>
           </div>
           <button
@@ -237,12 +231,11 @@ export default function AdminPage() {
             }}
             className="text-xs uppercase tracking-widest border border-red-300 text-red-800 px-3 py-2 hover:bg-red-50 font-bold"
           >
-            Çıkış
+            Cikis
           </button>
         </div>
       </header>
 
-      {/* 1. MOD: YAZI İNCELEME */}
       {panelModu === 'yazilar' && (
         <div>
           <div className="flex gap-2 border-b border-zemin-cizgi pb-3 mb-4 overflow-x-auto text-xs uppercase tracking-wider font-bold">
@@ -270,7 +263,6 @@ export default function AdminPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Sol Liste */}
             <div className={`lg:col-span-5 divide-y divide-zemin-cizgi border-2 border-zemin-cizgi bg-zemin-kagit max-h-[75vh] overflow-y-auto ${selectedYazi ? 'hidden lg:block' : 'block'}`}>
               {(aktifYaziSekme === 'tumu' ? yazilar : yazilar.filter((y) => y.durum === aktifYaziSekme)).map((y) => (
                 <button
@@ -290,12 +282,11 @@ export default function AdminPage() {
               ))}
             </div>
 
-            {/* Sağ Okuma Masası */}
             <div className={`lg:col-span-7 border-2 border-zemin-bordo bg-zemin-kagit p-6 md:p-8 flex flex-col justify-between max-h-[75vh] overflow-y-auto ${selectedYazi ? 'block' : 'hidden lg:flex'}`}>
               {selectedYazi ? (
                 <div className="space-y-5">
                   <button onClick={() => setSelectedYazi(null)} className="lg:hidden text-xs uppercase tracking-widest font-bold text-zemin-bordo underline mb-2">
-                    ← Listeye Dön
+                    ← Listeye Don
                   </button>
 
                   <div className="border-b border-zemin-cizgi pb-4">
@@ -306,7 +297,7 @@ export default function AdminPage() {
                       </div>
                       {selectedYazi.durum === 'onaylandi' && (
                         <Link href={`/yazi/${selectedYazi.slug}`} target="_blank" className="text-xs uppercase tracking-widest font-bold text-zemin-bordo border-b border-zemin-bordo">
-                          Sitede Gör ↗
+                          Sitede Gor ↗
                         </Link>
                       )}
                     </div>
@@ -323,18 +314,18 @@ export default function AdminPage() {
 
                     <div className="mt-4 p-3 bg-zemin-yesil/10 border border-zemin-yesil/30 flex items-center justify-between gap-4">
                       <div>
-                        <span className="text-[10px] uppercase tracking-widest font-bold text-zemin-yesil block">Dergi Sayısına Dahil Et</span>
-                        <span className="text-xs text-zemin-metin/80">Bu metnin yer alacağı sayıyı seçin:</span>
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-zemin-yesil block">Dergi Sayisina Dahil Et</span>
+                        <span className="text-xs text-zemin-metin/80">Bu metnin yer alacagi sayiyi secin:</span>
                       </div>
                       <select
                         value={selectedYazi.dergi_id || ''}
                         onChange={(e) => yaziDergiAta(selectedYazi.id, e.target.value)}
                         className="text-xs font-bold bg-zemin-bej border border-zemin-bordo p-2 outline-none"
                       >
-                        <option value="">-- Serbest Arşiv (Dergide Yok) --</option>
+                        <option value="">-- Serbest Arsiv (Dergide Yok) --</option>
                         {dergiler.map((d) => (
                           <option key={d.id} value={d.id}>
-                            Sayı {d.sayi_no}: {d.baslik}
+                            Sayi {d.sayi_no}: {d.baslik}
                           </option>
                         ))}
                       </select>
@@ -349,7 +340,7 @@ export default function AdminPage() {
                     {selectedYazi.durum === 'beklemede' && (
                       <>
                         <button onClick={() => yaziDurumGuncelle(selectedYazi.id, 'onaylandi')} className="flex-1 bg-zemin-bordo text-zemin-bej py-3 text-xs uppercase tracking-widest font-bold shadow-[2px_2px_0px_#2D4F38]">
-                          ✓ Yayına Al (Onayla)
+                          ✓ Yayina Al (Onayla)
                         </button>
                         <button onClick={() => yaziDurumGuncelle(selectedYazi.id, 'reddedildi')} className="border border-red-300 text-red-800 px-6 py-3 text-xs uppercase tracking-widest font-bold">
                           ✕ Reddet
@@ -358,7 +349,7 @@ export default function AdminPage() {
                     )}
                     {selectedYazi.durum === 'onaylandi' && (
                       <button onClick={() => yaziDurumGuncelle(selectedYazi.id, 'beklemede')} className="flex-1 border border-zemin-metin text-zemin-metin py-3 text-xs uppercase tracking-widest font-bold hover:bg-zemin-bordo hover:text-zemin-bej">
-                        Yayından Kaldır (Beklemeye Al)
+                        Yayindan Kaldir (Beklemeye Al)
                       </button>
                     )}
                     {selectedYazi.durum === 'reddedildi' && (
@@ -372,19 +363,18 @@ export default function AdminPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-20 text-xs text-zemin-metin/50 font-bold">İncelemek için soldan bir metin seçin.</div>
+                <div className="text-center py-20 text-xs text-zemin-metin/50 font-bold">Incelemek icin soldan bir metin secin.</div>
               )}
             </div>
           </div>
         </div>
       )}
 
-      {/* 2. MOD: DERGİ YÖNETİMİ */}
       {panelModu === 'dergiler' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-5 space-y-4">
             <div className="flex justify-between items-center border-b-2 border-zemin-bordo pb-2">
-              <h2 className="font-serif text-2xl font-bold text-zemin-bordo">Mevcut Sayılar</h2>
+              <h2 className="font-serif text-2xl font-bold text-zemin-bordo">Mevcut Sayilar</h2>
               <button
                 type="button"
                 onClick={() => {
@@ -394,14 +384,14 @@ export default function AdminPage() {
                 }}
                 className="bg-zemin-bordo text-zemin-bej px-3 py-1 text-xs uppercase tracking-widest font-bold shadow-[2px_2px_0px_#2D4F38]"
               >
-                + Yeni Sayı Ekle
+                + Yeni Sayi Ekle
               </button>
             </div>
 
             {dergiler.length === 0 ? (
               <div className="p-8 border-2 border-dashed border-zemin-cizgi text-center bg-zemin-kagit">
-                <p className="font-serif text-lg text-zemin-bordo font-bold">Henüz dergi sayısı yok.</p>
-                <p className="text-xs text-zemin-metin/70 mt-1">Sağdaki formdan ilk sayını (Sayı 01) oluşturabilirsin.</p>
+                <p className="font-serif text-lg text-zemin-bordo font-bold">Henuz dergi sayisi yok.</p>
+                <p className="text-xs text-zemin-metin/70 mt-1">Sagdaki formdan ilk sayini (Sayi 01) olusturabilirsin.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -428,4 +418,9 @@ export default function AdminPage() {
                           : 'border-zemin-cizgi bg-zemin-kagit text-zemin-metin hover:border-zemin-bordo'
                       }`}
                     >
-           
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`text-[10px] uppercase tracking-widest font-black px-2 py-0.5 ${
+                          selectedDergi?.id === d.id ? 'bg-zemin-bej text-zemin-bordo' : 'bg-zemin-bordo text-zemin-bej'
+                        }`}>
+                          Sayi {d.sayi_no}
+                  
