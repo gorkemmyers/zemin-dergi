@@ -1,26 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-canvas: #F7F5F0;
-  --bg-hero: #4E141E;
-  --text-primary: #1A1A1A;
-  --text-inverted: #F7F5F0;
-  --accent-sage: #5E7362;
-  --accent-sage-light: #8CA090;
-  --border-hairline: #E3DDD3;
+  --font-serif: 'EB Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 body {
-  background-color: var(--bg-canvas);
-  color: var(--text-primary);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-sans);
+  background-color: #F8F6F0;
+  color: #1A1A1A;
   -webkit-font-smoothing: antialiased;
 }
 
 .font-editorial {
-  font-family: 'Newsreader', Georgia, serif;
+  font-family: var(--font-serif);
+}
+
+/* Gazete tarzı zarif sütun çizgileri */
+.editorial-rule {
+  border-color: #E2DDD5;
 }
