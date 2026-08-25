@@ -1,1 +1,1 @@
-# zemin-dergi
+# zemin-dergi .
