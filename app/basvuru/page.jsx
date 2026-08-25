@@ -15,6 +15,7 @@ export default function BasvuruPage() {
     baslik: '',
     kategori: 'Felsefe',
     icerik: '',
+    pin: '', // PIN state'i eklendi
   });
 
   const handleSubmit = async (e) => {
@@ -33,7 +34,8 @@ export default function BasvuruPage() {
         universite: formData.universite,
         bolum: formData.bolum,
         instagram: formData.instagram.replace('@', ''),
-        biyografi: formData.biyografi
+        biyografi: formData.biyografi,
+        pin: formData.pin // Formdan gelen PIN veritabanına gönderiliyor
       }])
       .select()
       .single();
@@ -94,10 +96,17 @@ export default function BasvuruPage() {
             <input required type="text" className="w-full bg-transparent border border-[#E3DDD3] p-3 text-sm focus:border-[#4E141E] outline-none" 
               onChange={(e) => setFormData({...formData, ad_soyad: e.target.value})} />
           </div>
-          <div>
-            <label className="block text-xs uppercase font-semibold text-[#1A1A1A]/70 mb-1">Instagram (@kullaniciadi)</label>
-            <input type="text" placeholder="@" className="w-full bg-transparent border border-[#E3DDD3] p-3 text-sm focus:border-[#4E141E] outline-none" 
-              onChange={(e) => setFormData({...formData, instagram: e.target.value})} />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs uppercase font-semibold text-[#1A1A1A]/70 mb-1">Instagram</label>
+              <input type="text" placeholder="@" className="w-full bg-transparent border border-[#E3DDD3] p-3 text-sm focus:border-[#4E141E] outline-none" 
+                onChange={(e) => setFormData({...formData, instagram: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-xs uppercase font-semibold text-[#1A1A1A]/70 mb-1">Yazar PIN *</label>
+              <input required type="text" maxLength={4} placeholder="Örn: 1984" className="w-full bg-transparent border border-[#E3DDD3] p-3 text-sm focus:border-[#4E141E] outline-none" 
+                onChange={(e) => setFormData({...formData, pin: e.target.value})} />
+            </div>
           </div>
         </div>
 
