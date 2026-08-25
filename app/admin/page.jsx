@@ -423,4 +423,123 @@ export default function AdminPage() {
                           selectedDergi?.id === d.id ? 'bg-zemin-bej text-zemin-bordo' : 'bg-zemin-bordo text-zemin-bej'
                         }`}>
                           Sayi {d.sayi_no}
-                  
+                        </span>
+                        <span className={`text-xs uppercase tracking-widest font-bold ${
+                          d.durum === 'yayinda' ? 'text-green-400' : 'text-amber-300'
+                        }`}>
+                          ● {d.durum === 'yayinda' ? 'YAYINDA' : 'HAZIRLIKTA'}
+                        </span>
+                      </div>
+                      <h3 className="font-serif text-2xl font-bold mt-1 leading-snug">{d.baslik}</h3>
+                      <div className="mt-3 pt-3 border-t border-current/20 flex justify-between text-xs opacity-90">
+                        <span>{sayidakiYaziSayisi} Makale Dahil Edildi</span>
+                        <span className="font-bold underline">Duzenle →</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-7 bg-zemin-kagit border-2 border-zemin-bordo p-6 md:p-8 shadow-[4px_4px_0px_#4E141E]">
+            <div className="flex justify-between items-center border-b-2 border-zemin-cizgi pb-3 mb-6">
+              <h2 className="font-serif text-2xl font-bold text-zemin-bordo">
+                {isEditingDergi ? `Sayi ${dergiForm.sayi_no} Duzenleniyor` : 'Yeni Dergi Sayisi Olustur'}
+              </h2>
+              {isEditingDergi && selectedDergi && (
+                <button
+                  type="button"
+                  onClick={() => dergiSil(selectedDergi.id)}
+                  className="text-xs uppercase tracking-widest text-red-700 font-bold underline"
+                >
+                  Sayiyi Sil
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={dergiKaydet} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Sayi No (Orn: 01) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="01"
+                    value={dergiForm.sayi_no}
+                    onChange={(e) => setDergiForm({ ...dergiForm, sayi_no: e.target.value })}
+                    className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs font-bold outline-none focus:border-zemin-bordo"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Durum</label>
+                  <select
+                    value={dergiForm.durum}
+                    onChange={(e) => setDergiForm({ ...dergiForm, durum: e.target.value })}
+                    className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs font-bold outline-none focus:border-zemin-bordo"
+                  >
+                    <option value="hazirlikta">Hazirlik Asamasinda (Yazi Kabulu Acik)</option>
+                    <option value="yayinda">Yayinda (Ana Sayfa Vitrinine Al & PDF'i Ac)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Sayi Dosya Basligi *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Orn: Bellek, Zaman ve Irade"
+                  value={dergiForm.baslik}
+                  onChange={(e) => setDergiForm({ ...dergiForm, baslik: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-sm font-serif font-bold outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Tema / Dosya Aciklamasi (Opsiyonel)</label>
+                <textarea
+                  rows={3}
+                  placeholder="Bu sayinin editoryal cercevesi..."
+                  value={dergiForm.tema_aciklama}
+                  onChange={(e) => setDergiForm({ ...dergiForm, tema_aciklama: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Kapak Gorsel Linki (Opsiyonel)</label>
+                <input
+                  type="text"
+                  placeholder="Gorsel linki (Bos birakilabilir)"
+                  value={dergiForm.kapak_url}
+                  onChange={(e) => setDergiForm({ ...dergiForm, kapak_url: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Dergi PDF / Web Okuma Linki (Opsiyonel)</label>
+                <input
+                  type="text"
+                  placeholder="Google Drive, Issuu veya dogrudan PDF linki (Bos birakilabilir)"
+                  value={dergiForm.pdf_url}
+                  onChange={(e) => setDergiForm({ ...dergiForm, pdf_url: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-zemin-bordo text-zemin-bej py-3 text-xs uppercase tracking-widest font-bold shadow-[3px_3px_0px_#2D4F38] hover:bg-zemin-bordokoyu cursor-pointer transition-all"
+              >
+                {isEditingDergi ? '✓ Degisiklikleri Kaydet' : '+ Dergi Sayisini Olustur'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
