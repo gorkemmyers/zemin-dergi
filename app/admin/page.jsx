@@ -26,10 +26,9 @@ export default function AdminPage() {
     tema_aciklama: '',
     kapak_url: '',
     pdf_url: '',
-    durum: 'hazirlikta'
+    durum: 'hazirlikta',
   });
   const [isEditingDergi, setIsEditingDergi] = useState(false);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,12 +53,11 @@ export default function AdminPage() {
 
   async function fetchTumVeriler() {
     setLoading(true);
-    // Yazıları Çek
     const { data: yData } = await supabase
       .from('yazilar')
       .select(`
         id, baslik, slug, kategori, icerik, durum, dergi_id, olusturulma_tarihi,
-        yazarlar (id, ad_soyad, universite, bolum, instagram, biyografi)
+        yazarlar (id, ad_soyad, universite, bolum, instagram, pin, biyografi)
       `)
       .order('olusturulma_tarihi', { ascending: false });
 
@@ -69,7 +67,6 @@ export default function AdminPage() {
       setSelectedYazi(bekleyenler.length > 0 ? bekleyenler[0] : yData[0] || null);
     }
 
-    // Dergileri Çek
     const { data: dData } = await supabase
       .from('dergiler')
       .select('*')
@@ -134,7 +131,7 @@ export default function AdminPage() {
           kapak_url: dergiForm.kapak_url,
           pdf_url: dergiForm.pdf_url,
           durum: dergiForm.durum,
-          yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null
+          yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null,
         })
         .eq('id', selectedDergi.id);
 
@@ -152,8 +149,8 @@ export default function AdminPage() {
           kapak_url: dergiForm.kapak_url,
           pdf_url: dergiForm.pdf_url,
           durum: dergiForm.durum,
-          yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null
-        }
+          yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null,
+        },
       ]);
 
       if (!error) {
@@ -165,11 +162,12 @@ export default function AdminPage() {
   }
 
   async function dergiSil(id) {
-    if (!confirm('Bu dergi sayısını silmek istediğinizden emin misiniz? (İçindeki yazılar silinmez, sadece bağı kalkar)')) return;
+    if (!confirm('Bu dergi sayısını silmek istediğinizden emin misiniz?')) return;
     const { error } = await supabase.from('dergiler').delete().eq('id', id);
     if (!error) {
       fetchTumVeriler();
       setSelectedDergi(null);
+      setIsEditingDergi(false);
     }
   }
 
@@ -199,14 +197,13 @@ export default function AdminPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-      {/* ÜST PANEL BAR */}
+      {/* Üst Bar */}
       <header className="border-b-2 border-zemin-bordo pb-4 mb-6 flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <span className="text-[10px] uppercase tracking-widest bg-zemin-yesil text-zemin-bej px-2 py-0.5 font-bold">ZEMİN YÖNETİM</span>
           <h1 className="font-serif text-3xl font-black text-zemin-bordo mt-1">Editoryal Masa</h1>
         </div>
 
-        {/* MOD DEĞİŞTİRİCİ (YAZILAR VS DERGİLER) */}
         <div className="flex items-center gap-3">
           <div className="bg-zemin-kagit border border-zemin-cizgi p-1 flex">
             <button
@@ -215,7 +212,7 @@ export default function AdminPage() {
                 panelModu === 'yazilar' ? 'bg-zemin-bordo text-zemin-bej shadow-sm' : 'text-zemin-metin/70'
               }`}
             >
-              Yazı İnceleme ({yazilar.filter(y => y.durum === 'beklemede').length} Bekleyen)
+              Yazı İnceleme ({yazilar.filter((y) => y.durum === 'beklemede').length} Bekleyen)
             </button>
             <button
               onClick={() => setPanelModu('dergiler')}
@@ -223,11 +220,14 @@ export default function AdminPage() {
                 panelModu === 'dergiler' ? 'bg-zemin-bordo text-zemin-bej shadow-sm' : 'text-zemin-metin/70'
               }`}
             >
-              Dergi & Sayı Yönetimi ({dergiler.length})
+              Dergi Yönetimi ({dergiler.length})
             </button>
           </div>
           <button
-            onClick={() => { sessionStorage.removeItem('zemin_admin_auth'); setIsAuthenticated(false); }}
+            onClick={() => {
+              sessionStorage.removeItem('zemin_admin_auth');
+              setIsAuthenticated(false);
+            }}
             className="text-xs uppercase tracking-widest border border-red-300 text-red-800 px-3 py-2 hover:bg-red-50 font-bold"
           >
             Çıkış
@@ -235,21 +235,18 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* ========================================================================= */}
-      {/* 1. MOD: YAZI İNCELEME MASASI */}
-      {/* ========================================================================= */}
+      {/* 1. MOD: YAZI İNCELEME */}
       {panelModu === 'yazilar' && (
         <div>
-          {/* Sekmeler */}
           <div className="flex gap-2 border-b border-zemin-cizgi pb-3 mb-4 overflow-x-auto text-xs uppercase tracking-wider font-bold">
             {['beklemede', 'onaylandi', 'reddedildi', 'tumu'].map((sekme) => {
-              const count = sekme === 'tumu' ? yazilar.length : yazilar.filter(y => y.durum === sekme).length;
+              const count = sekme === 'tumu' ? yazilar.length : yazilar.filter((y) => y.durum === sekme).length;
               return (
                 <button
                   key={sekme}
                   onClick={() => {
                     setAktifYaziSekme(sekme);
-                    const list = sekme === 'tumu' ? yazilar : yazilar.filter(y => y.durum === sekme);
+                    const list = sekme === 'tumu' ? yazilar : yazilar.filter((y) => y.durum === sekme);
                     setSelectedYazi(list[0] || null);
                   }}
                   className={`px-3.5 py-1.5 flex items-center gap-2 transition-all ${
@@ -268,7 +265,7 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Sol Liste */}
             <div className={`lg:col-span-5 divide-y divide-zemin-cizgi border-2 border-zemin-cizgi bg-zemin-kagit max-h-[75vh] overflow-y-auto ${selectedYazi ? 'hidden lg:block' : 'block'}`}>
-              {(aktifYaziSekme === 'tumu' ? yazilar : yazilar.filter(y => y.durum === aktifYaziSekme)).map((y) => (
+              {(aktifYaziSekme === 'tumu' ? yazilar : yazilar.filter((y) => y.durum === aktifYaziSekme)).map((y) => (
                 <button
                   key={y.id}
                   onClick={() => setSelectedYazi(y)}
@@ -307,16 +304,20 @@ export default function AdminPage() {
                       )}
                     </div>
 
-                    <div className="mt-4 p-3 bg-zemin-bej border border-zemin-cizgi text-xs space-y-1">
-                      <p><strong className="text-zemin-metin">Yazar:</strong> {selectedYazi.yazarlar?.ad_soyad} ({selectedYazi.yazarlar?.universite} — {selectedYazi.yazarlar?.bolum})</p>
+                    <div className="mt-4 p-3.5 bg-zemin-bej border border-zemin-cizgi text-xs space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <p><strong className="text-zemin-metin">Yazar:</strong> {selectedYazi.yazarlar?.ad_soyad} ({selectedYazi.yazarlar?.universite} — {selectedYazi.yazarlar?.bolum})</p>
+                        <span className="bg-zemin-bordo text-zemin-bej px-2 py-0.5 font-mono font-bold text-[10px]">
+                          PIN: {selectedYazi.yazarlar?.pin || 'Belirlenmedi'}
+                        </span>
+                      </div>
                       {selectedYazi.yazarlar?.instagram && <p><strong className="text-zemin-metin">Instagram:</strong> @{selectedYazi.yazarlar?.instagram}</p>}
                     </div>
 
-                    {/* DERGİYE EKLEME SEÇİCİSİ */}
                     <div className="mt-4 p-3 bg-zemin-yesil/10 border border-zemin-yesil/30 flex items-center justify-between gap-4">
                       <div>
                         <span className="text-[10px] uppercase tracking-widest font-bold text-zemin-yesil block">Dergi Sayısına Dahil Et</span>
-                        <span className="text-xs text-zemin-metin/80">Bu metnin hangi dergi sayısında yer alacağını seçin:</span>
+                        <span className="text-xs text-zemin-metin/80">Bu metnin yer alacağı sayıyı seçin:</span>
                       </div>
                       <select
                         value={selectedYazi.dergi_id || ''}
@@ -337,7 +338,6 @@ export default function AdminPage() {
                     {selectedYazi.icerik}
                   </div>
 
-                  {/* Aksiyon Butonları */}
                   <div className="pt-2 flex flex-wrap gap-3">
                     {selectedYazi.durum === 'beklemede' && (
                       <>
@@ -372,12 +372,9 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 2. MOD: DERGİ & SAYI YÖNETİMİ */}
-      {/* ========================================================================= */}
+      {/* 2. MOD: DERGİ YÖNETİMİ */}
       {panelModu === 'dergiler' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Sol Kolon: Mevcut Sayılar Listesi */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex justify-between items-center border-b-2 border-zemin-bordo pb-2">
               <h2 className="font-serif text-2xl font-bold text-zemin-bordo">Mevcut Sayılar</h2>
@@ -395,13 +392,13 @@ export default function AdminPage() {
 
             {dergiler.length === 0 ? (
               <div className="p-8 border-2 border-dashed border-zemin-cizgi text-center bg-zemin-kagit">
-                <p className="font-serif text-lg text-zemin-bordo font-bold">Henüz oluşturulmuş bir dergi sayısı yok.</p>
+                <p className="font-serif text-lg text-zemin-bordo font-bold">Henüz dergi sayısı yok.</p>
                 <p className="text-xs text-zemin-metin/70 mt-1">Sağdaki formdan ilk sayını (Sayı 01) oluşturabilirsin.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {dergiler.map((d) => {
-                  const sayidakiYaziSayisi = yazilar.filter(y => y.dergi_id === d.id).length;
+                  const sayidakiYaziSayisi = yazilar.filter((y) => y.dergi_id === d.id).length;
                   return (
                     <div
                       key={d.id}
@@ -414,7 +411,7 @@ export default function AdminPage() {
                           tema_aciklama: d.tema_aciklama || '',
                           kapak_url: d.kapak_url || '',
                           pdf_url: d.pdf_url || '',
-                          durum: d.durum || 'hazirlikta'
+                          durum: d.durum || 'hazirlikta',
                         });
                       }}
                       className={`p-5 border-2 cursor-pointer transition-all ${
@@ -424,4 +421,124 @@ export default function AdminPage() {
                       }`}
                     >
                       <div className="flex justify-between items-center mb-1">
-                        <span className={`text-[10px] uppe
+                        <span className={`text-[10px] uppercase tracking-widest font-black px-2 py-0.5 ${
+                          selectedDergi?.id === d.id ? 'bg-zemin-bej text-zemin-bordo' : 'bg-zemin-bordo text-zemin-bej'
+                        }`}>
+                          Sayı {d.sayi_no}
+                        </span>
+                        <span className={`text-xs uppercase tracking-widest font-bold ${
+                          d.durum === 'yayinda' ? 'text-green-400' : 'text-amber-300'
+                        }`}>
+                          ● {d.durum === 'yayinda' ? 'YAYINDA' : 'HAZIRLIKTA'}
+                        </span>
+                      </div>
+                      <h3 className="font-serif text-2xl font-bold mt-1 leading-snug">{d.baslik}</h3>
+                      <div className="mt-3 pt-3 border-t border-current/20 flex justify-between text-xs opacity-90">
+                        <span>{sayidakiYaziSayisi} Makale Dahil Edildi</span>
+                        <span className="font-bold underline">Düzenle →</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Dergi Formu */}
+          <div className="lg:col-span-7 bg-zemin-kagit border-2 border-zemin-bordo p-6 md:p-8 shadow-[4px_4px_0px_#4E141E]">
+            <div className="flex justify-between items-center border-b-2 border-zemin-cizgi pb-3 mb-6">
+              <h2 className="font-serif text-2xl font-bold text-zemin-bordo">
+                {isEditingDergi ? `Sayı ${dergiForm.sayi_no} Düzenleniyor` : 'Yeni Dergi Sayısı Oluştur'}
+              </h2>
+              {isEditingDergi && selectedDergi && (
+                <button onClick={() => dergiSil(selectedDergi.id)} className="text-xs uppercase tracking-widest text-red-700 font-bold underline">
+                  Sayıyı Sil
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={dergiKaydet} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Sayı No (Örn: 01)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="01"
+                    value={dergiForm.sayi_no}
+                    onChange={(e) => setDergiForm({ ...dergiForm, sayi_no: e.target.value })}
+                    className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs font-bold outline-none focus:border-zemin-bordo"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Durum</label>
+                  <select
+                    value={dergiForm.durum}
+                    onChange={(e) => setDergiForm({ ...dergiForm, durum: e.target.value })}
+                    className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs font-bold outline-none focus:border-zemin-bordo"
+                  >
+                    <option value="hazirlikta">Hazırlık Aşamasında (Yazı Kabulü Açık)</option>
+                    <option value="yayinda">Yayında (Ana Sayfa Vitrinine Al & PDF'i Aç)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Sayı Dosya Başlığı</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Örn: Bellek, Zaman ve İrade"
+                  value={dergiForm.baslik}
+                  onChange={(e) => setDergiForm({ ...dergiForm, baslik: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-sm font-serif font-bold outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Tema / Dosya Açıklaması</label>
+                <textarea
+                  rows={3}
+                  placeholder="Bu sayının editoryal çerçevesi..."
+                  value={dergiForm.tema_aciklama}
+                  onChange={(e) => setDergiForm({ ...dergiForm, tema_aciklama: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Kapak Görsel Linki (URL)</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={dergiForm.kapak_url}
+                  onChange={(e) => setDergiForm({ ...dergiForm, kapak_url: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Dergi PDF / Web Okuma Linki (URL)</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={dergiForm.pdf_url}
+                  onChange={(e) => setDergiForm({ ...dergiForm, pdf_url: e.target.value })}
+                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-zemin-bordo text-zemin-bej py-3 text-xs uppercase tracking-widest font-bold shadow-[3px_3px_0px_#2D4F38] hover:bg-zemin-bordokoyu"
+              >
+                {isEditingDergi ? '✓ Değişiklikleri Kaydet' : '+ Dergi Sayısını Oluştur'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
