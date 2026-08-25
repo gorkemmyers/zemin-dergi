@@ -20,7 +20,7 @@ export default function HomePage() {
           kategori,
           icerik,
           olusturulma_tarihi,
-          yazarlar (ad_soyad, universite, bolum, slug)
+          yazarlar (ad_soyad, universite, bolum)
         `)
         .eq('durum', 'onaylandi')
         .order('olusturulma_tarihi', { ascending: false });
@@ -37,122 +37,160 @@ export default function HomePage() {
     getYazilar();
   }, [kategori]);
 
+  const mansetYazi = yazilar[0];
+  const yanYazilar = yazilar.slice(1, 4);
+  const digerYazilar = yazilar.slice(4);
+
   return (
-    <main className="max-w-6xl mx-auto px-6 py-8">
-      {/* AYIN SAYISI (HERO BLOĞU) */}
-      <section className="bg-[#4E141E] text-[#F7F5F0] p-8 md:p-12 mb-16 grid grid-cols-1 md:grid-cols-3 gap-8 items-center border border-[#4E141E]">
-        <div className="md:col-span-1 border border-[#8CA090]/40 p-6 text-center bg-[#4E141E]/50 flex flex-col justify-between aspect-[3/4]">
-          <span className="text-[10px] uppercase tracking-widest text-[#8CA090] font-semibold">Aylık Seçki</span>
-          <div>
-            <h2 className="font-editorial text-3xl font-bold tracking-wide">ZEMİN</h2>
-            <p className="text-xs uppercase tracking-widest text-[#8CA090] mt-1">Sayı 01</p>
-          </div>
-          <span className="text-[11px] text-[#F7F5F0]/70 italic">Felsefe · Sosyoloji · Psikoloji</span>
-        </div>
-
-        <div className="md:col-span-2 space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="text-xs uppercase tracking-widest text-[#8CA090] font-semibold">Ayın Sayısı</span>
-            <span className="text-xs text-[#8CA090]/60">•</span>
-            <span className="text-xs text-[#8CA090]">Sayı 01</span>
-          </div>
-          <h1 className="font-editorial text-3xl md:text-5xl font-bold leading-tight">
-            Bellek, Zaman ve İrade
-          </h1>
-          <p className="text-sm md:text-base text-[#F7F5F0]/80 leading-relaxed font-editorial italic pt-2">
-            "Bu ay zihin, toplum ve mekan ucgeninde bireyin kopuşunu ve hafızayla kurduğu bağıntıyı üç bağımsız öğrenci metni üzerinden tartışmaya açıyoruz."
-          </p>
-          <div className="pt-4 flex flex-wrap gap-4">
-            <Link href="/dergiler" className="bg-[#F7F5F0] text-[#1A1A1A] px-6 py-3 text-xs uppercase tracking-widest font-semibold hover:bg-[#8CA090] transition-colors">
-              Sayıyı İncele
-            </Link>
-          </div>
-        </div>
-      </section>
-
+    <main className="max-w-6xl mx-auto px-6 py-10">
       {/* KATEGORİ FİLTRELERİ */}
-      <section className="mb-10">
-        <div className="flex items-center justify-between border-b border-[#E3DDD3] pb-4">
-          <div className="flex gap-4 md:gap-8 overflow-x-auto text-xs uppercase tracking-wider font-semibold">
-            {['Tümü', 'Felsefe', 'Sosyoloji', 'Psikoloji'].map((kat) => (
-              <button
-                key={kat}
-                onClick={() => setKategori(kat)}
-                className={`pb-2 transition-colors ${
-                  kategori === kat
-                    ? 'border-b-2 border-[#4E141E] text-[#4E141E]'
-                    : 'text-[#1A1A1A]/60 hover:text-[#1A1A1A]'
-                }`}
-              >
-                {kat}
-              </button>
-            ))}
-          </div>
-          <span className="text-xs text-[#5E7362] font-semibold hidden md:inline">
-            Açık Düşünce Arşivi
-          </span>
+      <section className="border-b border-[#E2DDD5] pb-3 mb-10 flex items-center justify-between">
+        <div className="flex gap-6 overflow-x-auto text-xs uppercase tracking-wider font-semibold">
+          {['Tümü', 'Felsefe', 'Sosyoloji', 'Psikoloji'].map((kat) => (
+            <button
+              key={kat}
+              onClick={() => setKategori(kat)}
+              className={`pb-1 transition-colors ${
+                kategori === kat
+                  ? 'border-b-2 border-[#4E141E] text-[#4E141E]'
+                  : 'text-[#1A1A1A]/60 hover:text-[#1A1A1A]'
+              }`}
+            >
+              {kat}
+            </button>
+          ))}
         </div>
+        <span className="text-[11px] text-[#5E7362] font-semibold hidden sm:inline uppercase tracking-widest">
+          Serbest Kürsü
+        </span>
       </section>
 
-      {/* YAZI LİSTESİ / GRID */}
       {loading ? (
-        <div className="py-20 text-center text-xs uppercase tracking-widest text-[#1A1A1A]/50">
-          Metinler Yükleniyor...
+        <div className="py-28 text-center text-xs uppercase tracking-widest text-[#1A1A1A]/50">
+          Arşiv taranıyor...
         </div>
       ) : yazilar.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-[#E3DDD3] p-12">
-          <p className="font-editorial text-xl text-[#1A1A1A]/70 mb-3">Bu kategoride henüz yayımlanmış metin bulunmuyor.</p>
+        <div className="py-24 text-center border border-dashed border-[#E2DDD5] p-12">
+          <p className="font-editorial text-2xl text-[#1A1A1A]/70 mb-3">Bu alanda henüz yayımlanmış metin bulunmuyor.</p>
           <Link href="/basvuru" className="text-xs uppercase tracking-widest font-semibold text-[#4E141E] underline">
             İlk metni sen gönder
           </Link>
         </div>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {yazilar.map((yazi) => (
-            <Link
-              key={yazi.id}
-              href={`/yazi/${yazi.slug}`}
-              className="border border-[#E3DDD3] p-6 flex flex-col justify-between bg-[#F7F5F0] hover:border-[#4E141E] hover:shadow-sm transition-all group"
-            >
-              <div>
-                <div className="flex items-center justify-between text-[11px] uppercase tracking-wider font-semibold text-[#5E7362] mb-3">
-                  <span>{yazi.kategori}</span>
-                  <span className="group-hover:text-[#4E141E] transition-colors">Okumaya Başla →</span>
+        <>
+          {/* 1. BÖLÜM: EDİTORYAL MANŞET VE YAN KOLON */}
+          <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 pb-12 border-b border-[#E2DDD5]">
+            {/* Büyük Manşet Metni (Sol 7 Kolon) */}
+            {mansetYazi && (
+              <article className="lg:col-span-7 flex flex-col justify-between pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-[#E2DDD5] pb-8 lg:pb-0">
+                <div>
+                  <div className="flex items-center gap-3 text-xs uppercase tracking-widest font-semibold text-[#5E7362] mb-3">
+                    <span>{mansetYazi.kategori}</span>
+                    <span>•</span>
+                    <span className="text-[#1A1A1A]/50">Öne Çıkan</span>
+                  </div>
+
+                  <Link href={`/yazi/${mansetYazi.slug}`} className="group block">
+                    <h1 className="font-editorial text-3xl md:text-5xl font-bold leading-[1.15] text-[#1A1A1A] group-hover:text-[#4E141E] transition-colors mb-5">
+                      {mansetYazi.baslik}
+                    </h1>
+                  </Link>
+
+                  <p className="font-editorial text-lg md:text-xl text-[#1A1A1A]/80 leading-relaxed line-clamp-4 mb-6">
+                    {mansetYazi.icerik}
+                  </p>
                 </div>
-                <h3 className="font-editorial text-2xl font-bold leading-snug mb-3 text-[#1A1A1A] group-hover:text-[#4E141E] transition-colors">
-                  {yazi.baslik}
-                </h3>
-                <p className="text-xs text-[#1A1A1A]/70 leading-relaxed line-clamp-3 mb-6">
-                  {yazi.icerik}
-                </p>
-              </div>
 
-              <div className="border-t border-[#E3DDD3] pt-4 text-xs">
-                <span className="font-semibold block text-[#1A1A1A]">
-                  {yazi.yazarlar?.ad_soyad}
-                </span>
-                <span className="text-[#1A1A1A]/60 text-[11px]">
-                  {yazi.yazarlar?.universite} · {yazi.yazarlar?.bolum}
-                </span>
+                <div className="pt-4 border-t border-[#E2DDD5]/60 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-semibold text-sm text-[#1A1A1A] block">{mansetYazi.yazarlar?.ad_soyad}</span>
+                    <span className="text-[#1A1A1A]/60">{mansetYazi.yazarlar?.universite} · {mansetYazi.yazarlar?.bolum}</span>
+                  </div>
+                  <Link href={`/yazi/${mansetYazi.slug}`} className="font-semibold text-[#4E141E] hover:underline uppercase tracking-wider text-[11px]">
+                    Okumaya Başla →
+                  </Link>
+                </div>
+              </article>
+            )}
+
+            {/* Yan Kolon Metinleri (Sağ 5 Kolon) */}
+            <div className="lg:col-span-5 divide-y divide-[#E2DDD5] flex flex-col justify-between">
+              {yanYazilar.map((yazi) => (
+                <article key={yazi.id} className="py-5 first:pt-0 last:pb-0">
+                  <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold block mb-1.5">
+                    {yazi.kategori}
+                  </span>
+                  <Link href={`/yazi/${yazi.slug}`} className="group block">
+                    <h2 className="font-editorial text-2xl font-bold text-[#1A1A1A] group-hover:text-[#4E141E] transition-colors leading-snug mb-2">
+                      {yazi.baslik}
+                    </h2>
+                  </Link>
+                  <p className="text-xs text-[#1A1A1A]/70 line-clamp-2 leading-relaxed mb-3">
+                    {yazi.icerik}
+                  </p>
+                  <div className="text-[11px] text-[#1A1A1A]/60">
+                    <span className="font-semibold text-[#1A1A1A]">{yazi.yazarlar?.ad_soyad}</span> — {yazi.yazarlar?.universite}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          {/* 2. BÖLÜM: SAYI DOSYASI BANTI */}
+          <section className="my-14 py-8 px-6 md:px-10 bg-[#1A1A1A] text-[#F8F6F0] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 text-xs uppercase tracking-widest text-[#8CA090] font-semibold mb-2">
+                <span>Tematik Seçki</span>
+                <span>•</span>
+                <span>Sayı 01</span>
               </div>
+              <h3 className="font-editorial text-2xl md:text-3xl font-bold">Bellek, Zaman ve İrade</h3>
+              <p className="text-xs md:text-sm text-[#F8F6F0]/70 mt-1 font-editorial italic">
+                Bireyin mekanla ve hafızayla kurduğu bağıntıyı tartışmaya açan özel dosya metinleri.
+              </p>
+            </div>
+            <Link
+              href="/dergiler"
+              className="border border-[#F8F6F0]/40 text-[#F8F6F0] px-6 py-2.5 text-xs uppercase tracking-widest font-semibold hover:bg-[#F8F6F0] hover:text-[#1A1A1A] transition-colors whitespace-nowrap"
+            >
+              Dosyayı İncele →
             </Link>
-          ))}
-        </section>
-      )}
+          </section>
 
-      {/* CTA ŞERİDİ */}
-      <section className="mt-20 border border-[#E3DDD3] bg-[#F7F5F0] p-8 md:p-12 text-center">
-        <span className="text-xs uppercase tracking-widest text-[#5E7362] font-semibold">Açık Çağrı</span>
-        <h2 className="font-editorial text-3xl font-bold mt-2 mb-4 text-[#1A1A1A]">
-          Düşüncelerini Arşive Dahil Et
-        </h2>
-        <p className="text-xs md:text-sm text-[#1A1A1A]/70 max-w-xl mx-auto mb-6 leading-relaxed">
-          Felsefe, sosyoloji veya psikoloji alanındaki denemeni gönder; açık web arşivinde bağımsız profilinle yer al ve aylık küratörlü seçkiye dahil ol.
-        </p>
-        <Link href="/basvuru" className="inline-block bg-[#4E141E] text-[#F7F5F0] px-8 py-3.5 text-xs uppercase tracking-widest font-semibold hover:opacity-95 transition-opacity">
-          Metin Gönder
-        </Link>
-      </section>
+          {/* 3. BÖLÜM: GAZETE SÜTUNLARI (DİĞER METİNLER) */}
+          {digerYazilar.length > 0 && (
+            <section className="pt-2">
+              <div className="border-b border-[#E2DDD5] pb-2 mb-8">
+                <h3 className="font-editorial text-2xl font-bold text-[#1A1A1A]">Arşivden Diğer Metinler</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                {digerYazilar.map((yazi) => (
+                  <article key={yazi.id} className="flex flex-col justify-between border-b md:border-b-0 md:border-r last:border-r-0 border-[#E2DDD5] pr-0 md:pr-6 pb-6 md:pb-0">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold block mb-2">
+                        {yazi.kategori}
+                      </span>
+                      <Link href={`/yazi/${yazi.slug}`} className="group block">
+                        <h4 className="font-editorial text-xl font-bold text-[#1A1A1A] group-hover:text-[#4E141E] transition-colors leading-snug mb-3">
+                          {yazi.baslik}
+                        </h4>
+                      </Link>
+                      <p className="text-xs text-[#1A1A1A]/70 line-clamp-3 leading-relaxed mb-4">
+                        {yazi.icerik}
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-[#E2DDD5]/60 text-xs">
+                      <span className="font-semibold block text-[#1A1A1A]">{yazi.yazarlar?.ad_soyad}</span>
+                      <span className="text-[11px] text-[#1A1A1A]/60">{yazi.yazarlar?.universite}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
     </main>
   );
 }
