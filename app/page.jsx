@@ -109,13 +109,17 @@ export default function HomePage() {
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {yazilar.map((yazi) => (
-            <article key={yazi.id} className="border border-[#E3DDD3] p-6 flex flex-col justify-between bg-[#F7F5F0] hover:border-[#4E141E] transition-colors">
+            <Link
+              key={yazi.id}
+              href={`/yazi/${yazi.slug}`}
+              className="border border-[#E3DDD3] p-6 flex flex-col justify-between bg-[#F7F5F0] hover:border-[#4E141E] hover:shadow-sm transition-all group"
+            >
               <div>
                 <div className="flex items-center justify-between text-[11px] uppercase tracking-wider font-semibold text-[#5E7362] mb-3">
                   <span>{yazi.kategori}</span>
-                  <span>5 dk okuma</span>
+                  <span className="group-hover:text-[#4E141E] transition-colors">Okumaya Başla →</span>
                 </div>
-                <h3 className="font-editorial text-2xl font-bold leading-snug mb-3 text-[#1A1A1A]">
+                <h3 className="font-editorial text-2xl font-bold leading-snug mb-3 text-[#1A1A1A] group-hover:text-[#4E141E] transition-colors">
                   {yazi.baslik}
                 </h3>
                 <p className="text-xs text-[#1A1A1A]/70 leading-relaxed line-clamp-3 mb-6">
@@ -131,7 +135,7 @@ export default function HomePage() {
                   {yazi.yazarlar?.universite} · {yazi.yazarlar?.bolum}
                 </span>
               </div>
-            </article>
+            </Link>
           ))}
         </section>
       )}
