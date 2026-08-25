@@ -121,7 +121,7 @@ export default function AdminPage() {
     return (
       <main className="min-h-[70vh] flex items-center justify-center px-6">
         <form onSubmit={handleLogin} className="border border-[#E3DDD3] bg-[#F7F5F0] p-8 max-w-sm w-full text-center space-y-4 shadow-sm">
-          <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Masa</span>
+          <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Güvenlik</span>
           <h2 className="font-editorial text-2xl font-bold text-[#1A1A1A]">Editör Girişi</h2>
           <p className="text-xs text-[#1A1A1A]/60">Yönetici paneline erişmek için PIN kodunu girin.</p>
           <input
@@ -142,15 +142,15 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
+    <main className="max-w-7xl mx-auto px-4 md:px-6 py-6">
       {/* Üst Bar */}
-      <header className="border-b border-[#E3DDD3] pb-4 mb-6 flex justify-between items-center">
+      <header className="border-b border-[#E3DDD3] pb-4 mb-4 flex justify-between items-center">
         <div>
           <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Zemin Dergi</span>
           <h1 className="font-editorial text-2xl md:text-3xl font-bold text-[#1A1A1A]">Editoryal Masa</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={fetchYazilar} className="text-xs uppercase tracking-widest border border-[#E3DDD3] px-3.5 py-1.5 hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors">
+          <button onClick={fetchYazilar} className="text-xs uppercase tracking-widest border border-[#E3DDD3] px-3 py-1.5 hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors">
             Yenile
           </button>
           <button
@@ -158,7 +158,7 @@ export default function AdminPage() {
               sessionStorage.removeItem('zemin_admin_auth');
               setIsAuthenticated(false);
             }}
-            className="text-xs uppercase tracking-widest border border-red-200 text-red-700 px-3.5 py-1.5 hover:bg-red-50"
+            className="text-xs uppercase tracking-widest border border-red-200 text-red-700 px-3 py-1.5 hover:bg-red-50"
           >
             Çıkış
           </button>
@@ -166,10 +166,10 @@ export default function AdminPage() {
       </header>
 
       {/* Sekmeler */}
-      <div className="flex gap-2 border-b border-[#E3DDD3] pb-4 mb-6 overflow-x-auto text-xs uppercase tracking-wider font-semibold">
+      <div className="flex gap-2 border-b border-[#E3DDD3] pb-3 mb-4 overflow-x-auto text-xs uppercase tracking-wider font-semibold">
         <button
           onClick={() => handleSekmeDegistir('beklemede')}
-          className={`px-3.5 py-2 flex items-center gap-2 transition-colors ${
+          className={`px-3 py-1.5 flex items-center gap-2 whitespace-nowrap transition-colors ${
             aktifSekme === 'beklemede'
               ? 'bg-[#4E141E] text-[#F7F5F0]'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-[#4E141E]'
@@ -185,7 +185,7 @@ export default function AdminPage() {
 
         <button
           onClick={() => handleSekmeDegistir('onaylandi')}
-          className={`px-3.5 py-2 flex items-center gap-2 transition-colors ${
+          className={`px-3 py-1.5 flex items-center gap-2 whitespace-nowrap transition-colors ${
             aktifSekme === 'onaylandi'
               ? 'bg-[#5E7362] text-[#F7F5F0]'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-[#5E7362]'
@@ -201,7 +201,7 @@ export default function AdminPage() {
 
         <button
           onClick={() => handleSekmeDegistir('reddedildi')}
-          className={`px-3.5 py-2 flex items-center gap-2 transition-colors ${
+          className={`px-3 py-1.5 flex items-center gap-2 whitespace-nowrap transition-colors ${
             aktifSekme === 'reddedildi'
               ? 'bg-red-800 text-white'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-red-800'
@@ -217,7 +217,7 @@ export default function AdminPage() {
 
         <button
           onClick={() => handleSekmeDegistir('tumu')}
-          className={`px-3.5 py-2 transition-colors ${
+          className={`px-3 py-1.5 whitespace-nowrap transition-colors ${
             aktifSekme === 'tumu'
               ? 'bg-[#1A1A1A] text-[#F7F5F0]'
               : 'border border-[#E3DDD3] text-[#1A1A1A]/70 hover:border-[#1A1A1A]'
@@ -234,9 +234,12 @@ export default function AdminPage() {
           <p className="font-editorial text-lg text-[#1A1A1A]/70">Bu sekmede gösterilecek metin bulunmuyor.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Sol Kolon: Sade Satır Listesi */}
-          <div className="lg:col-span-5 divide-y divide-[#E3DDD3] border border-[#E3DDD3] bg-[#F7F5F0] max-h-[75vh] overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Sol Kolon: Başvuru Listesi */}
+          <div className={`lg:col-span-5 divide-y divide-[#E3DDD3] border border-[#E3DDD3] bg-[#F7F5F0] overflow-y-auto max-h-[75vh] lg:sticky lg:top-6 ${
+            selectedYazi ? 'hidden lg:block' : 'block'
+          }`}>
             {gorunenYazilar.map((y) => (
               <button
                 key={y.id}
@@ -264,9 +267,19 @@ export default function AdminPage() {
           </div>
 
           {/* Sağ Kolon: Okuma Masası */}
-          <div className="lg:col-span-7 border border-[#E3DDD3] bg-[#F7F5F0] p-6 md:p-8 flex flex-col justify-between min-h-[75vh]">
+          <div className={`lg:col-span-7 border border-[#E3DDD3] bg-[#F7F5F0] p-6 md:p-8 flex flex-col justify-between max-h-[75vh] overflow-y-auto lg:sticky lg:top-6 ${
+            selectedYazi ? 'block' : 'hidden lg:flex'
+          }`}>
             {selectedYazi ? (
-              <div className="space-y-6">
+              <div className="space-y-5">
+                {/* Mobilde Geri Dön Butonu */}
+                <button
+                  onClick={() => setSelectedYazi(null)}
+                  className="lg:hidden text-xs uppercase tracking-widest font-semibold text-[#4E141E] border-b border-[#4E141E] pb-0.5 inline-block mb-2"
+                >
+                  ← Başvuru Listesine Dön
+                </button>
+
                 <div className="border-b border-[#E3DDD3] pb-4">
                   <div className="flex justify-between items-start gap-4">
                     <div>
@@ -299,7 +312,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Metin İçeriği */}
-                <div className="font-editorial text-[#1A1A1A] text-base leading-relaxed whitespace-pre-wrap max-h-[42vh] overflow-y-auto pr-3 border-b border-[#E3DDD3]/40 pb-6">
+                <div className="font-editorial text-[#1A1A1A] text-base leading-relaxed whitespace-pre-wrap max-h-[38vh] overflow-y-auto pr-3 border-b border-[#E3DDD3]/40 pb-4">
                   {selectedYazi.icerik}
                 </div>
 
@@ -309,7 +322,7 @@ export default function AdminPage() {
                     <>
                       <button
                         onClick={() => durumGuncelle(selectedYazi.id, 'onaylandi')}
-                        className="flex-1 bg-[#4E141E] text-[#F7F5F0] py-3 text-xs uppercase tracking-widest font-semibold hover:opacity-95 transition-opacity"
+                        className="flex-1 bg-[#4E141E] text-[#F7F5F0] py-3 text-xs uppercase tracking-widest font-semibold hover:opacity-95"
                       >
                         ✓ Yayımla (Sitede Aç)
                       </button>
