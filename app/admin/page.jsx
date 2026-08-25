@@ -4,13 +4,36 @@ import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
+
+  // Editör giriş PIN'i (Buradan istediğin şifreyi belirleyebilirsin)
+  const ADMIN_PIN = '1923';
+
   const [yazilar, setYazilar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedYazi, setSelectedYazi] = useState(null);
 
   useEffect(() => {
-    fetchBekleyenler();
+    const savedAuth = sessionStorage.getItem('zemin_admin_auth');
+    if (savedAuth === 'true') {
+      setIsAuthenticated(true);
+      fetchBekleyenler();
+    }
   }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (pinInput === ADMIN_PIN) {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('zemin_admin_auth', 'true');
+      setPinError(false);
+      fetchBekleyenler();
+    } else {
+      setPinError(true);
+    }
+  };
 
   async function fetchBekleyenler() {
     setLoading(true);
@@ -49,6 +72,30 @@ export default function AdminPage() {
     }
   }
 
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center px-6">
+        <form onSubmit={handleLogin} className="border border-[#E3DDD3] bg-[#F7F5F0] p-8 max-w-sm w-full text-center space-y-4">
+          <span className="text-[10px] uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Güvenlik</span>
+          <h2 className="font-editorial text-2xl font-bold text-[#1A1A1A]">Editör Girişi</h2>
+          <p className="text-xs text-[#1A1A1A]/60">Yönetici paneline erişmek için PIN kodunu girin.</p>
+          <input
+            type="password"
+            maxLength={6}
+            placeholder="PIN Kodu"
+            value={pinInput}
+            onChange={(e) => setPinInput(e.target.value)}
+            className="w-full text-center tracking-widest text-lg font-bold border border-[#E3DDD3] bg-transparent p-3 outline-none focus:border-[#4E141E]"
+          />
+          {pinError && <p className="text-xs text-red-600 font-semibold">Hatalı PIN kodu girdiniz.</p>}
+          <button type="submit" className="w-full bg-[#4E141E] text-[#F7F5F0] py-3 text-xs uppercase tracking-widest font-semibold hover:opacity-95">
+            Giriş Yap
+          </button>
+        </form>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
       <header className="border-b border-[#E3DDD3] pb-6 mb-8 flex justify-between items-end">
@@ -56,9 +103,20 @@ export default function AdminPage() {
           <span className="text-xs uppercase tracking-widest text-[#5E7362] font-semibold">Editoryal Masa</span>
           <h1 className="font-editorial text-3xl font-bold text-[#1A1A1A] mt-1">Yazı İnceleme & Onay</h1>
         </div>
-        <button onClick={fetchBekleyenler} className="text-xs uppercase tracking-widest border border-[#E3DDD3] px-4 py-2 hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors">
-          Listeyi Yenile
-        </button>
+        <div className="flex gap-4">
+          <button onClick={fetchBekleyenler} className="text-xs uppercase tracking-widest border border-[#E3DDD3] px-4 py-2 hover:bg-[#1A1A1A] hover:text-[#F7F5F0] transition-colors">
+            Yenile
+          </button>
+          <button
+            onClick={() => {
+              sessionStorage.removeItem('zemin_admin_auth');
+              setIsAuthenticated(false);
+            }}
+            className="text-xs uppercase tracking-widest border border-red-200 text-red-700 px-4 py-2 hover:bg-red-50"
+          >
+            Çıkış
+          </button>
+        </div>
       </header>
 
       {loading ? (
@@ -101,11 +159,9 @@ export default function AdminPage() {
             {selectedYazi ? (
               <div className="space-y-6">
                 <div className="border-b border-[#E3DDD3] pb-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-xs uppercase tracking-widest text-[#5E7362] font-semibold">{selectedYazi.kategori}</span>
-                      <h2 className="font-editorial text-3xl font-bold text-[#1A1A1A] mt-1">{selectedYazi.baslik}</h2>
-                    </div>
+                  <div>
+                    <span className="text-xs uppercase tracking-widest text-[#5E7362] font-semibold">{selectedYazi.kategori}</span>
+                    <h2 className="font-editorial text-3xl font-bold text-[#1A1A1A] mt-1">{selectedYazi.baslik}</h2>
                   </div>
 
                   <div className="mt-4 p-4 bg-[#E3DDD3]/30 border border-[#E3DDD3] text-xs space-y-1">
