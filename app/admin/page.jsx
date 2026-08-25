@@ -53,7 +53,7 @@ export default function AdminPage() {
 
   async function fetchTumVeriler() {
     setLoading(true);
-    const { data: yData } = await supabase
+    const { data: yData, error: yError } = await supabase
       .from('yazilar')
       .select(`
         id, baslik, slug, kategori, icerik, durum, dergi_id, olusturulma_tarihi,
@@ -61,18 +61,18 @@ export default function AdminPage() {
       `)
       .order('olusturulma_tarihi', { ascending: false });
 
-    if (yData) {
+    if (!yError && yData) {
       setYazilar(yData);
       const bekleyenler = yData.filter((y) => y.durum === 'beklemede');
       setSelectedYazi(bekleyenler.length > 0 ? bekleyenler[0] : yData[0] || null);
     }
 
-    const { data: dData } = await supabase
+    const { data: dData, error: dError } = await supabase
       .from('dergiler')
       .select('*')
       .order('sayi_no', { ascending: false });
 
-    if (dData) {
+    if (!dError && dData) {
       setDergiler(dData);
       if (dData.length > 0 && !selectedDergi) setSelectedDergi(dData[0]);
     }
@@ -91,6 +91,8 @@ export default function AdminPage() {
       const guncel = yazilar.map((y) => (y.id === id ? { ...y, durum: yeniDurum } : y));
       setYazilar(guncel);
       setSelectedYazi((prev) => (prev?.id === id ? { ...prev, durum: yeniDurum } : prev));
+    } else {
+      alert('Durum güncellenemedi: ' + error.message);
     }
   }
 
@@ -105,6 +107,8 @@ export default function AdminPage() {
       const guncel = yazilar.map((y) => (y.id === yaziId ? { ...y, dergi_id: yeniDergiId } : y));
       setYazilar(guncel);
       if (selectedYazi?.id === yaziId) setSelectedYazi({ ...selectedYazi, dergi_id: yeniDergiId });
+    } else {
+      alert('Dergi bağlantısı güncellenemedi: ' + error.message);
     }
   }
 
@@ -115,59 +119,62 @@ export default function AdminPage() {
       const guncel = yazilar.filter((y) => y.id !== id);
       setYazilar(guncel);
       setSelectedYazi(guncel[0] || null);
+    } else {
+      alert('Yazı silinemedi: ' + error.message);
     }
   }
 
   // --- DERGİ İŞLEMLERİ ---
   async function dergiKaydet(e) {
     e.preventDefault();
+
+    const payload = {
+      sayi_no: dergiForm.sayi_no.trim(),
+      baslik: dergiForm.baslik.trim(),
+      tema_aciklama: dergiForm.tema_aciklama.trim() || null,
+      kapak_url: dergiForm.kapak_url.trim() || null,
+      pdf_url: dergiForm.pdf_url.trim() || null,
+      durum: dergiForm.durum,
+      yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null,
+    };
+
     if (isEditingDergi && selectedDergi) {
       const { error } = await supabase
         .from('dergiler')
-        .update({
-          sayi_no: dergiForm.sayi_no,
-          baslik: dergiForm.baslik,
-          tema_aciklama: dergiForm.tema_aciklama,
-          kapak_url: dergiForm.kapak_url,
-          pdf_url: dergiForm.pdf_url,
-          durum: dergiForm.durum,
-          yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null,
-        })
+        .update(payload)
         .eq('id', selectedDergi.id);
 
       if (!error) {
         alert('Dergi sayısı güncellendi.');
         fetchTumVeriler();
         setIsEditingDergi(false);
+      } else {
+        alert('Güncelleme hatası: ' + error.message);
       }
     } else {
-      const { error } = await supabase.from('dergiler').insert([
-        {
-          sayi_no: dergiForm.sayi_no,
-          baslik: dergiForm.baslik,
-          tema_aciklama: dergiForm.tema_aciklama,
-          kapak_url: dergiForm.kapak_url,
-          pdf_url: dergiForm.pdf_url,
-          durum: dergiForm.durum,
-          yayin_tarihi: dergiForm.durum === 'yayinda' ? new Date().toISOString() : null,
-        },
-      ]);
+      const { error } = await supabase.from('dergiler').insert([payload]);
 
       if (!error) {
-        alert('Yeni dergi sayısı oluşturuldu.');
+        alert('Yeni dergi sayısı başarıyla oluşturuldu.');
         setDergiForm({ sayi_no: '', baslik: '', tema_aciklama: '', kapak_url: '', pdf_url: '', durum: 'hazirlikta' });
         fetchTumVeriler();
+      } else {
+        alert('Dergi oluşturma hatası: ' + error.message);
       }
     }
   }
 
   async function dergiSil(id) {
-    if (!confirm('Bu dergi sayısını silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Bu dergi sayısını silmek istediğinizden emin misiniz? (İçindeki yazılar silinmez, sadece bağı kalkar)')) return;
     const { error } = await supabase.from('dergiler').delete().eq('id', id);
     if (!error) {
+      alert('Dergi sayısı silindi.');
       fetchTumVeriler();
       setSelectedDergi(null);
       setIsEditingDergi(false);
+      setDergiForm({ sayi_no: '', baslik: '', tema_aciklama: '', kapak_url: '', pdf_url: '', durum: 'hazirlikta' });
+    } else {
+      alert('Silme hatası: ' + error.message);
     }
   }
 
@@ -379,6 +386,7 @@ export default function AdminPage() {
             <div className="flex justify-between items-center border-b-2 border-zemin-bordo pb-2">
               <h2 className="font-serif text-2xl font-bold text-zemin-bordo">Mevcut Sayılar</h2>
               <button
+                type="button"
                 onClick={() => {
                   setIsEditingDergi(false);
                   setDergiForm({ sayi_no: '', baslik: '', tema_aciklama: '', kapak_url: '', pdf_url: '', durum: 'hazirlikta' });
@@ -406,8 +414,8 @@ export default function AdminPage() {
                         setSelectedDergi(d);
                         setIsEditingDergi(true);
                         setDergiForm({
-                          sayi_no: d.sayi_no,
-                          baslik: d.baslik,
+                          sayi_no: d.sayi_no || '',
+                          baslik: d.baslik || '',
                           tema_aciklama: d.tema_aciklama || '',
                           kapak_url: d.kapak_url || '',
                           pdf_url: d.pdf_url || '',
@@ -420,125 +428,4 @@ export default function AdminPage() {
                           : 'border-zemin-cizgi bg-zemin-kagit text-zemin-metin hover:border-zemin-bordo'
                       }`}
                     >
-                      <div className="flex justify-between items-center mb-1">
-                        <span className={`text-[10px] uppercase tracking-widest font-black px-2 py-0.5 ${
-                          selectedDergi?.id === d.id ? 'bg-zemin-bej text-zemin-bordo' : 'bg-zemin-bordo text-zemin-bej'
-                        }`}>
-                          Sayı {d.sayi_no}
-                        </span>
-                        <span className={`text-xs uppercase tracking-widest font-bold ${
-                          d.durum === 'yayinda' ? 'text-green-400' : 'text-amber-300'
-                        }`}>
-                          ● {d.durum === 'yayinda' ? 'YAYINDA' : 'HAZIRLIKTA'}
-                        </span>
-                      </div>
-                      <h3 className="font-serif text-2xl font-bold mt-1 leading-snug">{d.baslik}</h3>
-                      <div className="mt-3 pt-3 border-t border-current/20 flex justify-between text-xs opacity-90">
-                        <span>{sayidakiYaziSayisi} Makale Dahil Edildi</span>
-                        <span className="font-bold underline">Düzenle →</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Dergi Formu */}
-          <div className="lg:col-span-7 bg-zemin-kagit border-2 border-zemin-bordo p-6 md:p-8 shadow-[4px_4px_0px_#4E141E]">
-            <div className="flex justify-between items-center border-b-2 border-zemin-cizgi pb-3 mb-6">
-              <h2 className="font-serif text-2xl font-bold text-zemin-bordo">
-                {isEditingDergi ? `Sayı ${dergiForm.sayi_no} Düzenleniyor` : 'Yeni Dergi Sayısı Oluştur'}
-              </h2>
-              {isEditingDergi && selectedDergi && (
-                <button onClick={() => dergiSil(selectedDergi.id)} className="text-xs uppercase tracking-widest text-red-700 font-bold underline">
-                  Sayıyı Sil
-                </button>
-              )}
-            </div>
-
-            <form onSubmit={dergiKaydet} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Sayı No (Örn: 01)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="01"
-                    value={dergiForm.sayi_no}
-                    onChange={(e) => setDergiForm({ ...dergiForm, sayi_no: e.target.value })}
-                    className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs font-bold outline-none focus:border-zemin-bordo"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Durum</label>
-                  <select
-                    value={dergiForm.durum}
-                    onChange={(e) => setDergiForm({ ...dergiForm, durum: e.target.value })}
-                    className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs font-bold outline-none focus:border-zemin-bordo"
-                  >
-                    <option value="hazirlikta">Hazırlık Aşamasında (Yazı Kabulü Açık)</option>
-                    <option value="yayinda">Yayında (Ana Sayfa Vitrinine Al & PDF'i Aç)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Sayı Dosya Başlığı</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Örn: Bellek, Zaman ve İrade"
-                  value={dergiForm.baslik}
-                  onChange={(e) => setDergiForm({ ...dergiForm, baslik: e.target.value })}
-                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-sm font-serif font-bold outline-none focus:border-zemin-bordo"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Tema / Dosya Açıklaması</label>
-                <textarea
-                  rows={3}
-                  placeholder="Bu sayının editoryal çerçevesi..."
-                  value={dergiForm.tema_aciklama}
-                  onChange={(e) => setDergiForm({ ...dergiForm, tema_aciklama: e.target.value })}
-                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Kapak Görsel Linki (URL)</label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={dergiForm.kapak_url}
-                  onChange={(e) => setDergiForm({ ...dergiForm, kapak_url: e.target.value })}
-                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest font-bold text-zemin-yesil mb-1">Dergi PDF / Web Okuma Linki (URL)</label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={dergiForm.pdf_url}
-                  onChange={(e) => setDergiForm({ ...dergiForm, pdf_url: e.target.value })}
-                  className="w-full bg-zemin-bej border-2 border-zemin-cizgi p-2.5 text-xs outline-none focus:border-zemin-bordo"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-zemin-bordo text-zemin-bej py-3 text-xs uppercase tracking-widest font-bold shadow-[3px_3px_0px_#2D4F38] hover:bg-zemin-bordokoyu"
-              >
-                {isEditingDergi ? '✓ Değişiklikleri Kaydet' : '+ Dergi Sayısını Oluştur'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </main>
-  );
-}
+           
