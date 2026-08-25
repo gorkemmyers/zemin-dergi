@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-canvas: #F7F5F0;
+  --bg-hero: #4E141E;
+  --text-primary: #1A1A1A;
+  --text-inverted: #F7F5F0;
+  --accent-sage: #5E7362;
+  --accent-sage-light: #8CA090;
+  --border-hairline: #E3DDD3;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-editorial {
+  font-family: 'Newsreader', Georgia, serif;
+}
