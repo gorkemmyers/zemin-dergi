@@ -51,6 +51,20 @@ export default function HomePage() {
     fetchYazilar();
   }, []);
 
+  // Rastgele Düşünce Fonksiyonu
+  const handleRastgele = async () => {
+    const { data } = await supabase
+      .from('yazilar')
+      .select('slug')
+      .eq('durum', 'onaylandi');
+    if (data && data.length > 0) {
+      const rastgeleYazi = data[Math.floor(Math.random() * data.length)];
+      window.location.href = `/yazi/${rastgeleYazi.slug}`;
+    } else {
+      alert('Henüz yayında yazı bulunmuyor.');
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 pb-16">
@@ -61,10 +75,14 @@ export default function HomePage() {
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
               ZEMİN
             </Link>
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline-block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Açık Düşünce
-              </span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button 
+                onClick={handleRastgele}
+                className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
+                title="Rastgele Bir Metin Keşfet"
+              >
+                <span>🔀</span> <span className="hidden sm:inline">Rastgele</span>
+              </button>
               <Link 
                 href="/basvuru" 
                 className="bg-[#32127a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
@@ -101,12 +119,12 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-row justify-center items-center gap-3 sm:gap-4">
-              <Link 
-                href="/dergiler" 
-                className="glass-panel px-5 py-2.5 sm:px-7 sm:py-3.5 font-bold text-xs sm:text-sm text-gray-800 hover:bg-white/90 transition-all shadow-sm"
+              <button 
+                onClick={handleRastgele}
+                className="glass-panel px-5 py-2.5 sm:px-7 sm:py-3.5 font-bold text-xs sm:text-sm text-gray-800 hover:bg-white/90 transition-all shadow-sm flex items-center gap-2"
               >
-                Sayıları İncele
-              </Link>
+                <span>🔀</span> Rastgele Keşfet
+              </button>
               <Link 
                 href="/basvuru" 
                 className="bg-gray-900 text-white px-5 py-2.5 sm:px-7 sm:py-3.5 rounded-3xl text-xs sm:text-sm font-bold shadow-lg shadow-gray-900/15 hover:scale-105 transition-transform"
@@ -142,7 +160,6 @@ export default function HomePage() {
                       style={{ backgroundImage: !yazi.kapak_url ? stil.pattern : 'none' }}
                       className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden ${!yazi.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
                     >
-                      {/* SAĞDA NET, SOLA DOĞRU ERİYEN GÖRSEL KATMANI */}
                       {yazi.kapak_url && (
                         <>
                           <img 
@@ -150,12 +167,10 @@ export default function HomePage() {
                             alt="" 
                             className="absolute -right-2 inset-y-0 w-3/5 h-full object-cover object-center opacity-75 group-hover:scale-105 group-hover:opacity-90 transition-all duration-500 pointer-events-none" 
                           />
-                          {/* Soldaki metinleri koruyan sağa doğru eriyen beyaz degrade */}
                           <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
                         </>
                       )}
 
-                      {/* İÇERİK KATMANI */}
                       <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
                           <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg} shadow-xs`}>
@@ -171,7 +186,6 @@ export default function HomePage() {
                         </h3>
                       </div>
 
-                      {/* ALT BİLGİ */}
                       <div className="relative z-10 mt-6 pt-3.5 border-t border-gray-200/60 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold text-gray-900">{yazi.yazarlar?.ad_soyad}</p>
