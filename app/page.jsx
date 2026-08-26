@@ -123,7 +123,7 @@ export default function HomePage() {
                 onClick={handleRastgele}
                 className="glass-panel px-5 py-2.5 sm:px-7 sm:py-3.5 font-bold text-xs sm:text-sm text-gray-800 hover:bg-white/90 transition-all shadow-sm flex items-center gap-2"
               >
-                <span> </span> Rastgele Keşfet
+               Rastgele Keşfet
               </button>
               <Link 
                 href="/basvuru" 
