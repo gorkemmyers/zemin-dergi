@@ -40,7 +40,7 @@ export default function HomePage() {
     async function fetchYazilar() {
       const { data } = await supabase
         .from('yazilar')
-        .select('id, baslik, slug, kategori, icerik, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
+        .select('id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
         .eq('durum', 'onaylandi')
         .order('olusturulma_tarihi', { ascending: false })
         .limit(6);
@@ -55,7 +55,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 pb-16">
         
-        {/* ÇİFT KATMANLI HAMBURGERSİZ CAM NAVBAR */}
+        {/* NAVBAR */}
         <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 md:mb-10 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
           <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
@@ -117,7 +117,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* SON YAYINLAR (OKUMA SÜRELİ) */}
+        {/* SON YAYINLAR */}
         <section className="mt-6">
           <div className="flex justify-between items-end mb-6 px-1">
             <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Son Yayınlar</h2>
@@ -134,22 +134,33 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {yazilar.map((yazi) => {
                 const stil = getDisiplinStili(yazi.kategori);
-                const okumaSuresi = yazi.icerik 
-                  ? Math.max(1, Math.ceil(yazi.icerik.trim().split(/\s+/).length / 200))
-                  : 1;
+                const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
 
                 return (
                   <Link href={`/yazi/${yazi.slug}`} key={yazi.id} className="group outline-none">
                     <article 
-                      style={{ backgroundImage: stil.pattern }}
-                      className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden bg-gradient-to-br ${stil.cardBg}`}
+                      style={{ backgroundImage: !yazi.kapak_url ? stil.pattern : 'none' }}
+                      className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden ${!yazi.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/80'}`}
                     >
-                      <div>
+                      {/* AKICI SOL-SAĞ GÖRSEL MASKESİ */}
+                      {yazi.kapak_url && (
+                        <>
+                          <img 
+                            src={yazi.kapak_url} 
+                            alt="" 
+                            className="absolute -left-4 inset-y-0 w-3/4 h-full object-cover object-left opacity-60 group-hover:scale-105 group-hover:opacity-75 transition-all duration-500 pointer-events-none" 
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/85 to-white/95 backdrop-blur-[1.5px] pointer-events-none"></div>
+                        </>
+                      )}
+
+                      {/* İÇERİK KATMANI */}
+                      <div className="relative z-10">
                         <div className="flex items-center justify-between mb-4">
-                          <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
+                          <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg} shadow-xs`}>
                             {yazi.kategori}
                           </span>
-                          <span className="text-[10px] text-gray-400 font-bold">
+                          <span className="text-[10px] text-gray-500 font-bold bg-white/80 backdrop-blur-xs px-2 py-0.5 rounded-full border border-gray-100">
                             ⏱ {okumaSuresi} dk
                           </span>
                         </div>
@@ -159,7 +170,8 @@ export default function HomePage() {
                         </h3>
                       </div>
 
-                      <div className="mt-6 pt-3.5 border-t border-gray-200/50 flex items-center justify-between">
+                      {/* ALT BİLGİ */}
+                      <div className="relative z-10 mt-6 pt-3.5 border-t border-gray-200/50 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold text-gray-900">{yazi.yazarlar?.ad_soyad}</p>
                           <p className="text-[11px] text-gray-500 font-medium truncate max-w-[170px]">{yazi.yazarlar?.universite}</p>
