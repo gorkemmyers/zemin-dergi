@@ -46,7 +46,6 @@ export default function BasvuruPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editStatus, setEditStatus] = useState({ type: '', msg: '' });
 
-  // Metin Gönder Fonksiyonu
   const handleYaziGonder = async (e) => {
     e.preventDefault();
     setStatus({ type: '', msg: '' });
@@ -153,7 +152,6 @@ export default function BasvuruPage() {
     }
   };
 
-  // Profil Bilgilerini Çekme
   const handleProfiliDogrulaVeGetir = async (e) => {
     e.preventDefault();
     setEditStatus({ type: '', msg: '' });
@@ -187,7 +185,6 @@ export default function BasvuruPage() {
         return;
       }
 
-      // Bilgileri forma yükle
       setEditYazarId(yazar.id);
       setEditUniversite(yazar.universite || '');
       setEditBolum(yazar.bolum || '');
@@ -202,7 +199,6 @@ export default function BasvuruPage() {
     }
   };
 
-  // Profil Bilgilerini Güncelleme
   const handleProfilGuncelle = async (e) => {
     e.preventDefault();
     if (!editYazarId) return;
@@ -250,7 +246,6 @@ export default function BasvuruPage() {
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
       <main className="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-20 relative z-10">
         
-        {/* NAVBAR */}
         <header className="glass-panel mx-auto max-w-3xl p-3.5 mb-8 sticky top-3 z-50 rounded-2xl border border-white/80 shadow-lg flex justify-between items-center">
           <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter">
             ZEMİN
@@ -261,7 +256,6 @@ export default function BasvuruPage() {
           </div>
         </header>
 
-        {/* SEKME SEÇİCİ */}
         <div className="flex justify-center mb-8">
           <div className="glass-panel p-1 rounded-full border border-gray-200/80 shadow-xs inline-flex gap-1">
             <button
@@ -287,7 +281,6 @@ export default function BasvuruPage() {
           </div>
         </div>
 
-        {/* 1. SEKME: METİN GÖNDERME FORMU */}
         {aktifSekme === 'yazi' && (
           <div>
             <div className="text-center mb-8">
@@ -460,7 +453,6 @@ export default function BasvuruPage() {
           </div>
         )}
 
-        {/* 2. SEKME: PROFİL DÜZENLEME FORMU */}
         {aktifSekme === 'profil' && (
           <div>
             <div className="text-center mb-8">
@@ -477,4 +469,142 @@ export default function BasvuruPage() {
 
             <div className="glass-card p-6 sm:p-10 border border-white/90 shadow-xl space-y-6">
               {editStatus.msg && (
-                <div className={`p-4 rounded-2xl text-xs font-bold ${editStatus.type === 'success' ? 'bg-[#00a693]/15 text-[#00a693] border border-[#00a693]/30' : 'bg-[
+                <div className={`p-4 rounded-2xl text-xs font-bold ${editStatus.type === 'success' ? 'bg-[#00a693]/15 text-[#00a693] border border-[#00a693]/30' : 'bg-[#74112f]/15 text-[#74112f] border border-[#74112f]/30'}`}>
+                  {editStatus.msg}
+                </div>
+              )}
+
+              {!profilBulundu ? (
+                <form onSubmit={handleProfiliDogrulaVeGetir} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                        Kayıtlı İsim veya Mahlasınız <span className="text-[#74112f]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Örn: Deniz Yılmaz"
+                        value={editIsim}
+                        onChange={(e) => setEditIsim(e.target.value)}
+                        className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#00a693]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                        Mevcut 4 Haneli PIN Kodunuz <span className="text-[#74112f]">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="Örn: 1984"
+                        value={editPin}
+                        onChange={(e) => setEditPin(e.target.value)}
+                        className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#00a693]"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={editLoading}
+                    className="w-full bg-[#00a693] hover:bg-[#32127a] text-white py-3 rounded-2xl text-xs font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
+                  >
+                    {editLoading ? 'Kontrol Ediliyor...' : 'Bilgilerimi Getir'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleProfilGuncelle} className="space-y-4">
+                  <div className="bg-[#00a693]/10 p-3 rounded-xl flex justify-between items-center text-xs">
+                    <span className="font-black text-[#00a693]">Yazar: {editIsim}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setProfilBulundu(false); setEditYazarId(null); }}
+                      className="text-gray-500 hover:text-gray-900 text-[11px] font-bold underline"
+                    >
+                      Farklı Profil Doğrula
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">Üniversite</label>
+                      <input
+                        type="text"
+                        placeholder="Örn: Anadolu Üniversitesi"
+                        value={editUniversite}
+                        onChange={(e) => setEditUniversite(e.target.value)}
+                        className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">Bölüm</label>
+                      <input
+                        type="text"
+                        placeholder="Örn: Sosyoloji"
+                        value={editBolum}
+                        onChange={(e) => setEditBolum(e.target.value)}
+                        className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Instagram (@kullaniciadi)</label>
+                    <input
+                      type="text"
+                      placeholder="kullaniciadi"
+                      value={editInstagram}
+                      onChange={(e) => setEditInstagram(e.target.value)}
+                      className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Biyografi</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Kendiniz ve ilgi alanlarınız hakkında kısa bilgi..."
+                      value={editBiyografi}
+                      onChange={(e) => setEditBiyografi(e.target.value)}
+                      className="w-full bg-white/80 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                    />
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-200/60">
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                      Yeni PIN Belirle (İsteğe Bağlı)
+                    </label>
+                    <input
+                      type="password"
+                      maxLength={6}
+                      placeholder="Değiştirmek istemiyorsanız boş bırakın"
+                      value={editYeniPin}
+                      onChange={(e) => setEditYeniPin(e.target.value)}
+                      className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={editLoading}
+                    className="w-full bg-[#00a693] hover:bg-[#32127a] text-white py-3.5 rounded-2xl text-xs font-bold tracking-wider uppercase shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
+                  >
+                    {editLoading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center text-xs font-semibold text-gray-500">
+          ZEMİN — Açık Düşünce İnisiyatifi © 2026
+        </div>
+      </footer>
+    </div>
+  );
+}
