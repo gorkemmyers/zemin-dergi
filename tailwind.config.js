@@ -9,14 +9,21 @@ module.exports = {
     extend: {
       colors: {
         zemin: {
-          bej: '#F5F2EB',       // %60 Ana Zemin
-          kagit: '#EFECE3',     // Kart / İkincil Zemin
-          bordo: '#4E141E',     // %30 Gövde & Manşet
-          bordokoyu: '#380B13', // Koyu Bordo (Buton hover / Vurgu)
-          yesil: '#2D4F38',     // %10 Yosun Yeşili Vurgu
-          yesilacik: '#3E654B', // Açık Yeşil Etiket
-          metin: '#1F1E1B',     // Koyu İsli Mürekkep
-          cizgi: '#DDD7CA',     // Gazete Ayracı Çizgisi
+          bej: '#FBF7EF',        // Ana Zemin (daha açık)
+          kagit: '#F2ECDF',      // Kart Zemin (bg'den bir ton koyu, katman hissi verir)
+          bordo: '#4E141E',
+          bordokoyu: '#380B13',
+          yesil: '#2D4F38',
+          yesilacik: '#3E654B',
+          metin: '#1F1E1B',
+          cizgi: '#DDD7CA',
+          // Kategori aksan renkleri
+          turuncu: '#C9713E',     // Felsefe
+          turuncukoyu: '#8F4E29',
+          hardal: '#B98B2E',      // Sosyoloji
+          hardalkoyu: '#805F1E',
+          mavi: '#3E5C74',        // Psikoloji
+          mavikoyu: '#2A3F50',
         },
       },
       fontFamily: {
