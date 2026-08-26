@@ -3,6 +3,28 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 
+// Tekil Yazar Avatar Bileşeni (Instagram + Fallback)
+function YazarAvatar({ yazar }) {
+  const [hata, setHata] = useState(false);
+
+  if (yazar.instagram && !hata) {
+    return (
+      <img
+        src={`https://unavatar.io/instagram/${yazar.instagram}`}
+        alt={yazar.ad_soyad}
+        onError={() => setHata(true)}
+        className="w-10 h-10 rounded-2xl object-cover flex-shrink-0 shadow-sm border border-white"
+      />
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-sm">
+      {yazar.ad_soyad?.charAt(0) || 'Z'}
+    </div>
+  );
+}
+
 export default function YazarlarPage() {
   const [yazarlar, setYazarlar] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +49,7 @@ export default function YazarlarPage() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-16">
         
-        {/* ÇİFT KATMANLI HAMBURGERSİZ CAM NAVBAR */}
+        {/* NAVBAR */}
         <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
           <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
@@ -65,7 +87,7 @@ export default function YazarlarPage() {
           </p>
         </header>
 
-        {/* 2 SÜTUNLU KOMPAKT YAZAR LİSTESİ */}
+        {/* TIKLANABİLİR 2 SÜTUNLU YAZAR KARTLARI */}
         {loading ? (
           <div className="text-center py-12 text-gray-500 font-medium text-xs">Yazarlar yükleniyor...</div>
         ) : yazarlar.length === 0 ? (
@@ -77,32 +99,28 @@ export default function YazarlarPage() {
             {yazarlar.map((yazar) => {
               const onayliYazilar = yazar.yazilar?.filter((y) => y.durum === 'onaylandi') || [];
               return (
-                <div 
-                  key={yazar.id} 
-                  className="glass-card p-4 rounded-2xl flex flex-col justify-between hover:bg-white/90 hover:shadow-md transition-all border border-white/70"
+                <Link
+                  href={`/yazar/${yazar.slug}`}
+                  key={yazar.id}
+                  className="glass-card p-4 rounded-2xl flex flex-col justify-between hover:bg-white/95 hover:shadow-lg transition-all border border-white/70 group outline-none"
                 >
                   <div>
                     {/* Üst Bilgi Satırı */}
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs flex-shrink-0 shadow-sm">
-                          {yazar.ad_soyad?.charAt(0) || 'Z'}
-                        </div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <YazarAvatar yazar={yazar} />
                         <div className="min-w-0">
-                          <h2 className="font-bold text-sm text-gray-900 truncate leading-snug">{yazar.ad_soyad}</h2>
+                          <h2 className="font-bold text-sm text-gray-900 truncate leading-snug group-hover:text-[#74112f] transition-colors">
+                            {yazar.ad_soyad}
+                          </h2>
                           <p className="text-[11px] text-gray-500 truncate">{yazar.universite}</p>
                         </div>
                       </div>
 
                       {yazar.instagram && (
-                        <a 
-                          href={`https://instagram.com/${yazar.instagram}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-[11px] font-bold text-[#00a693] hover:underline flex-shrink-0"
-                        >
+                        <span className="text-[11px] font-bold text-[#00a693] flex-shrink-0">
                           @{yazar.instagram}
-                        </a>
+                        </span>
                       )}
                     </div>
 
@@ -113,21 +131,16 @@ export default function YazarlarPage() {
                     )}
                   </div>
 
-                  {/* Alt Bilgi: Yayınlar */}
+                  {/* Alt Bilgi */}
                   <div className="pt-2 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
                     <span className="font-bold text-[#32127a]">
                       {onayliYazilar.length > 0 ? `${onayliYazilar.length} Yayımlanmış Metin` : 'İncelemede'}
                     </span>
-                    {onayliYazilar[0] && (
-                      <Link 
-                        href={`/yazi/${onayliYazilar[0].slug}`} 
-                        className="text-gray-700 hover:text-[#74112f] truncate max-w-[180px] font-medium"
-                      >
-                        Son: {onayliYazilar[0].baslik} →
-                      </Link>
-                    )}
+                    <span className="font-bold text-gray-400 group-hover:text-gray-900 group-hover:translate-x-0.5 transition-all">
+                      Profili İncele →
+                    </span>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
