@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobil cihazların karanlık moda geçmesini engelleyip açık temayı kilitler */
+:root {
+  color-scheme: light !important;
+}
+
+html, body {
+  color-scheme: light !important;
+  background-color: #F7F7F9;
+  color: #111827;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
 @layer utilities {
   /* Apple tarzı buzlu cam efekti */
   .glass-panel {
@@ -14,12 +29,7 @@
   }
 }
 
-body {
-  background-color: #F7F7F9; /* Çok açık, ferah bir gri/beyaz zemin */
-  overflow-x: hidden;
-}
-
-/* Arkadaki sıvı/baloncuk renklerin yavaşça dönme animasyonu */
+/* Sıvı/baloncuk renklerin yavaşça dönme animasyonu */
 @keyframes blob {
   0% { transform: translate(0px, 0px) scale(1); }
   33% { transform: translate(30px, -50px) scale(1.1); }
