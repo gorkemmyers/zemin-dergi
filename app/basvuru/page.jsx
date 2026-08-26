@@ -17,9 +17,10 @@ function slugify(text) {
 }
 
 export default function BasvuruPage() {
-  const [aktifSekme, setAktifSekme] = useState('yazi'); // 'yazi' veya 'profil'
+  const [aktifSekme, setAktifSekme] = useState('yazi'); // 'yazi' | 'panel'
+  const [panelAltSekme, setPanelAltSekme] = useState('profil'); // 'profil' | 'yazilar'
 
-  // --- METİN GÖNDERME STATE'LERİ ---
+  // --- YENİ METİN STATE'LERİ ---
   const [adSoyad, setAdSoyad] = useState('');
   const [pin, setPin] = useState('');
   const [universite, setUniversite] = useState('');
@@ -33,19 +34,30 @@ export default function BasvuruPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: '', msg: '' });
 
-  // --- PROFİL DÜZENLEME STATE'LERİ ---
-  const [editIsim, setEditIsim] = useState('');
-  const [editPin, setEditPin] = useState('');
+  // --- YAZAR PANELİ STATE'LERİ ---
+  const [panelIsim, setPanelIsim] = useState('');
+  const [panelPin, setPanelPin] = useState('');
+  const [panelYazar, setPanelYazar] = useState(null);
+  const [panelYazilar, setPanelYazilar] = useState([]);
+  const [panelLoading, setPanelLoading] = useState(false);
+  const [panelStatus, setPanelStatus] = useState({ type: '', msg: '' });
+
+  // Profil Güncelleme Alanları
   const [editUniversite, setEditUniversite] = useState('');
   const [editBolum, setEditBolum] = useState('');
   const [editBiyografi, setEditBiyografi] = useState('');
   const [editInstagram, setEditInstagram] = useState('');
   const [editYeniPin, setEditYeniPin] = useState('');
-  const [profilBulundu, setProfilBulundu] = useState(false);
-  const [editYazarId, setEditYazarId] = useState(null);
-  const [editLoading, setEditLoading] = useState(false);
-  const [editStatus, setEditStatus] = useState({ type: '', msg: '' });
 
+  // Yazı Düzenleme Alanları
+  const [seciliDuzenlenenYazi, setSeciliDuzenlenenYazi] = useState(null);
+  const [editYaziBaslik, setEditYaziBaslik] = useState('');
+  const [editYaziKategori, setEditYaziKategori] = useState('Felsefe');
+  const [editYaziIcerik, setEditYaziIcerik] = useState('');
+  const [editYaziKapakUrl, setEditYaziKapakUrl] = useState('');
+  const [duzeltmeNotu, setDuzeltmeNotu] = useState('');
+
+  // 1. Yeni Yazı Gönder
   const handleYaziGonder = async (e) => {
     e.preventDefault();
     setStatus({ type: '', msg: '' });
@@ -139,7 +151,7 @@ export default function BasvuruPage() {
 
       setStatus({
         type: 'success',
-        msg: 'Metniniz başarıyla gönderildi! Editör onayından geçtikten sonra web arşivinde ve yazar sayfanızda yayımlanacaktır.'
+        msg: 'Metniniz başarıyla gönderildi. Editör onayından geçtikten sonra web arşivinde ve profilinizde yayımlanacaktır.'
       });
 
       setBaslik('');
@@ -152,59 +164,72 @@ export default function BasvuruPage() {
     }
   };
 
-  const handleProfiliDogrulaVeGetir = async (e) => {
+  // 2. Yazar Girişi (Doğrulama & Bilgileri/Yazıları Getir)
+  const handleYazarGiris = async (e) => {
     e.preventDefault();
-    setEditStatus({ type: '', msg: '' });
+    setPanelStatus({ type: '', msg: '' });
 
-    if (!editIsim.trim() || !editPin.trim()) {
-      setEditStatus({ type: 'error', msg: 'Lütfen İsim/Mahlas ve PIN kodunuzu girin.' });
+    if (!panelIsim.trim() || !panelPin.trim()) {
+      setPanelStatus({ type: 'error', msg: 'Lütfen İsim/Mahlas ve PIN kodunuzu girin.' });
       return;
     }
 
-    setEditLoading(true);
+    setPanelLoading(true);
 
     try {
       const { data, error } = await supabase
         .from('yazarlar')
         .select('*')
-        .ilike('ad_soyad', editIsim.trim());
+        .ilike('ad_soyad', panelIsim.trim());
 
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        setEditStatus({ type: 'error', msg: 'Bu isimde kayıtlı bir yazar bulunamadı.' });
-        setEditLoading(false);
+        setPanelStatus({ type: 'error', msg: 'Bu isimle kayıtlı bir yazar bulunamadı.' });
+        setPanelLoading(false);
         return;
       }
 
       const yazar = data[0];
 
-      if (yazar.pin && String(yazar.pin) !== editPin.trim()) {
-        setEditStatus({ type: 'error', msg: 'PIN kodu eşleşmiyor. Lütfen doğru PIN kodunuzu girin.' });
-        setEditLoading(false);
+      if (yazar.pin && String(yazar.pin) !== panelPin.trim()) {
+        setPanelStatus({ type: 'error', msg: 'Girdiğiniz PIN kodu hatalı.' });
+        setPanelLoading(false);
         return;
       }
 
-      setEditYazarId(yazar.id);
+      setPanelYazar(yazar);
       setEditUniversite(yazar.universite || '');
       setEditBolum(yazar.bolum || '');
       setEditBiyografi(yazar.biyografi || '');
       setEditInstagram(yazar.instagram || '');
-      setProfilBulundu(true);
-      setEditStatus({ type: 'success', msg: 'Profil bilgileriniz yüklendi. Değişiklikleri yapıp kaydedebilirsiniz.' });
+
+      // Yazarın metinlerini çek
+      const { data: yazilarData } = await supabase
+        .from('yazilar')
+        .select('*')
+        .eq('yazar_id', yazar.id)
+        .order('id', { ascending: false });
+
+      if (yazilarData) {
+        setPanelYazilar(yazilarData);
+      }
+
+      setPanelStatus({ type: 'success', msg: 'Giriş başarılı. Profilinizi ve yazılarınızı yönetebilirsiniz.' });
     } catch (err) {
-      setEditStatus({ type: 'error', msg: 'Hata: ' + (err.message || 'Bilgiler alınamadı.') });
+      setPanelStatus({ type: 'error', msg: 'Hata: ' + (err.message || 'Giriş yapılamadı.') });
     } finally {
-      setEditLoading(false);
+      setPanelLoading(false);
     }
   };
 
+  // 3. Profil Bilgilerini Güncelle
   const handleProfilGuncelle = async (e) => {
     e.preventDefault();
-    if (!editYazarId) return;
+    if (!panelYazar) return;
 
-    setEditLoading(true);
-    setEditStatus({ type: '', msg: '' });
+    setPanelLoading(true);
+    setPanelStatus({ type: '', msg: '' });
 
     try {
       const guncellenecekler = {
@@ -216,8 +241,8 @@ export default function BasvuruPage() {
 
       if (editYeniPin.trim()) {
         if (editYeniPin.trim().length < 4) {
-          setEditStatus({ type: 'error', msg: 'Yeni PIN kodu en az 4 haneli olmalıdır.' });
-          setEditLoading(false);
+          setPanelStatus({ type: 'error', msg: 'Yeni PIN en az 4 haneli olmalıdır.' });
+          setPanelLoading(false);
           return;
         }
         guncellenecekler.pin = editYeniPin.trim();
@@ -226,19 +251,84 @@ export default function BasvuruPage() {
       const { error } = await supabase
         .from('yazarlar')
         .update(guncellenecekler)
-        .eq('id', editYazarId);
+        .eq('id', panelYazar.id);
 
       if (error) throw error;
 
-      setEditStatus({ type: 'success', msg: 'Yazar profiliniz başarıyla güncellendi!' });
+      setPanelStatus({ type: 'success', msg: 'Profil bilgileriniz başarıyla güncellendi.' });
       if (editYeniPin.trim()) {
-        setEditPin(editYeniPin.trim());
+        setPanelPin(editYeniPin.trim());
         setEditYeniPin('');
       }
     } catch (err) {
-      setEditStatus({ type: 'error', msg: 'Güncelleme hatası: ' + err.message });
+      setPanelStatus({ type: 'error', msg: 'Güncelleme hatası: ' + err.message });
     } finally {
-      setEditLoading(false);
+      setPanelLoading(false);
+    }
+  };
+
+  // 4. Düzenlenecek Yazıyı Seç
+  const handleYaziSec = (yazi) => {
+    setSeciliDuzenlenenYazi(yazi);
+    setEditYaziBaslik(yazi.baslik || '');
+    setEditYaziKategori(yazi.kategori || 'Felsefe');
+    setEditYaziIcerik(yazi.icerik || '');
+    setEditYaziKapakUrl(yazi.kapak_url || '');
+    setDuzeltmeNotu('');
+    setPanelStatus({ type: '', msg: '' });
+  };
+
+  // 5. Yazı Düzenlemesini Onaya Gönder
+  const handleYaziDuzenlemeGonder = async (e) => {
+    e.preventDefault();
+    if (!seciliDuzenlenenYazi) return;
+
+    if (!editYaziBaslik.trim() || !editYaziIcerik.trim()) {
+      setPanelStatus({ type: 'error', msg: 'Başlık ve içerik boş bırakılamaz.' });
+      return;
+    }
+
+    if (!duzeltmeNotu.trim()) {
+      setPanelStatus({ type: 'error', msg: 'Lütfen editöre iletilmek üzere neyi düzenlediğinizi belirten kısa bir açıklama yazın.' });
+      return;
+    }
+
+    setPanelLoading(true);
+    setPanelStatus({ type: '', msg: '' });
+
+    try {
+      const { error } = await supabase
+        .from('yazilar')
+        .update({
+          baslik: editYaziBaslik.trim(),
+          kategori: editYaziKategori,
+          icerik: editYaziIcerik.trim(),
+          kapak_url: editYaziKapakUrl.trim() || null,
+          duzeltme_notu: duzeltmeNotu.trim(),
+          durum: 'beklemede'
+        })
+        .eq('id', seciliDuzenlenenYazi.id);
+
+      if (error) throw error;
+
+      // Listeyi güncelle
+      setPanelYazilar((prev) =>
+        prev.map((y) =>
+          y.id === seciliDuzenlenenYazi.id
+            ? { ...y, baslik: editYaziBaslik.trim(), durum: 'beklemede' }
+            : y
+        )
+      );
+
+      setPanelStatus({
+        type: 'success',
+        msg: 'Yazıdaki düzenlemeler ve açıklama notunuz editör masasına iletildi. İncelendikten sonra tekrar onaylanacaktır.'
+      });
+      setSeciliDuzenlenenYazi(null);
+    } catch (err) {
+      setPanelStatus({ type: 'error', msg: 'Hata: ' + err.message });
+    } finally {
+      setPanelLoading(false);
     }
   };
 
@@ -246,6 +336,7 @@ export default function BasvuruPage() {
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
       <main className="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-20 relative z-10">
         
+        {/* NAVBAR */}
         <header className="glass-panel mx-auto max-w-3xl p-3.5 mb-8 sticky top-3 z-50 rounded-2xl border border-white/80 shadow-lg flex justify-between items-center">
           <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter">
             ZEMİN
@@ -256,6 +347,7 @@ export default function BasvuruPage() {
           </div>
         </header>
 
+        {/* ANA SEKME SEÇİCİ */}
         <div className="flex justify-center mb-8">
           <div className="glass-panel p-1 rounded-full border border-gray-200/80 shadow-xs inline-flex gap-1">
             <button
@@ -266,21 +358,22 @@ export default function BasvuruPage() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Metin Gönder
+              Yeni Metin Gönder
             </button>
             <button
-              onClick={() => { setAktifSekme('profil'); setEditStatus({ type: '', msg: '' }); }}
+              onClick={() => { setAktifSekme('panel'); setPanelStatus({ type: '', msg: '' }); }}
               className={`px-5 py-2 rounded-full text-xs font-black transition-all ${
-                aktifSekme === 'profil'
+                aktifSekme === 'panel'
                   ? 'bg-[#74112f] text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Profili Düzenle
+              Yazar Paneli
             </button>
           </div>
         </div>
 
+        {/* 1. SEKME: YENİ METİN GÖNDERME FORMU */}
         {aktifSekme === 'yazi' && (
           <div>
             <div className="text-center mb-8">
@@ -453,29 +546,31 @@ export default function BasvuruPage() {
           </div>
         )}
 
-        {aktifSekme === 'profil' && (
+        {/* 2. SEKME: YAZAR PANELİ (PROFİL & YAZI DÜZENLEME) */}
+        {aktifSekme === 'panel' && (
           <div>
             <div className="text-center mb-8">
               <span className="text-[10px] font-black uppercase tracking-widest text-[#00a693] bg-[#00a693]/10 px-3 py-1 rounded-full">
-                Yazar Paneli
+                Yazar Masası
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight mt-2">
-                Profil Bilgilerini Güncelle
+                Yazar Paneli
               </h1>
               <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                İsim/Mahlas ve PIN kodunu girerek biyografini veya diğer bilgilerini dilediğin zaman düzenleyebilirsin.
+                Profil bilgilerinizi güncelleyebilir veya yayımlanmış metinleriniz için düzenleme talebi gönderebilirsiniz.
               </p>
             </div>
 
             <div className="glass-card p-6 sm:p-10 border border-white/90 shadow-xl space-y-6">
-              {editStatus.msg && (
-                <div className={`p-4 rounded-2xl text-xs font-bold ${editStatus.type === 'success' ? 'bg-[#00a693]/15 text-[#00a693] border border-[#00a693]/30' : 'bg-[#74112f]/15 text-[#74112f] border border-[#74112f]/30'}`}>
-                  {editStatus.msg}
+              {panelStatus.msg && (
+                <div className={`p-4 rounded-2xl text-xs font-bold ${panelStatus.type === 'success' ? 'bg-[#00a693]/15 text-[#00a693] border border-[#00a693]/30' : 'bg-[#74112f]/15 text-[#74112f] border border-[#74112f]/30'}`}>
+                  {panelStatus.msg}
                 </div>
               )}
 
-              {!profilBulundu ? (
-                <form onSubmit={handleProfiliDogrulaVeGetir} className="space-y-4">
+              {!panelYazar ? (
+                /* GİRİŞ FORMU */
+                <form onSubmit={handleYazarGiris} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] font-bold text-gray-700 mb-1">
@@ -485,21 +580,21 @@ export default function BasvuruPage() {
                         type="text"
                         required
                         placeholder="Örn: Deniz Yılmaz"
-                        value={editIsim}
-                        onChange={(e) => setEditIsim(e.target.value)}
+                        value={panelIsim}
+                        onChange={(e) => setPanelIsim(e.target.value)}
                         className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#00a693]"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                        Mevcut 4 Haneli PIN Kodunuz <span className="text-[#74112f]">*</span>
+                        4 Haneli PIN Kodunuz <span className="text-[#74112f]">*</span>
                       </label>
                       <input
                         type="password"
                         required
                         placeholder="Örn: 1984"
-                        value={editPin}
-                        onChange={(e) => setEditPin(e.target.value)}
+                        value={panelPin}
+                        onChange={(e) => setPanelPin(e.target.value)}
                         className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#00a693]"
                       />
                     </div>
@@ -507,92 +602,243 @@ export default function BasvuruPage() {
 
                   <button
                     type="submit"
-                    disabled={editLoading}
+                    disabled={panelLoading}
                     className="w-full bg-[#00a693] hover:bg-[#32127a] text-white py-3 rounded-2xl text-xs font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
                   >
-                    {editLoading ? 'Kontrol Ediliyor...' : 'Bilgilerimi Getir'}
+                    {panelLoading ? 'Giriş Yapılıyor...' : 'Panele Giriş Yap'}
                   </button>
                 </form>
               ) : (
-                <form onSubmit={handleProfilGuncelle} className="space-y-4">
-                  <div className="bg-[#00a693]/10 p-3 rounded-xl flex justify-between items-center text-xs">
-                    <span className="font-black text-[#00a693]">Yazar: {editIsim}</span>
+                /* YAZAR PANELİ İÇİ */
+                <div>
+                  <div className="bg-gray-100 p-3 rounded-2xl flex flex-wrap justify-between items-center gap-2 mb-6 text-xs">
+                    <span className="font-black text-gray-900">Yazar: {panelYazar.ad_soyad}</span>
                     <button
                       type="button"
-                      onClick={() => { setProfilBulundu(false); setEditYazarId(null); }}
-                      className="text-gray-500 hover:text-gray-900 text-[11px] font-bold underline"
+                      onClick={() => { setPanelYazar(null); setSeciliDuzenlenenYazi(null); }}
+                      className="text-[#74112f] hover:underline font-bold text-[11px]"
                     >
-                      Farklı Profil Doğrula
+                      Çıkış Yap
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* PANEL ALT MENÜ */}
+                  <div className="flex border-b border-gray-200 mb-6 gap-4 text-xs font-bold">
+                    <button
+                      onClick={() => { setPanelAltSekme('profil'); setSeciliDuzenlenenYazi(null); }}
+                      className={`pb-2 transition-all ${panelAltSekme === 'profil' ? 'border-b-2 border-[#00a693] text-[#00a693]' : 'text-gray-500 hover:text-gray-900'}`}
+                    >
+                      Profil Bilgileri
+                    </button>
+                    <button
+                      onClick={() => setPanelAltSekme('yazilar')}
+                      className={`pb-2 transition-all ${panelAltSekme === 'yazilar' ? 'border-b-2 border-[#00a693] text-[#00a693]' : 'text-gray-500 hover:text-gray-900'}`}
+                    >
+                      Metinlerim & Düzenleme ({panelYazilar.length})
+                    </button>
+                  </div>
+
+                  {/* ALT SEKME 1: PROFİL DÜZENLEME */}
+                  {panelAltSekme === 'profil' && (
+                    <form onSubmit={handleProfilGuncelle} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Üniversite</label>
+                          <input
+                            type="text"
+                            placeholder="Örn: Anadolu Üniversitesi"
+                            value={editUniversite}
+                            onChange={(e) => setEditUniversite(e.target.value)}
+                            className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1">Bölüm</label>
+                          <input
+                            type="text"
+                            placeholder="Örn: Sosyoloji"
+                            value={editBolum}
+                            onChange={(e) => setEditBolum(e.target.value)}
+                            className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">Instagram (@kullaniciadi)</label>
+                        <input
+                          type="text"
+                          placeholder="kullaniciadi"
+                          value={editInstagram}
+                          onChange={(e) => setEditInstagram(e.target.value)}
+                          className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">Biyografi</label>
+                        <textarea
+                          rows={4}
+                          placeholder="Kendiniz ve ilgi alanlarınız hakkında kısa bilgi..."
+                          value={editBiyografi}
+                          onChange={(e) => setEditBiyografi(e.target.value)}
+                          className="w-full bg-white/80 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                        />
+                      </div>
+
+                      <div className="pt-2 border-t border-gray-200/60">
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          Yeni PIN Belirle (İsteğe Bağlı)
+                        </label>
+                        <input
+                          type="password"
+                          maxLength={6}
+                          placeholder="Değiştirmek istemiyorsanız boş bırakın"
+                          value={editYeniPin}
+                          onChange={(e) => setEditYeniPin(e.target.value)}
+                          className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={panelLoading}
+                        className="w-full bg-[#00a693] hover:bg-[#32127a] text-white py-3.5 rounded-2xl text-xs font-bold tracking-wider uppercase shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
+                      >
+                        {panelLoading ? 'Kaydediliyor...' : 'Profil Bilgilerini Güncelle'}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* ALT SEKME 2: YAZILAR & DÜZENLEME FORMU */}
+                  {panelAltSekme === 'yazilar' && (
                     <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1">Üniversite</label>
-                      <input
-                        type="text"
-                        placeholder="Örn: Anadolu Üniversitesi"
-                        value={editUniversite}
-                        onChange={(e) => setEditUniversite(e.target.value)}
-                        className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
-                      />
+                      {!seciliDuzenlenenYazi ? (
+                        <div className="space-y-3">
+                          <p className="text-xs text-gray-500 mb-3 font-medium">
+                            Düzenlemek istediğiniz metnin üzerine tıklayın:
+                          </p>
+                          {panelYazilar.length === 0 ? (
+                            <p className="text-xs font-bold text-gray-400 py-6 text-center">Henüz gönderilmiş bir metniniz bulunmuyor.</p>
+                          ) : (
+                            panelYazilar.map((y) => (
+                              <div
+                                key={y.id}
+                                className="p-4 rounded-2xl border border-gray-200/80 bg-white/80 hover:border-[#00a693] transition-all flex items-center justify-between gap-4"
+                              >
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                                      {y.kategori}
+                                    </span>
+                                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${y.durum === 'onaylandi' ? 'bg-[#00a693]/15 text-[#00a693]' : 'bg-[#74112f]/15 text-[#74112f]'}`}>
+                                      {y.durum === 'onaylandi' ? 'Yayında' : 'Onay Bekliyor'}
+                                    </span>
+                                  </div>
+                                  <h4 className="font-bold text-xs text-gray-900 line-clamp-1">{y.baslik}</h4>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleYaziSec(y)}
+                                  className="bg-gray-900 hover:bg-[#74112f] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-xs transition-all"
+                                >
+                                  Düzenle
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      ) : (
+                        /* SEÇİLEN YAZIYI DÜZENLEME FORMU */
+                        <form onSubmit={handleYaziDuzenlemeGonder} className="space-y-4">
+                          <div className="flex items-center justify-between pb-2 border-b border-gray-200">
+                            <span className="text-xs font-black text-gray-900">Metni Düzenle</span>
+                            <button
+                              type="button"
+                              onClick={() => setSeciliDuzenlenenYazi(null)}
+                              className="text-xs text-gray-500 hover:text-gray-900 font-bold underline"
+                            >
+                              İptal / Listeye Dön
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">Kategori</label>
+                              <select
+                                value={editYaziKategori}
+                                onChange={(e) => setEditYaziKategori(e.target.value)}
+                                className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#00a693]"
+                              >
+                                <option value="Felsefe">Felsefe</option>
+                                <option value="Sosyoloji">Sosyoloji</option>
+                                <option value="Psikoloji">Psikoloji</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">Metin Başlığı</label>
+                              <input
+                                type="text"
+                                required
+                                value={editYaziBaslik}
+                                onChange={(e) => setEditYaziBaslik(e.target.value)}
+                                className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-[#00a693]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-700 mb-1">Metin İçeriği</label>
+                            <textarea
+                              required
+                              rows={10}
+                              value={editYaziIcerik}
+                              onChange={(e) => setEditYaziIcerik(e.target.value)}
+                              className="w-full bg-white/80 border border-gray-200 rounded-2xl p-4 text-xs font-serif leading-relaxed text-gray-900 focus:outline-none focus:border-[#00a693]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 mb-1">Kapak Görseli Linki</label>
+                            <input
+                              type="url"
+                              value={editYaziKapakUrl}
+                              onChange={(e) => setEditYaziKapakUrl(e.target.value)}
+                              className="w-full bg-white/60 border border-gray-200/80 rounded-xl px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
+                            />
+                          </div>
+
+                          {/* DÜZENLEME AÇIKLAMASI NOTU (ZORUNLU) */}
+                          <div className="p-4 rounded-2xl bg-[#74112f]/5 border border-[#74112f]/20">
+                            <label className="block text-[11px] font-black text-[#74112f] mb-1">
+                              Düzenleme Notu / Açıklaması (Editör Masasına İletilecek) *
+                            </label>
+                            <textarea
+                              required
+                              rows={2}
+                              placeholder="Örn: 2. paragraftaki imla hataları düzeltildi ve sonuç argümanı netleştirildi..."
+                              value={duzeltmeNotu}
+                              onChange={(e) => setDuzeltmeNotu(e.target.value)}
+                              className="w-full bg-white border border-[#74112f]/30 rounded-xl p-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#74112f]"
+                            />
+                            <span className="text-[10px] text-gray-500 mt-1 block">
+                              Düzenleme kaydedildiğinde yazı tekrar editör incelemesine alınacaktır.
+                            </span>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={panelLoading}
+                            className="w-full bg-[#74112f] hover:bg-[#32127a] text-white py-3.5 rounded-2xl text-xs font-bold tracking-wider uppercase shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
+                          >
+                            {panelLoading ? 'İletiliyor...' : 'Düzenlemeyi Editör Onayına Gönder'}
+                          </button>
+                        </form>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1">Bölüm</label>
-                      <input
-                        type="text"
-                        placeholder="Örn: Sosyoloji"
-                        value={editBolum}
-                        onChange={(e) => setEditBolum(e.target.value)}
-                        className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
-                      />
-                    </div>
-                  </div>
+                  )}
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Instagram (@kullaniciadi)</label>
-                    <input
-                      type="text"
-                      placeholder="kullaniciadi"
-                      value={editInstagram}
-                      onChange={(e) => setEditInstagram(e.target.value)}
-                      className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">Biyografi</label>
-                    <textarea
-                      rows={4}
-                      placeholder="Kendiniz ve ilgi alanlarınız hakkında kısa bilgi..."
-                      value={editBiyografi}
-                      onChange={(e) => setEditBiyografi(e.target.value)}
-                      className="w-full bg-white/80 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
-                    />
-                  </div>
-
-                  <div className="pt-2 border-t border-gray-200/60">
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Yeni PIN Belirle (İsteğe Bağlı)
-                    </label>
-                    <input
-                      type="password"
-                      maxLength={6}
-                      placeholder="Değiştirmek istemiyorsanız boş bırakın"
-                      value={editYeniPin}
-                      onChange={(e) => setEditYeniPin(e.target.value)}
-                      className="w-full bg-white/80 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#00a693]"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={editLoading}
-                    className="w-full bg-[#00a693] hover:bg-[#32127a] text-white py-3.5 rounded-2xl text-xs font-bold tracking-wider uppercase shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
-                  >
-                    {editLoading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
-                  </button>
-                </form>
+                </div>
               )}
             </div>
           </div>
