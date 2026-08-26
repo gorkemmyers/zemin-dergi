@@ -9,9 +9,11 @@ export default function AdminPage() {
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState(false);
 
-  // Tab & Filtre Yönetimi
+  // Sekmeler & Filtreler
   const [activeTab, setActiveTab] = useState('yazilar'); // 'yazilar' | 'dergiler' | 'yazarlar'
-  const [yaziFiltre, setYaziFiltre] = useState('beklemede'); // 'beklemede' | 'onaylandi' | 'reddedildi' | 'tumu'
+  const [yaziDurumFiltre, setYaziDurumFiltre] = useState('beklemede'); // 'beklemede' | 'onaylandi' | 'reddedildi' | 'tumu'
+  const [yaziKategoriFiltre, setYaziKategoriFiltre] = useState('tumu'); // 'tumu' | 'Felsefe' | 'Sosyoloji' | 'Psikoloji'
+  const [aramaMetni, setAramaMetni] = useState('');
 
   // Veri Havuzları
   const [yazilar, setYazilar] = useState([]);
@@ -20,7 +22,11 @@ export default function AdminPage() {
   const [selectedYazi, setSelectedYazi] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Dergi Form State (Ekleme & Düzenleme)
+  // Editörün Yazıyı Düzenleme Modu
+  const [isEditingYazi, setIsEditingYazi] = useState(false);
+  const [editYaziData, setEditYaziData] = useState({ baslik: '', kategori: 'Felsefe', icerik: '', kapak_url: '' });
+
+  // Dergi Form State
   const [duzenlenenDergiId, setDuzenlenenDergiId] = useState(null);
   const [dergiForm, setDergiForm] = useState({
     sayi_no: '',
@@ -34,7 +40,6 @@ export default function AdminPage() {
   // Yazar Düzenleme Modal State
   const [duzenlenenYazar, setDuzenlenenYazar] = useState(null);
 
-  // Sayfa Yüklendiğinde Oturum Kontrolü
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('zemin_admin_session');
     if (sessionAuth === 'true') {
@@ -63,25 +68,30 @@ export default function AdminPage() {
 
   async function loadData() {
     setLoading(true);
-    const { data: yaziData } = await supabase
-      .from('yazilar')
-      .select('*, yazarlar(*)')
-      .order('olusturulma_tarihi', { ascending: false });
+    try {
+      const { data: yaziData } = await supabase
+        .from('yazilar')
+        .select('*, yazarlar(*)')
+        .order('id', { ascending: false });
 
-    const { data: dergiData } = await supabase
-      .from('dergiler')
-      .select('*')
-      .order('sayi_no', { ascending: false });
+      const { data: dergiData } = await supabase
+        .from('dergiler')
+        .select('*')
+        .order('sayi_no', { ascending: false });
 
-    const { data: yazarData } = await supabase
-      .from('yazarlar')
-      .select('*, yazilar(id, durum)')
-      .order('ad_soyad', { ascending: true });
+      const { data: yazarData } = await supabase
+        .from('yazarlar')
+        .select('*, yazilar(id, durum)')
+        .order('ad_soyad', { ascending: true });
 
-    if (yaziData) setYazilar(yaziData);
-    if (dergiData) setDergiler(dergiData);
-    if (yazarData) setYazarlar(yazarData);
-    setLoading(false);
+      if (yaziData) setYazilar(yaziData);
+      if (dergiData) setDergiler(dergiData);
+      if (yazarData) setYazarlar(yazarData);
+    } catch (err) {
+      console.error('Veri yükleme hatası:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // --- YAZI FONKSİYONLARI ---
@@ -113,6 +123,44 @@ export default function AdminPage() {
       if (selectedYazi?.id === yaziId) setSelectedYazi({ ...selectedYazi, dergi_id: dergiId || null });
     }
   }
+
+  const handleYaziDuzenleAc = (y) => {
+    setEditYaziData({
+      baslik: y.baslik || '',
+      kategori: y.kategori || 'Felsefe',
+      icerik: y.icerik || '',
+      kapak_url: y.kapak_url || ''
+    });
+    setIsEditingYazi(true);
+  };
+
+  const handleYaziDuzenleKaydet = async (e) => {
+    e.preventDefault();
+    if (!selectedYazi) return;
+
+    const { error } = await supabase.from('yazilar').update({
+      baslik: editYaziData.baslik.trim(),
+      kategori: editYaziData.kategori,
+      icerik: editYaziData.icerik.trim(),
+      kapak_url: editYaziData.kapak_url.trim() || null
+    }).eq('id', selectedYazi.id);
+
+    if (!error) {
+      const guncel = {
+        ...selectedYazi,
+        baslik: editYaziData.baslik.trim(),
+        kategori: editYaziData.kategori,
+        icerik: editYaziData.icerik.trim(),
+        kapak_url: editYaziData.kapak_url.trim() || null
+      };
+      setYazilar(yazilar.map(y => y.id === selectedYazi.id ? guncel : y));
+      setSelectedYazi(guncel);
+      setIsEditingYazi(false);
+      alert('Metin başarıyla güncellendi.');
+    } else {
+      alert('Güncelleme hatası: ' + error.message);
+    }
+  };
 
   // --- DERGİ FONKSİYONLARI ---
   async function dergiKaydet(e) {
@@ -153,10 +201,10 @@ export default function AdminPage() {
     setDergiForm({
       sayi_no: d.sayi_no,
       baslik: d.baslik,
-      tema_aciklama: d.tema_aciklama || '',
+      tema_aciklama: d.tema_aciklama || d.aciklama || '',
       kapak_url: d.kapak_url || '',
       pdf_url: d.pdf_url || '',
-      durum: d.durum
+      durum: d.durum || 'hazirlaniyor'
     });
   }
 
@@ -170,12 +218,12 @@ export default function AdminPage() {
   async function yazarGuncelle(e) {
     e.preventDefault();
     const { error } = await supabase.from('yazarlar').update({
-      ad_soyad: duzenlenenYazar.ad_soyad,
-      universite: duzenlenenYazar.universite,
-      bolum: duzenlenenYazar.bolum,
-      instagram: duzenlenenYazar.instagram?.replace('@', '').trim(),
-      biyografi: duzenlenenYazar.biyografi,
-      pin: duzenlenenYazar.pin
+      ad_soyad: duzenlenenYazar.ad_soyad.trim(),
+      universite: duzenlenenYazar.universite?.trim() || null,
+      bolum: duzenlenenYazar.bolum?.trim() || null,
+      instagram: duzenlenenYazar.instagram?.replace('@', '').trim() || null,
+      biyografi: duzenlenenYazar.biyografi?.trim() || null,
+      pin: duzenlenenYazar.pin?.trim() || null
     }).eq('id', duzenlenenYazar.id);
 
     if (!error) {
@@ -187,18 +235,20 @@ export default function AdminPage() {
   }
 
   async function yazarSil(id) {
-    if (!confirm('Yazarı silerseniz bu yazara bağlı tüm metinler de silinebilir. Devam edilsin mi?')) return;
+    if (!confirm('Yazarı silerseniz bu yazara bağlı metinler de etkilenebilir. Devam edilsin mi?')) return;
     const { error } = await supabase.from('yazarlar').delete().eq('id', id);
     if (!error) loadData();
   }
 
-  // 1923 ŞİFRE KİLİDİ
+  // 1923 ŞİFRE EKRANI
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#F8F9FA]">
         <div className="glass-card p-8 sm:p-10 max-w-sm w-full text-center border border-white/90 shadow-2xl">
-          <span className="text-xs uppercase tracking-widest text-[#74112f] font-black">Güvenli Alan</span>
-          <h1 className="text-2xl font-black text-gray-900 mt-1 mb-6">Editör Girişi</h1>
+          <span className="text-[10px] uppercase tracking-widest text-[#74112f] font-black bg-[#74112f]/10 px-3 py-1 rounded-full">
+            Editör Girişi
+          </span>
+          <h1 className="text-2xl font-black text-gray-900 mt-3 mb-6">ZEMİN Masa</h1>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="password"
@@ -209,7 +259,7 @@ export default function AdminPage() {
               autoFocus
             />
             {authError && <p className="text-xs font-bold text-rose-600">Geçersiz PIN girdiniz.</p>}
-            <button type="submit" className="w-full bg-[#32127a] text-white py-3 rounded-xl text-xs font-bold tracking-wider hover:bg-[#32127a]/90">
+            <button type="submit" className="w-full bg-[#32127a] text-white py-3 rounded-xl text-xs font-bold tracking-wider hover:bg-[#74112f] transition-all">
               Giriş Yap
             </button>
           </form>
@@ -221,7 +271,18 @@ export default function AdminPage() {
     );
   }
 
-  const filtrelenmisYazilar = yazilar.filter(y => yaziFiltre === 'tumu' ? true : y.durum === yaziFiltre);
+  // Metin Filtreleme Mantığı
+  const filtrelenmisYazilar = yazilar.filter(y => {
+    const durumUygun = yaziDurumFiltre === 'tumu' ? true : y.durum === yaziDurumFiltre;
+    const kategoriUygun = yaziKategoriFiltre === 'tumu' ? true : y.kategori === yaziKategoriFiltre;
+    const aramaUygun = aramaMetni.trim() === ''
+      ? true
+      : (y.baslik?.toLowerCase().includes(aramaMetni.toLowerCase()) ||
+         y.yazarlar?.ad_soyad?.toLowerCase().includes(aramaMetni.toLowerCase()));
+    return durumUygun && kategoriUygun && aramaUygun;
+  });
+
+  const bekleyenSayisi = yazilar.filter(y => y.durum === 'beklemede').length;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA]">
@@ -240,18 +301,23 @@ export default function AdminPage() {
 
           <div className="flex items-center gap-2">
             {[
-              { id: 'yazilar', label: `Metinler (${yazilar.length})` },
+              { id: 'yazilar', label: `Metinler (${yazilar.length})`, bildirim: bekleyenSayisi },
               { id: 'dergiler', label: `Dergiler (${dergiler.length})` },
               { id: 'yazarlar', label: `Yazarlar (${yazarlar.length})` }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                className={`relative px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
                   activeTab === tab.id ? 'bg-[#32127a] text-white shadow-sm' : 'bg-white/60 text-gray-700 hover:bg-white'
                 }`}
               >
                 {tab.label}
+                {tab.bildirim > 0 && (
+                  <span className="ml-1.5 bg-[#74112f] text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">
+                    {tab.bildirim}
+                  </span>
+                )}
               </button>
             ))}
 
@@ -265,23 +331,35 @@ export default function AdminPage() {
           <div className="text-center py-20 text-xs font-bold text-gray-500">Veriler yükleniyor...</div>
         ) : (
           <>
-            {/* YAZI İNCELEME */}
+            {/* 1. SEKME: METİNLER YÖNETİMİ */}
             {activeTab === 'yazilar' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
+                {/* SOL SÜTUN: FİLTRELER VE LİSTE */}
                 <div className="lg:col-span-5 space-y-3">
-                  <div className="flex gap-1.5 p-1 glass-panel rounded-2xl bg-white/40">
+                  
+                  {/* Arama */}
+                  <input
+                    type="text"
+                    placeholder="Başlık veya yazar ara..."
+                    value={aramaMetni}
+                    onChange={(e) => setAramaMetni(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#32127a]"
+                  />
+
+                  {/* Durum Sekmeleri */}
+                  <div className="flex gap-1 p-1 glass-panel rounded-2xl bg-white/50">
                     {[
                       { id: 'beklemede', label: 'Bekleyenler' },
                       { id: 'onaylandi', label: 'Yayındakiler' },
-                      { id: 'reddedildi', label: 'Reddedilenler' },
+                      { id: 'reddedildi', label: 'Reddedilen' },
                       { id: 'tumu', label: 'Tümü' }
                     ].map(f => (
                       <button
                         key={f.id}
-                        onClick={() => setYaziFiltre(f.id)}
-                        className={`flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
-                          yaziFiltre === f.id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
+                        onClick={() => setYaziDurumFiltre(f.id)}
+                        className={`flex-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                          yaziDurumFiltre === f.id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
                         }`}
                       >
                         {f.label}
@@ -289,14 +367,32 @@ export default function AdminPage() {
                     ))}
                   </div>
 
-                  <div className="space-y-2.5 max-h-[72vh] overflow-y-auto pr-1">
+                  {/* Kategori Hapları */}
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {['tumu', 'Felsefe', 'Sosyoloji', 'Psikoloji'].map(kat => (
+                      <button
+                        key={kat}
+                        onClick={() => setYaziKategoriFiltre(kat)}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border ${
+                          yaziKategoriFiltre === kat
+                            ? 'bg-[#00a693] text-white border-[#00a693]'
+                            : 'bg-white/80 text-gray-600 border-gray-200 hover:bg-white'
+                        }`}
+                      >
+                        {kat === 'tumu' ? 'Tüm Alanlar' : kat}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Metin Listesi */}
+                  <div className="space-y-2.5 max-h-[65vh] overflow-y-auto pr-1">
                     {filtrelenmisYazilar.length === 0 ? (
-                      <div className="glass-card p-6 text-center text-xs text-gray-400">Bu sekmede metin bulunmuyor.</div>
+                      <div className="glass-card p-6 text-center text-xs text-gray-400">Bu filtreye uygun metin bulunmuyor.</div>
                     ) : (
                       filtrelenmisYazilar.map(y => (
                         <div
                           key={y.id}
-                          onClick={() => setSelectedYazi(y)}
+                          onClick={() => { setSelectedYazi(y); setIsEditingYazi(false); }}
                           className={`p-3.5 rounded-2xl cursor-pointer border transition-all ${
                             selectedYazi?.id === y.id ? 'bg-white border-[#32127a] shadow-md' : 'glass-card border-white/60 hover:bg-white/80'
                           }`}
@@ -305,60 +401,106 @@ export default function AdminPage() {
                             <span className="text-[9px] font-bold uppercase text-[#00a693] bg-[#00a693]/10 px-2 py-0.5 rounded">
                               {y.kategori}
                             </span>
-                            <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${
-                              y.durum === 'onaylandi' ? 'bg-emerald-100 text-emerald-800' : y.durum === 'reddedildi' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {y.durum}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {y.duzeltme_notu && (
+                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#74112f] text-white">
+                                  Düzenleme Notu Var
+                                </span>
+                              )}
+                              <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${
+                                y.durum === 'onaylandi' ? 'bg-emerald-100 text-emerald-800' : y.durum === 'reddedildi' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {y.durum}
+                              </span>
+                            </div>
                           </div>
                           <h3 className="font-bold text-xs text-gray-900 line-clamp-1">{y.baslik}</h3>
-                          <p className="text-[10px] text-gray-500">{y.yazarlar?.ad_soyad} — {y.yazarlar?.universite}</p>
+                          <p className="text-[10px] text-gray-500">{y.yazarlar?.ad_soyad} {y.yazarlar?.universite ? `— ${y.yazarlar.universite}` : ''}</p>
                         </div>
                       ))
                     )}
                   </div>
                 </div>
 
+                {/* SAĞ SÜTUN: DETAY, DÜZENLEME VE İNCELEME */}
                 <div className="lg:col-span-7">
                   {selectedYazi ? (
                     <div className="glass-card p-6 border border-white/90 shadow-xl space-y-4">
+                      
+                      {/* Üst Aksiyonlar */}
                       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-200/60">
                         <div className="min-w-0">
-                          <span className="text-[10px] font-bold text-[#74112f] uppercase">Metin Detayı</span>
-                          <h2 className="text-lg font-black text-gray-900 truncate">{selectedYazi.baslik}</h2>
+                          <span className="text-[10px] font-bold text-[#74112f] uppercase">Metin No: #{selectedYazi.id}</span>
+                          <h2 className="text-base sm:text-lg font-black text-gray-900 truncate">{selectedYazi.baslik}</h2>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => yaziDurumGuncelle(selectedYazi.id, 'onaylandi')} className="bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            onClick={() => yaziDurumGuncelle(selectedYazi.id, 'onaylandi')}
+                            className="bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700 shadow-xs"
+                          >
                             Yayına Al
                           </button>
-                          <button onClick={() => yaziDurumGuncelle(selectedYazi.id, 'reddedildi')} className="bg-rose-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-rose-700">
+                          <button
+                            onClick={() => yaziDurumGuncelle(selectedYazi.id, 'beklemede')}
+                            className="bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
+                          >
+                            Beklemeye Al
+                          </button>
+                          <button
+                            onClick={() => yaziDurumGuncelle(selectedYazi.id, 'reddedildi')}
+                            className="bg-rose-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-rose-700 shadow-xs"
+                          >
                             Reddet
                           </button>
-                          <button onClick={() => yaziSil(selectedYazi.id)} className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-rose-100 hover:text-rose-700">
+                          <button
+                            onClick={() => handleYaziDuzenleAc(selectedYazi)}
+                            className="bg-[#32127a] text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-[#74112f] shadow-xs"
+                          >
+                            Metni Düzenle
+                          </button>
+                          <button
+                            onClick={() => yaziSil(selectedYazi.id)}
+                            className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-rose-100 hover:text-rose-700 shadow-xs"
+                          >
                             Sil
                           </button>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-white/70 border border-white text-xs">
+                      {/* YAZARIN DÜZENLEME AÇIKLAMASI VARSA UYARI KUTUSU */}
+                      {selectedYazi.duzeltme_notu && (
+                        <div className="p-3.5 rounded-xl bg-[#74112f]/10 border border-[#74112f]/30">
+                          <span className="text-[10px] font-black uppercase text-[#74112f] block mb-0.5">
+                            Yazarın Düzenleme Notu
+                          </span>
+                          <p className="text-xs text-gray-900 font-semibold italic">
+                            “{selectedYazi.duzeltme_notu}”
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Yazar Bilgi Kutusu & Dergi Atama */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/70 border border-white text-xs">
                         <div>
-                          <p className="font-bold text-gray-900">{selectedYazi.yazarlar?.ad_soyad}</p>
-                          <p className="text-[11px] text-gray-500">{selectedYazi.yazarlar?.universite} — {selectedYazi.yazarlar?.bolum}</p>
-                          <div className="pt-1 flex items-center gap-2">
-                            <span className="font-mono text-[#74112f] font-bold text-[10px]">PIN: {selectedYazi.yazarlar?.pin || 'Belirlenmedi'}</span>
+                          <p className="font-bold text-gray-900">{selectedYazi.yazarlar?.ad_soyad || 'İsimsiz'}</p>
+                          <p className="text-[11px] text-gray-500">
+                            {selectedYazi.yazarlar?.universite || 'Üniversite Belirtilmemiş'} {selectedYazi.yazarlar?.bolum ? `— ${selectedYazi.yazarlar.bolum}` : ''}
+                          </p>
+                          <div className="pt-1 flex items-center gap-3">
+                            <span className="font-mono text-[#74112f] font-bold text-[10px]">PIN: {selectedYazi.yazarlar?.pin || 'Yok'}</span>
                             {selectedYazi.yazarlar?.instagram && (
                               <span className="text-[#00a693] font-bold">@{selectedYazi.yazarlar.instagram}</span>
                             )}
                           </div>
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold text-[#32127a] uppercase block mb-1">Dergide Yayımla</label>
+                          <label className="text-[10px] font-bold text-[#32127a] uppercase block mb-1">Dönemsel Dergiye Ata</label>
                           <select
                             value={selectedYazi.dergi_id || ''}
                             onChange={(e) => dergiyeAta(selectedYazi.id, e.target.value)}
                             className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none"
                           >
-                            <option value="">Dergiye Bağlı Değil</option>
+                            <option value="">Dergiye Bağlı Değil (Yalnızca Web)</option>
                             {dergiler.map(d => (
                               <option key={d.id} value={d.id}>Sayı {d.sayi_no}: {d.baslik}</option>
                             ))}
@@ -366,13 +508,71 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      <div className="font-serif text-sm leading-relaxed whitespace-pre-wrap p-4 rounded-xl bg-white/90 border max-h-[46vh] overflow-y-auto">
-                        {selectedYazi.icerik}
-                      </div>
+                      {/* İÇERİK VEYA DÜZENLEME EKRANI */}
+                      {isEditingYazi ? (
+                        <form onSubmit={handleYaziDuzenleKaydet} className="space-y-3 pt-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-[10px] font-bold text-gray-600 uppercase">Kategori</label>
+                              <select
+                                value={editYaziData.kategori}
+                                onChange={(e) => setEditYaziData({ ...editYaziData, kategori: e.target.value })}
+                                className="w-full bg-white border rounded-xl p-2 text-xs font-bold"
+                              >
+                                <option value="Felsefe">Felsefe</option>
+                                <option value="Sosyoloji">Sosyoloji</option>
+                                <option value="Psikoloji">Psikoloji</option>
+                              </select>
+                            </div>
+                            <div className="col-span-2">
+                              <label className="text-[10px] font-bold text-gray-600 uppercase">Başlık</label>
+                              <input
+                                type="text"
+                                required
+                                value={editYaziData.baslik}
+                                onChange={(e) => setEditYaziData({ ...editYaziData, baslik: e.target.value })}
+                                className="w-full bg-white border rounded-xl p-2 text-xs font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-600 uppercase">Metin İçeriği</label>
+                            <textarea
+                              rows={12}
+                              required
+                              value={editYaziData.icerik}
+                              onChange={(e) => setEditYaziData({ ...editYaziData, icerik: e.target.value })}
+                              className="w-full bg-white border rounded-xl p-3 text-xs font-serif leading-relaxed"
+                            />
+                          </div>
+
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              type="button"
+                              onClick={() => setIsEditingYazi(false)}
+                              className="px-4 py-2 rounded-xl text-xs font-bold bg-gray-200 text-gray-700"
+                            >
+                              İptal
+                            </button>
+                            <button
+                              type="submit"
+                              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#32127a] text-white"
+                            >
+                              Değişiklikleri Kaydet
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <div className="font-serif text-sm leading-relaxed whitespace-pre-wrap p-4 rounded-xl bg-white/90 border max-h-[46vh] overflow-y-auto text-gray-800">
+                          {selectedYazi.icerik}
+                        </div>
+                      )}
+
                     </div>
                   ) : (
                     <div className="glass-card p-12 text-center text-gray-400 text-xs">
-                      İncelemek için sol listeden bir metin seçin.
+                      İncelemek veya onaylamak için sol listeden bir metin seçin.
                     </div>
                   )}
                 </div>
@@ -380,7 +580,7 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* DERGİ YÖNETİMİ */}
+            {/* 2. SEKME: DERGİ YÖNETİMİ */}
             {activeTab === 'dergiler' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
@@ -434,40 +634,38 @@ export default function AdminPage() {
                         <label className="text-[10px] font-bold text-gray-600 uppercase">Durum</label>
                         <select value={dergiForm.durum} onChange={(e) => setDergiForm({ ...dergiForm, durum: e.target.value })} className="w-full bg-white border rounded-xl p-2 text-xs font-bold">
                           <option value="hazirlaniyor">Hazırlanıyor</option>
-                          <option value="yayinda">Yayında (Sitede Görünür)</option>
+                          <option value="yayinda">Yayında</option>
                         </select>
                       </div>
 
-                      <button type="submit" className="w-full bg-[#32127a] text-white py-2.5 rounded-xl text-xs font-bold">
-                        {duzenlenenDergiId ? 'Değişiklikleri Kaydet' : 'Dergi Sayısını Ekle'}
+                      <button type="submit" className="w-full bg-[#00a693] hover:bg-[#32127a] text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm">
+                        {duzenlenenDergiId ? 'Değişiklikleri Kaydet' : 'Sayıyı Oluştur'}
                       </button>
                     </form>
                   </div>
                 </div>
 
-                <div className="lg:col-span-7 space-y-2.5">
-                  <span className="text-[10px] font-black uppercase text-gray-500 block px-1">Mevcut Dergiler</span>
+                <div className="lg:col-span-7 space-y-3">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-gray-900">Mevcut Dergi Sayıları</h2>
                   {dergiler.map(d => (
-                    <div key={d.id} className="glass-card p-3.5 flex items-center justify-between gap-3 border border-white/70">
-                      <div className="flex items-center gap-3">
-                        <span className="w-9 h-9 rounded-xl bg-[#74112f] text-white font-black flex items-center justify-center text-xs">
-                          {d.sayi_no}
-                        </span>
-                        <div>
-                          <h3 className="font-bold text-xs text-gray-900">{d.baslik}</h3>
-                          <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            d.durum === 'yayinda' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
+                    <div key={d.id} className="glass-card p-4 border border-white/80 flex items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[9px] font-black uppercase tracking-wider bg-[#74112f] text-white px-2 py-0.5 rounded">
+                            Sayı {d.sayi_no}
+                          </span>
+                          <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${d.durum === 'yayinda' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
                             {d.durum}
                           </span>
                         </div>
+                        <h3 className="font-bold text-sm text-gray-900">{d.baslik}</h3>
+                        <p className="text-xs text-gray-500 line-clamp-1">{d.tema_aciklama || d.aciklama}</p>
                       </div>
-
                       <div className="flex items-center gap-2">
-                        <button onClick={() => dergiDuzenleBaslat(d)} className="text-xs font-bold text-[#00a693] hover:underline">
+                        <button onClick={() => dergiDuzenleBaslat(d)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold">
                           Düzenle
                         </button>
-                        <button onClick={() => dergiSil(d.id)} className="text-xs font-bold text-rose-600 hover:underline">
+                        <button onClick={() => dergiSil(d.id)} className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold">
                           Sil
                         </button>
                       </div>
@@ -478,82 +676,116 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* YAZAR LİSTESİ & INSTAGRAM DÜZENLEME */}
+            {/* 3. SEKME: YAZARLAR & PIN YÖNETİMİ */}
             {activeTab === 'yazarlar' && (
               <div className="space-y-4">
-                {/* Yazar Düzenleme Formu */}
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-gray-900">Kayıtlı Yazarlar & PIN Listesi</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {yazarlar.map(yzr => {
+                    const yayinlanmisSayisi = yzr.yazilar?.filter(y => y.durum === 'onaylandi').length || 0;
+                    const toplamSayisi = yzr.yazilar?.length || 0;
+
+                    return (
+                      <div key={yzr.id} className="glass-card p-4 border border-white/80 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start gap-2 mb-2">
+                            <div>
+                              <h3 className="font-black text-sm text-gray-900">{yzr.ad_soyad}</h3>
+                              <p className="text-[11px] text-gray-500">{yzr.universite || 'Üniversite yok'} {yzr.bolum ? `— ${yzr.bolum}` : ''}</p>
+                            </div>
+                            <span className="bg-[#74112f]/10 text-[#74112f] font-mono font-black text-xs px-2 py-0.5 rounded-lg border border-[#74112f]/20">
+                              PIN: {yzr.pin || '---'}
+                            </span>
+                          </div>
+
+                          {yzr.biyografi && (
+                            <p className="text-[11px] text-gray-600 font-serif line-clamp-2 mb-3 bg-white/50 p-2 rounded-lg">
+                              {yzr.biyografi}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between text-[10px] text-gray-500 border-t pt-2">
+                            <span>Toplam Metin: <b>{toplamSayisi}</b> (Yayında: {yayinlanmisSayisi})</span>
+                            {yzr.instagram && <span className="text-[#00a693] font-bold">@{yzr.instagram}</span>}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-4 pt-2 border-t border-gray-100">
+                          <button
+                            onClick={() => setDuzenlenenYazar(yzr)}
+                            className="flex-1 bg-gray-900 hover:bg-[#32127a] text-white py-1.5 rounded-xl text-xs font-bold transition-all text-center"
+                          >
+                            Düzenle / PIN Değiştir
+                          </button>
+                          <button
+                            onClick={() => yazarSil(yzr.id)}
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl text-xs font-bold"
+                          >
+                            Sil
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* YAZAR DÜZENLEME MODALI */}
                 {duzenlenenYazar && (
-                  <div className="glass-card p-5 border border-[#32127a] mb-6 max-w-2xl mx-auto shadow-2xl">
-                    <h3 className="text-sm font-black text-gray-900 mb-3 pb-1 border-b">
-                      Yazar Düzenle: {duzenlenenYazar.ad_soyad}
-                    </h3>
-                    <form onSubmit={yazarGuncelle} className="space-y-3 text-xs">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                          <label className="font-bold text-gray-600 block mb-1">Ad Soyad</label>
-                          <input type="text" value={duzenlenenYazar.ad_soyad} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, ad_soyad: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
-                        </div>
-                        <div>
-                          <label className="font-bold text-[#00a693] block mb-1">Instagram (@)</label>
-                          <input type="text" placeholder="kullaniciadi" value={duzenlenenYazar.instagram || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, instagram: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
-                        </div>
-                        <div>
-                          <label className="font-bold text-[#74112f] block mb-1">PIN Kodu</label>
-                          <input type="text" value={duzenlenenYazar.pin || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, pin: e.target.value })} className="w-full bg-white border p-2 rounded-lg font-mono font-bold" />
-                        </div>
+                  <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="glass-card max-w-md w-full p-6 rounded-3xl border border-white/90 shadow-2xl relative">
+                      <div className="flex justify-between items-center mb-4 pb-2 border-b">
+                        <h3 className="text-sm font-black text-gray-900">Yazarı Düzenle</h3>
+                        <button onClick={() => setDuzenlenenYazar(null)} className="text-gray-400 hover:text-gray-700 text-sm font-bold">
+                          ✕
+                        </button>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <form onSubmit={yazarGuncelle} className="space-y-3">
                         <div>
-                          <label className="font-bold text-gray-600 block mb-1">Üniversite</label>
-                          <input type="text" value={duzenlenenYazar.universite || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, universite: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
+                          <label className="text-[10px] font-bold text-gray-600 uppercase">İsim / Mahlas</label>
+                          <input required type="text" value={duzenlenenYazar.ad_soyad} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, ad_soyad: e.target.value })} className="w-full bg-white border rounded-xl p-2 text-xs font-bold" />
                         </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-600 uppercase">Üniversite</label>
+                            <input type="text" value={duzenlenenYazar.universite || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, universite: e.target.value })} className="w-full bg-white border rounded-xl p-2 text-xs" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-600 uppercase">Bölüm</label>
+                            <input type="text" value={duzenlenenYazar.bolum || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, bolum: e.target.value })} className="w-full bg-white border rounded-xl p-2 text-xs" />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] font-bold text-gray-600 uppercase">Instagram</label>
+                            <input type="text" value={duzenlenenYazar.instagram || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, instagram: e.target.value })} className="w-full bg-white border rounded-xl p-2 text-xs" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-[#74112f] uppercase">4 Haneli PIN</label>
+                            <input type="text" value={duzenlenenYazar.pin || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, pin: e.target.value })} className="w-full bg-white border border-[#74112f]/40 rounded-xl p-2 text-xs font-mono font-bold text-[#74112f]" />
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="font-bold text-gray-600 block mb-1">Bölüm</label>
-                          <input type="text" value={duzenlenenYazar.bolum || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, bolum: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
+                          <label className="text-[10px] font-bold text-gray-600 uppercase">Biyografi</label>
+                          <textarea rows={3} value={duzenlenenYazar.biyografi || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, biyografi: e.target.value })} className="w-full bg-white border rounded-xl p-2 text-xs" />
                         </div>
-                      </div>
 
-                      <div>
-                        <label className="font-bold text-gray-600 block mb-1">Biyografi</label>
-                        <textarea rows={2} value={duzenlenenYazar.biyografi || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, biyografi: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
-                      </div>
-
-                      <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" onClick={() => setDuzenlenenYazar(null)} className="px-4 py-2 rounded-lg bg-gray-200 font-bold">İptal</button>
-                        <button type="submit" className="px-4 py-2 rounded-lg bg-[#32127a] text-white font-bold">Kaydet</button>
-                      </div>
-                    </form>
+                        <button type="submit" className="w-full bg-[#32127a] hover:bg-[#74112f] text-white py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm mt-2">
+                          Kaydet
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {yazarlar.map(yz => (
-                    <div key={yz.id} className="glass-card p-3.5 flex flex-col justify-between border border-white/70">
-                      <div>
-                        <div className="flex justify-between items-start mb-1">
-                          <h4 className="font-bold text-xs text-gray-900">{yz.ad_soyad}</h4>
-                          <span className="font-mono text-[9px] font-bold text-[#74112f] bg-[#74112f]/10 px-1.5 py-0.5 rounded">
-                            PIN: {yz.pin || 'Yok'}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-gray-500 truncate">{yz.universite} — {yz.bolum}</p>
-                        {yz.instagram && (
-                          <p className="text-[10px] text-[#00a693] font-bold mt-0.5">@{yz.instagram}</p>
-                        )}
-                      </div>
-                      <div className="mt-3 pt-2 border-t flex justify-between items-center text-[10px]">
-                        <span className="font-bold text-gray-400">{yz.yazilar?.length || 0} Metin</span>
-                        <div className="flex gap-2">
-                          <button onClick={() => setDuzenlenenYazar(yz)} className="font-bold text-[#00a693] hover:underline">Düzenle</button>
-                          <button onClick={() => yazarSil(yz.id)} className="font-bold text-rose-600 hover:underline">Sil</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
+
           </>
         )}
 
