@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '../lib/supabase';
+// İŞTE BURASI DÜZELDİ: '../' yerine '../../' yaptık
+import { supabase } from '../../lib/supabase'; 
 
 export default function DergilerPage() {
   const [dergiler, setDergiler] = useState([]);
