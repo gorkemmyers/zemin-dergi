@@ -17,10 +17,10 @@ function slugify(text) {
 }
 
 export default function BasvuruPage() {
-  const [aktifSekme, setAktifSekme] = useState('yazi'); // 'yazi' | 'panel'
-  const [panelAltSekme, setPanelAltSekme] = useState('profil'); // 'profil' | 'yazilar'
+  const [aktifSekme, setAktifSekme] = useState('yazi');
+  const [panelAltSekme, setPanelAltSekme] = useState('profil');
 
-  // --- YENİ METİN STATE'LERİ ---
+  // Yeni Metin State'leri
   const [adSoyad, setAdSoyad] = useState('');
   const [pin, setPin] = useState('');
   const [universite, setUniversite] = useState('');
@@ -34,7 +34,7 @@ export default function BasvuruPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: '', msg: '' });
 
-  // --- YAZAR PANELİ STATE'LERİ ---
+  // Yazar Paneli State'leri
   const [panelIsim, setPanelIsim] = useState('');
   const [panelPin, setPanelPin] = useState('');
   const [panelYazar, setPanelYazar] = useState(null);
@@ -42,14 +42,14 @@ export default function BasvuruPage() {
   const [panelLoading, setPanelLoading] = useState(false);
   const [panelStatus, setPanelStatus] = useState({ type: '', msg: '' });
 
-  // Profil Alanları
+  // Profil Düzenleme
   const [editUniversite, setEditUniversite] = useState('');
   const [editBolum, setEditBolum] = useState('');
   const [editBiyografi, setEditBiyografi] = useState('');
   const [editInstagram, setEditInstagram] = useState('');
   const [editYeniPin, setEditYeniPin] = useState('');
 
-  // Yazı Düzenleme Alanları
+  // Yazı Düzenleme
   const [seciliDuzenlenenYazi, setSeciliDuzenlenenYazi] = useState(null);
   const [editYaziBaslik, setEditYaziBaslik] = useState('');
   const [editYaziKategori, setEditYaziKategori] = useState('Felsefe');
@@ -57,7 +57,7 @@ export default function BasvuruPage() {
   const [editYaziKapakUrl, setEditYaziKapakUrl] = useState('');
   const [duzeltmeNotu, setDuzeltmeNotu] = useState('');
 
-  // 1. Yeni Yazı Gönderimi
+  // Yeni Metin Gönder
   const handleYaziGonder = async (e) => {
     e.preventDefault();
     setStatus({ type: '', msg: '' });
@@ -164,7 +164,7 @@ export default function BasvuruPage() {
     }
   };
 
-  // 2. Yazar Girişi
+  // Yazar Girişi
   const handleYazarGiris = async (e) => {
     e.preventDefault();
     setPanelStatus({ type: '', msg: '' });
@@ -211,7 +211,7 @@ export default function BasvuruPage() {
         .order('id', { ascending: false });
 
       if (yazilarData) setPanelYazilar(yazilarData);
-      setPanelStatus({ type: 'success', msg: 'Giriş yapıldı.' });
+      setPanelStatus({ type: 'success', msg: 'Giriş başarılı.' });
     } catch (err) {
       setPanelStatus({ type: 'error', msg: 'Hata: ' + err.message });
     } finally {
@@ -219,7 +219,7 @@ export default function BasvuruPage() {
     }
   };
 
-  // 3. Profil Güncelleme
+  // Profil Güncelle
   const handleProfilGuncelle = async (e) => {
     e.preventDefault();
     if (!panelYazar) return;
@@ -259,7 +259,7 @@ export default function BasvuruPage() {
     }
   };
 
-  // 4. Düzenlenecek Yazıyı Seçme
+  // Düzenlenecek Yazıyı Seç
   const handleYaziSec = (yazi) => {
     setSeciliDuzenlenenYazi(yazi);
     setEditYaziBaslik(yazi.taslak_baslik || yazi.baslik || '');
@@ -270,7 +270,7 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
   };
 
-  // 5. Düzenleme Talebini Gönderme (CANLI YAYINI ASLA BOZMAZ)
+  // Düzenleme Talebini Gönder (Canlı Yayını Kesmez)
   const handleYaziDuzenlemeGonder = async (e) => {
     e.preventDefault();
     if (!seciliDuzenlenenYazi) return;
@@ -289,7 +289,6 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
 
     try {
-      // DİKKAT: 'durum' kolonuna kesinlikle DOKUNULMUYOR. Yayındaysa 'onaylandi' kalır.
       const guncelleme = {
         taslak_baslik: editYaziBaslik.trim(),
         taslak_kategori: editYaziKategori,
@@ -298,10 +297,11 @@ export default function BasvuruPage() {
         duzeltme_notu: duzeltmeNotu.trim()
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('yazilar')
         .update(guncelleme)
-        .eq('id', seciliDuzenlenenYazi.id);
+        .eq('id', seciliDuzenlenenYazi.id)
+        .select();
 
       if (error) throw error;
 
@@ -315,11 +315,11 @@ export default function BasvuruPage() {
 
       setPanelStatus({
         type: 'success',
-        msg: 'Düzenleme talebiniz iletildi. Mevcut metniniz sitede kesintisiz yayında kalmaya devam ediyor; editör onayladığı anda yenisiyle güncellenecektir.'
+        msg: 'Düzenleme talebiniz başarıyla editör masasına iletildi! Mevcut yazınız yayında kalmaya devam eder; editör onayladığında güncellenecektir.'
       });
       setSeciliDuzenlenenYazi(null);
     } catch (err) {
-      setPanelStatus({ type: 'error', msg: 'Hata: ' + err.message });
+      setPanelStatus({ type: 'error', msg: 'Talep iletilemedi: ' + err.message });
     } finally {
       setPanelLoading(false);
     }
@@ -549,7 +549,7 @@ export default function BasvuruPage() {
                 Yazar Paneli
               </h1>
               <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                Profil bilgilerinizi güncelleyebilir veya yayındaki yazılarınız için canlı yayını kesintiye uğratmadan düzenleme gönderebilirsiniz.
+                Profil bilgilerinizi güncelleyebilir veya yayındaki yazılarınız için düzenleme gönderebilirsiniz.
               </p>
             </div>
 
