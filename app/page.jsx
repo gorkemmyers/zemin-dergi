@@ -144,7 +144,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 4 TEMEL BİLGİ KARTI (SADE VE NET) */}
+        {/* 4 TEMEL BİLGİ KARTI */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-12">
           
           <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#00a693]/40 transition-all">
@@ -165,9 +165,9 @@ export default function Home() {
 
           <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#32127a]/40 transition-all">
             <span className="text-base font-black text-[#32127a] block mb-1">03</span>
-            <h3 className="font-black text-xs text-gray-900 mb-1">Tek PIN ile Gönderim</h3>
+            <h3 className="font-black text-xs text-gray-900 mb-1">İsim & PIN Eşleşmesi</h3>
             <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
-              Hesap açma zorunluluğu yok. Belirlediğin 4 haneli PIN ile tüm yazıların aynı profilde toplanır.
+              İlk yazında belirlediğin isim ve 4 haneli PIN eşleşir; sonraki yazıların doğrudan profiline eklenir.
             </p>
           </div>
 
@@ -181,11 +181,11 @@ export default function Home() {
 
         </section>
 
-        {/* SON YAZILAR */}
+        {/* SON YAZILAR BÖLÜMÜ */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg font-black text-gray-900 tracking-tight">Son Metinler</h2>
-            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tümünü Gör →</Link>
+            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşiv →</Link>
           </div>
 
           {loading ? (
@@ -193,6 +193,16 @@ export default function Home() {
               {[1, 2, 3].map((n) => (
                 <div key={n} className="glass-card p-5 rounded-2xl h-44 animate-pulse bg-white/40"></div>
               ))}
+            </div>
+          ) : yazilar.length === 0 ? (
+            <div className="glass-card p-8 rounded-2xl border border-white/90 text-center">
+              <p className="text-xs font-bold text-gray-600 mb-3">Henüz onaylanmış bir düşünce metni bulunmuyor.</p>
+              <Link 
+                href="/basvuru" 
+                className="inline-block bg-[#74112f] text-white px-5 py-2 rounded-full text-xs font-bold shadow-sm hover:opacity-90"
+              >
+                İlk Metni Sen Gönder
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -244,10 +254,10 @@ export default function Home() {
               <p className="text-xs text-gray-600 mt-1 max-w-md">Editör masasının seçtiği tematik yazılardan oluşan dijital sayı.</p>
             </div>
             <Link 
-              href={`/dergi/${sonDergi.id}`}
+              href="/dergiler"
               className="bg-gray-900 hover:bg-[#74112f] text-white px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap shadow-md transition-all"
             >
-              Sayıyı İncele & İndir
+              Dergileri İncele & İndir
             </Link>
           </section>
         )}
@@ -271,23 +281,23 @@ export default function Home() {
 
             <div className="space-y-4 text-xs text-gray-700 leading-relaxed">
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">1. İsim & Mahlas Özgürlüğü</h4>
-                <p className="text-gray-600">Yazılarında gerçek adını, üniversite ve bölümünü kullanabileceğin gibi tamamen bir mahlasla da yazabilirsin. İkisi de aynı editoryal değerlendirmeden geçer.</p>
+                <h4 className="font-bold text-gray-900 mb-1">1. Kimler Yazabilir?</h4>
+                <p className="text-gray-600">Öğrenci olma veya unvan şartı yoktur. Felsefe, sosyoloji ve psikoloji alanlarında eleştirel düşünen, soru soran ve metin üreten herkes başvurabilir.</p>
               </div>
 
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">2. Kimler Yazabilir?</h4>
-                <p className="text-gray-600">Felsefe, sosyoloji ve psikoloji alanlarında eleştirel düşünen, soru soran tüm üniversite öğrencileri ve bağımsız araştırmacılar metin gönderebilir.</p>
+                <h4 className="font-bold text-gray-900 mb-1">2. İsim & Mahlas Özgürlüğü</h4>
+                <p className="text-gray-600">Yazılarında gerçek adını kullanabileceğin gibi tamamen bir mahlasla da yazabilirsin. İkisi de aynı editoryal değerlendirmeden geçer.</p>
               </div>
 
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">3. PIN Sistemi Nasıl Çalışır?</h4>
-                <p className="text-gray-600">Hesap açma bürokrasisi yoktur. İlk yazında belirlediğin 4 haneli PIN kodunu daha sonraki yazı gönderimlerinde kullanarak metinlerini aynı yazar profiline bağlayabilirsin.</p>
+                <h4 className="font-bold text-gray-900 mb-1">3. İsim & PIN Eşleşmesi</h4>
+                <p className="text-gray-600">Hesap açma zorunluluğu yoktur. İlk yazında belirlediğin isim/mahlas ile 4 haneli PIN eşleşir. Sonraki yazılarını gönderirken aynı ismi ve PIN kodunu girmen yeterlidir; sistem seni tanır ve yeni yazını mevcut profiline ekler.</p>
               </div>
 
               <div>
-                <h4 className="font-bold text-gray-900 mb-1">4. Yayın Süreci</h4>
-                <p className="text-gray-600">Gönderilen metin editör onayından geçtiğinde doğrudan web arşivinde ve yazar sayfanda yerini alır. Seçilen yazılar dönemsel PDF e-dergiye dahil edilir.</p>
+                <h4 className="font-bold text-gray-900 mb-1">4. Web ve Dergi Yayını</h4>
+                <p className="text-gray-600">Gönderilen metin editör onayından geçtiğinde doğrudan web arşivinde ve yazar sayfanda yerini alır. Editör masasının seçtiği metinler dönemsel resmi PDF e-dergiye dahil edilir.</p>
               </div>
             </div>
 
