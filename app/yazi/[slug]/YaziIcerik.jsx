@@ -35,9 +35,22 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [fontSize, setFontSize] = useState('text-lg');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voices, setVoices] = useState([]);
 
-  // Okuma İlerleme Çubuğu
+  // Cihazdaki yüksek kaliteli sesleri asenkron olarak yükle
   useEffect(() => {
+    const yukleSesler = () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const mevcutSesler = window.speechSynthesis.getVoices();
+        setVoices(mevcutSesler);
+      }
+    };
+
+    yukleSesler();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = yukleSesler;
+    }
+
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
@@ -45,8 +58,10 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         setScrollProgress(Math.min(100, Math.max(0, progress)));
       }
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -55,7 +70,27 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // Sesli Okuma Fonksiyonu (Web Speech API)
+  // En Akıcı ve Doğal Türkçe Sesi Bulan Algoritma
+  const getEnIyiTurkceSes = () => {
+    const trSesler = voices.filter(v => v.lang.includes('tr') || v.lang.includes('TR'));
+    if (trSesler.length === 0) return null;
+
+    // Doğal, Neural, Google ve Apple Premium sesleri önceliklendir
+    const premiumSes = trSesler.find(v => 
+      v.name.includes('Natural') || 
+      v.name.includes('Google') || 
+      v.name.includes('Siri') || 
+      v.name.includes('Yelda') || 
+      v.name.includes('Ahmet') || 
+      v.name.includes('Emel') ||
+      v.name.includes('Enhanced') ||
+      v.name.includes('Premium')
+    );
+
+    return premiumSes || trSesler[0];
+  };
+
+  // Doğal Sesli Okuma Fonksiyonu
   const handleToggleSpeech = () => {
     if (!('speechSynthesis' in window)) {
       alert('Tarayıcınız sesli okuma özelliğini desteklemiyor.');
@@ -66,10 +101,20 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
     } else {
+      window.speechSynthesis.cancel(); // Önceki sesleri temizle
+
       const textToRead = `${yazi.baslik}. Yazar: ${yazi.yazarlar?.ad_soyad}. ${yazi.icerik}`;
       const utterance = new SpeechSynthesisUtterance(textToRead);
       utterance.lang = 'tr-TR';
-      utterance.rate = 1.0; // Konuşma hızı
+      
+      // Podcast sakinliği için optimize edilmiş hız ve ton ayarı
+      utterance.rate = 0.92; 
+      utterance.pitch = 1.0;
+
+      const secilenSes = getEnIyiTurkceSes();
+      if (secilenSes) {
+        utterance.voice = secilenSes;
+      }
 
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
@@ -195,7 +240,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
               <div className="flex items-center gap-2">
                 
-                {/* 🎧 SESLİ OKUMA ASİSTANI BUTONU */}
+                {/* 🎧 DOĞAL SESLİ OKUMA BUTONU */}
                 <button
                   onClick={handleToggleSpeech}
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs border ${
@@ -203,7 +248,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                       ? 'bg-[#74112f] text-white border-[#74112f] animate-pulse' 
                       : 'bg-white/80 text-gray-700 border-gray-200/80 hover:bg-white'
                   }`}
-                  title={isSpeaking ? 'Sesli Okumayı Durdur' : 'Makaleyi Sesli Dinle'}
+                  title={isSpeaking ? 'Sesli Okumayı Durdur' : 'Doğal Türkçe Sesle Dinle'}
                 >
                   <span>{isSpeaking ? '⏹ Durdur' : '🎧 Dinle'}</span>
                 </button>
