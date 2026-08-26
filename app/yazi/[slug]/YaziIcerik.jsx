@@ -71,12 +71,25 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [seciliDil, setSeciliDil] = useState('tr');
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [translations, setTranslations] = useState({});
 
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const canvasRef = useRef(null);
   const [storyImageUrl, setStoryImageUrl] = useState('');
+  const langMenuRef = useRef(null);
+
+  // Menü dışına tıklandığında açılır menüyü kapat
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target)) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,7 +114,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
 
-  // 1080x1920 Ultra Liquid Glass Story Canvas Motoru
+  // 1080x1920 Kare Kapaklı Story Motoru
   useEffect(() => {
     if (!isStoryOpen || !canvasRef.current || !yazi) return;
 
@@ -117,55 +130,50 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.fillStyle = '#F4F5F7';
       ctx.fillRect(0, 0, width, height);
 
-      // 2. İmza 3 Rengimizin Sıvı Işık Küreleri (Liquid Mesh Glows)
-      // A) Bordo Işıltı (Sol Üst)
-      const gBordo = ctx.createRadialGradient(260, 280, 60, 260, 280, 650);
+      // 2. Sıvı Işık Küreleri
+      const gBordo = ctx.createRadialGradient(260, 240, 50, 260, 240, 650);
       gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.16)');
-      gBordo.addColorStop(1, 'rgba(116, 17, 47, 0)');
+      gBordo.addColorStop(1, 'transparent');
       ctx.fillStyle = gBordo;
       ctx.fillRect(0, 0, width, height);
 
-      // B) Mor Işıltı (Sağ Orta)
-      const gMor = ctx.createRadialGradient(880, 850, 70, 880, 850, 700);
+      const gMor = ctx.createRadialGradient(880, 800, 50, 880, 800, 700);
       gMor.addColorStop(0, 'rgba(50, 18, 122, 0.14)');
-      gMor.addColorStop(1, 'rgba(50, 18, 122, 0)');
+      gMor.addColorStop(1, 'transparent');
       ctx.fillStyle = gMor;
       ctx.fillRect(0, 0, width, height);
 
-      // C) Zümrüt/Adaçayı Işıltısı (Sol Alt)
-      const gYesil = ctx.createRadialGradient(320, 1620, 60, 320, 1620, 750);
+      const gYesil = ctx.createRadialGradient(320, 1650, 50, 320, 1650, 750);
       gYesil.addColorStop(0, 'rgba(0, 166, 147, 0.15)');
-      gYesil.addColorStop(1, 'rgba(0, 166, 147, 0)');
+      gYesil.addColorStop(1, 'transparent');
       ctx.fillStyle = gYesil;
       ctx.fillRect(0, 0, width, height);
 
-      // 3. Monolitik Liquid Glass Kartı
+      // 3. Monolitik Cam Kart
       const cardX = 80;
-      const cardY = 160;
+      const cardY = 140;
       const cardW = 920;
-      const cardH = 1600;
+      const cardH = 1640;
       const radius = 56;
 
-      // Cam Kartın Derinlik Gölgeleri
       ctx.save();
       ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-      ctx.shadowBlur = 60;
+      ctx.shadowBlur = 55;
       ctx.shadowOffsetY = 24;
 
       ctx.beginPath();
       ctx.roundRect(cardX, cardY, cardW, cardH, radius);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
       ctx.fill();
       ctx.restore();
 
-      // Cam Çerçeve (3 Renk Geçişli Specular Border)
+      // Cam Çerçeve
       ctx.save();
       ctx.lineWidth = 2.5;
       const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
       borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-      borderGrad.addColorStop(0.25, 'rgba(116, 17, 47, 0.25)');
-      borderGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.9)');
-      borderGrad.addColorStop(0.75, 'rgba(50, 18, 122, 0.25)');
+      borderGrad.addColorStop(0.3, 'rgba(116, 17, 47, 0.25)');
+      borderGrad.addColorStop(0.6, 'rgba(50, 18, 122, 0.25)');
       borderGrad.addColorStop(1, 'rgba(0, 166, 147, 0.35)');
       ctx.strokeStyle = borderGrad;
       ctx.beginPath();
@@ -173,15 +181,15 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.stroke();
       ctx.restore();
 
-      // 4. Üst Başlık Bandı (ZEMİN Logo & Disiplin Rozeti)
-      const headerY = cardY + 95;
+      // 4. Üst Başlık Bandı
+      const headerY = cardY + 90;
       ctx.fillStyle = '#74112f';
       ctx.font = '900 46px sans-serif';
-      ctx.fillText('ZEMİN', cardX + 65, headerY);
+      ctx.fillText('ZEMİN', cardX + 60, headerY);
 
       const badgeW = 160;
       const badgeH = 46;
-      const badgeX = cardX + cardW - 65 - badgeW;
+      const badgeX = cardX + cardW - 60 - badgeW;
       const badgeY = headerY - 36;
 
       ctx.fillStyle = 'rgba(0, 166, 147, 0.14)';
@@ -195,59 +203,44 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + badgeW / 2, badgeY + 29);
       ctx.textAlign = 'left';
 
-      let currentY = headerY + 65;
+      let currentY = headerY + 55;
 
-      // 5. Kapak Görseli Penceresi (En/Boy Oranını Asla Bozmayan Cover Algoritması)
+      // 5. Kare Görsel Penceresi (1:1 Oran)
       if (coverImg) {
-        const imgX = cardX + 65;
+        const imgX = cardX + 60;
         const imgY = currentY;
-        const imgW = cardW - 130; // 790px
-        const imgH = 480;
-        const imgRadius = 32;
+        const imgSize = cardW - 120; // 800 x 800 px
+        const imgRadius = 36;
 
-        // Cover Crop Hesabı (Görseli sıkıştırmadan/yamultmadan ortalayarak tam doldurur)
         const srcW = coverImg.naturalWidth || coverImg.width;
         const srcH = coverImg.naturalHeight || coverImg.height;
-        const srcRatio = srcW / srcH;
-        const targetRatio = imgW / imgH;
-
-        let sx, sy, sWidth, sHeight;
-        if (srcRatio > targetRatio) {
-          sHeight = srcH;
-          sWidth = srcH * targetRatio;
-          sx = (srcW - sWidth) / 2;
-          sy = 0;
-        } else {
-          sWidth = srcW;
-          sHeight = srcW / targetRatio;
-          sx = 0;
-          sy = (srcH - sHeight) / 2;
-        }
+        const minSide = Math.min(srcW, srcH);
+        const sx = (srcW - minSide) / 2;
+        const sy = (srcH - minSide) / 2;
 
         ctx.save();
         ctx.beginPath();
-        ctx.roundRect(imgX, imgY, imgW, imgH, imgRadius);
+        ctx.roundRect(imgX, imgY, imgSize, imgSize, imgRadius);
         ctx.clip();
-        ctx.drawImage(coverImg, sx, sy, sWidth, sHeight, imgX, imgY, imgW, imgH);
+        ctx.drawImage(coverImg, sx, sy, minSide, minSide, imgX, imgY, imgSize, imgSize);
         ctx.restore();
 
-        // Görselin Cam Çerçevesi
         ctx.save();
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
         ctx.beginPath();
-        ctx.roundRect(imgX, imgY, imgW, imgH, imgRadius);
+        ctx.roundRect(imgX, imgY, imgSize, imgSize, imgRadius);
         ctx.stroke();
         ctx.restore();
 
-        currentY = imgY + imgH + 65;
+        currentY = imgY + imgSize + 60;
       } else {
         currentY += 40;
       }
 
-      // 6. Makale Başlığı (Maksimum 3 Satır, Dengeli Tipografi)
+      // 6. Başlık
       ctx.fillStyle = '#111827';
-      ctx.font = '900 56px sans-serif';
+      ctx.font = '900 52px sans-serif';
 
       const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 3) => {
         const words = text.split(' ');
@@ -274,36 +267,33 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         return y;
       };
 
-      const sonBaslikY = wrapText(aktifBaslik, cardX + 65, currentY + 15, cardW - 130, 72, 3);
+      const sonBaslikY = wrapText(aktifBaslik, cardX + 60, currentY + 10, cardW - 120, 68, 3);
 
-      // 7. Kısa Editoryal Alıntı (İtalik)
-      const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 110) + '...';
+      // 7. Alıntı
+      const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 105) + '...';
       ctx.fillStyle = '#4B5563';
-      ctx.font = 'italic 28px serif';
-      wrapText(`“${spotMetin}”`, cardX + 65, sonBaslikY + 65, cardW - 130, 42, 2);
+      ctx.font = 'italic 26px serif';
+      wrapText(`“${spotMetin}”`, cardX + 60, sonBaslikY + 55, cardW - 120, 38, 2);
 
-      // 8. Minimal & Prestijli Yazar Alanı (Sadece İsim Soyisim)
-      const footerY = cardY + cardH - 140;
+      // 8. Yazar Alanı
+      const footerY = cardY + cardH - 125;
 
-      // 3 Renkli İnce Cam Ayraç Çizgisi
-      const lineGrad = ctx.createLinearGradient(cardX + 65, footerY, cardX + cardW - 65, footerY);
+      const lineGrad = ctx.createLinearGradient(cardX + 60, footerY, cardX + cardW - 60, footerY);
       lineGrad.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
       lineGrad.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
       lineGrad.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
       ctx.fillStyle = lineGrad;
-      ctx.fillRect(cardX + 65, footerY - 30, cardW - 130, 2);
+      ctx.fillRect(cardX + 60, footerY - 25, cardW - 120, 2);
 
-      // Yazar Etiketi
       ctx.fillStyle = '#6B7280';
-      ctx.font = '800 16px sans-serif';
+      ctx.font = '800 15px sans-serif';
       ctx.letterSpacing = '3px';
-      ctx.fillText('YAZAR', cardX + 65, footerY + 12);
+      ctx.fillText('YAZAR', cardX + 60, footerY + 12);
       ctx.letterSpacing = '0px';
 
-      // Büyük & Net İsim Soyisim
       ctx.fillStyle = '#111827';
-      ctx.font = '900 40px sans-serif';
-      ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 65, footerY + 62);
+      ctx.font = '900 38px sans-serif';
+      ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 60, footerY + 58);
 
       setStoryImageUrl(canvas.toDataURL('image/png'));
     };
@@ -353,6 +343,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       setIsSpeaking(false);
     }
     setSeciliDil(yeniDil);
+    setIsLangMenuOpen(false);
 
     if (yeniDil === 'tr') return;
 
@@ -516,25 +507,47 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                 </span>
               </div>
 
+              {/* MİNİMALİST VE YER KAPLAMAYAN ARAÇ ÇUBUĞU */}
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center bg-white/90 border border-gray-200/80 p-0.5 rounded-full shadow-xs">
-                  {DILLER.map((d) => (
-                    <button
-                      key={d.kod}
-                      onClick={() => handleDilDegistir(d.kod)}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all flex items-center gap-1 ${
-                        seciliDil === d.kod
-                          ? 'bg-gray-900 text-white shadow-xs'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                      title={d.ad}
-                    >
-                      <span>{d.bayrak}</span>
-                      <span className="hidden sm:inline uppercase">{d.kod}</span>
-                    </button>
-                  ))}
+                
+                {/* 🌐 AÇILIR DİL MENÜSÜ (DROPDOWN) */}
+                <div className="relative" ref={langMenuRef}>
+                  <button
+                    onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
+                    title="Dili Değiştir"
+                  >
+                    <svg className="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="uppercase text-[10px] tracking-wider">{aktifDilObj.kod}</span>
+                    <span className="text-[9px] text-gray-400">▾</span>
+                  </button>
+
+                  {isLangMenuOpen && (
+                    <div className="absolute right-0 mt-1.5 w-36 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                      {DILLER.map((d) => (
+                        <button
+                          key={d.kod}
+                          onClick={() => handleDilDegistir(d.kod)}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                            seciliDil === d.kod
+                              ? 'bg-gray-900 text-white'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{d.bayrak}</span>
+                            <span>{d.ad}</span>
+                          </span>
+                          {seciliDil === d.kod && <span className="text-[10px]">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
+                {/* 🎧 SESLİ DİNLE */}
                 <button
                   disabled={isTranslating}
                   onClick={handleToggleSpeech}
@@ -548,12 +561,14 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   <span>{isSpeaking ? '⏹ Durdur' : `🎧 ${aktifDilObj.kod.toUpperCase()}`}</span>
                 </button>
 
+                {/* FONT BOYUTU */}
                 <div className="flex items-center bg-white/80 border border-gray-200/80 p-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-600">
                   <button onClick={() => setFontSize('text-base')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A-</button>
                   <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A</button>
                   <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A+</button>
                 </div>
 
+                {/* 📷 INSTAGRAM STORY KARTI */}
                 <button
                   onClick={() => setIsStoryOpen(true)}
                   className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
@@ -567,6 +582,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   </svg>
                 </button>
 
+                {/* PAYLAŞ */}
                 <button
                   onClick={handleShare}
                   className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
