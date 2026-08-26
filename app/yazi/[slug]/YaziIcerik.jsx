@@ -113,7 +113,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
 
-  // 1080x1920 Tamamen Tipografik & Dengeli Story Motoru (Görselsiz)
+  // 1080x1920 Story Motoru (Ortada Şık Kare Görsel Alanı ile)
   useEffect(() => {
     if (!isStoryOpen || !canvasRef.current || !yazi) return;
 
@@ -126,142 +126,189 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
     const stil = getDisiplinStili(yazi.kategori);
 
-    // 1. Zemin
-    ctx.fillStyle = '#F4F5F7';
-    ctx.fillRect(0, 0, width, height);
+    const renderCanvas = (coverImg = null) => {
+      // 1. Zemin
+      ctx.fillStyle = '#F4F5F7';
+      ctx.fillRect(0, 0, width, height);
 
-    // 2. 3 İmza Rengimizin Sıvı Işık Küreleri (Mesh Glows)
-    const gBordo = ctx.createRadialGradient(260, 240, 50, 260, 240, 650);
-    gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.16)');
-    gBordo.addColorStop(1, 'transparent');
-    ctx.fillStyle = gBordo;
-    ctx.fillRect(0, 0, width, height);
+      // 2. Sıvı Işık Küreleri (Mesh Glows)
+      const gBordo = ctx.createRadialGradient(260, 240, 50, 260, 240, 650);
+      gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.16)');
+      gBordo.addColorStop(1, 'transparent');
+      ctx.fillStyle = gBordo;
+      ctx.fillRect(0, 0, width, height);
 
-    const gMor = ctx.createRadialGradient(880, 800, 50, 880, 800, 700);
-    gMor.addColorStop(0, 'rgba(50, 18, 122, 0.14)');
-    gMor.addColorStop(1, 'transparent');
-    ctx.fillStyle = gMor;
-    ctx.fillRect(0, 0, width, height);
+      const gMor = ctx.createRadialGradient(880, 800, 50, 880, 800, 700);
+      gMor.addColorStop(0, 'rgba(50, 18, 122, 0.14)');
+      gMor.addColorStop(1, 'transparent');
+      ctx.fillStyle = gMor;
+      ctx.fillRect(0, 0, width, height);
 
-    const gYesil = ctx.createRadialGradient(320, 1650, 50, 320, 1650, 750);
-    gYesil.addColorStop(0, 'rgba(0, 166, 147, 0.15)');
-    gYesil.addColorStop(1, 'transparent');
-    ctx.fillStyle = gYesil;
-    ctx.fillRect(0, 0, width, height);
+      const gYesil = ctx.createRadialGradient(320, 1650, 50, 320, 1650, 750);
+      gYesil.addColorStop(0, 'rgba(0, 166, 147, 0.15)');
+      gYesil.addColorStop(1, 'transparent');
+      ctx.fillStyle = gYesil;
+      ctx.fillRect(0, 0, width, height);
 
-    // 3. Monolitik Liquid Glass Kart
-    const cardX = 80;
-    const cardY = 140;
-    const cardW = 920;
-    const cardH = 1640;
-    const radius = 56;
+      // 3. Monolitik Liquid Glass Kart
+      const cardX = 80;
+      const cardY = 140;
+      const cardW = 920;
+      const cardH = 1640;
+      const radius = 56;
 
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-    ctx.shadowBlur = 55;
-    ctx.shadowOffsetY = 24;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+      ctx.shadowBlur = 55;
+      ctx.shadowOffsetY = 24;
 
-    ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardW, cardH, radius);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-    ctx.fill();
-    ctx.restore();
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+      ctx.fill();
+      ctx.restore();
 
-    // Cam Çerçeve (Specular Border)
-    ctx.save();
-    ctx.lineWidth = 2.5;
-    const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-    borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-    borderGrad.addColorStop(0.3, 'rgba(116, 17, 47, 0.25)');
-    borderGrad.addColorStop(0.6, 'rgba(50, 18, 122, 0.25)');
-    borderGrad.addColorStop(1, 'rgba(0, 166, 147, 0.35)');
-    ctx.strokeStyle = borderGrad;
-    ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardW, cardH, radius);
-    ctx.stroke();
-    ctx.restore();
+      // Cam Çerçeve (Specular Border)
+      ctx.save();
+      ctx.lineWidth = 2.5;
+      const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+      borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+      borderGrad.addColorStop(0.3, 'rgba(116, 17, 47, 0.25)');
+      borderGrad.addColorStop(0.6, 'rgba(50, 18, 122, 0.25)');
+      borderGrad.addColorStop(1, 'rgba(0, 166, 147, 0.35)');
+      ctx.strokeStyle = borderGrad;
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+      ctx.stroke();
+      ctx.restore();
 
-    // 4. Üst Başlık Bandı (Logo + Kategori)
-    const headerY = cardY + 110;
-    ctx.fillStyle = '#74112f';
-    ctx.font = '900 48px sans-serif';
-    ctx.fillText('ZEMİN', cardX + 75, headerY);
+      // 4. Üst Başlık Bandı (Logo + Kategori)
+      const headerY = cardY + 90;
+      ctx.fillStyle = '#74112f';
+      ctx.font = '900 46px sans-serif';
+      ctx.fillText('ZEMİN', cardX + 60, headerY);
 
-    const badgeW = 180;
-    const badgeH = 48;
-    const badgeX = cardX + cardW - 75 - badgeW;
-    const badgeY = headerY - 37;
+      const badgeW = 160;
+      const badgeH = 46;
+      const badgeX = cardX + cardW - 60 - badgeW;
+      const badgeY = headerY - 36;
 
-    ctx.fillStyle = 'rgba(0, 166, 147, 0.14)';
-    ctx.beginPath();
-    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 24);
-    ctx.fill();
+      ctx.fillStyle = 'rgba(0, 166, 147, 0.14)';
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 23);
+      ctx.fill();
 
-    ctx.fillStyle = '#00a693';
-    ctx.font = '900 19px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + badgeW / 2, badgeY + 31);
-    ctx.textAlign = 'left';
+      ctx.fillStyle = '#00a693';
+      ctx.font = '900 18px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + badgeW / 2, badgeY + 29);
+      ctx.textAlign = 'left';
 
-    // 5. Makale Başlığı (Genişletilmiş Tipografi)
-    const contentStartY = headerY + 140;
-    ctx.fillStyle = '#111827';
-    ctx.font = '900 62px sans-serif';
+      let currentY = headerY + 50;
 
-    const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 5) => {
-      const words = text.split(' ');
-      let line = '';
-      let lineCount = 0;
+      // 5. Tam Kare Görsel Penceresi (Eğer yazar kapak yüklediyse ortada 760x760 px kare alan)
+      if (coverImg) {
+        const imgSize = 760; // Tam kare
+        const imgX = cardX + (cardW - imgSize) / 2; // Ortalanmış
+        const imgY = currentY;
+        const imgRadius = 32;
 
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
-          ctx.fillText(line, x, y);
-          line = words[n] + ' ';
-          y += lineHeight;
-          lineCount++;
-          if (lineCount >= maxLines - 1) {
-            ctx.fillText(line.trim() + '...', x, y);
-            return y;
-          }
-        } else {
-          line = testLine;
-        }
+        const srcW = coverImg.naturalWidth || coverImg.width;
+        const srcH = coverImg.naturalHeight || coverImg.height;
+        const minSide = Math.min(srcW, srcH);
+        const sx = (srcW - minSide) / 2;
+        const sy = (srcH - minSide) / 2;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(imgX, imgY, imgSize, imgSize, imgRadius);
+        ctx.clip();
+        ctx.drawImage(coverImg, sx, sy, minSide, minSide, imgX, imgY, imgSize, imgSize);
+        ctx.restore();
+
+        // Kare Görsel Cam Çerçevesi
+        ctx.save();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect(imgX, imgY, imgSize, imgSize, imgRadius);
+        ctx.stroke();
+        ctx.restore();
+
+        currentY = imgY + imgSize + 45;
+      } else {
+        currentY += 30;
       }
-      ctx.fillText(line, x, y);
-      return y;
+
+      // 6. Makale Başlığı
+      ctx.fillStyle = '#111827';
+      ctx.font = '900 48px sans-serif';
+
+      const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 3) => {
+        const words = text.split(' ');
+        let line = '';
+        let lineCount = 0;
+
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + ' ';
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            ctx.fillText(line, x, y);
+            line = words[n] + ' ';
+            y += lineHeight;
+            lineCount++;
+            if (lineCount >= maxLines - 1) {
+              ctx.fillText(line.trim() + '...', x, y);
+              return y;
+            }
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, x, y);
+        return y;
+      };
+
+      const sonBaslikY = wrapText(aktifBaslik, cardX + 60, currentY, cardW - 120, 60, 3);
+
+      // 7. Kısa Alıntı
+      const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 90) + '...';
+      ctx.fillStyle = '#4B5563';
+      ctx.font = 'italic 24px serif';
+      wrapText(`“${spotMetin}”`, cardX + 60, sonBaslikY + 45, cardW - 120, 34, 2);
+
+      // 8. Yazar Alanı (En Altta)
+      const footerY = cardY + cardH - 120;
+
+      const lineGrad = ctx.createLinearGradient(cardX + 60, footerY, cardX + cardW - 60, footerY);
+      lineGrad.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
+      lineGrad.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
+      lineGrad.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
+      ctx.fillStyle = lineGrad;
+      ctx.fillRect(cardX + 60, footerY - 25, cardW - 120, 2);
+
+      ctx.fillStyle = '#6B7280';
+      ctx.font = '800 15px sans-serif';
+      ctx.letterSpacing = '3px';
+      ctx.fillText('YAZAR', cardX + 60, footerY + 12);
+      ctx.letterSpacing = '0px';
+
+      ctx.fillStyle = '#111827';
+      ctx.font = '900 36px sans-serif';
+      ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 60, footerY + 56);
+
+      setStoryImageUrl(canvas.toDataURL('image/png'));
     };
 
-    const sonBaslikY = wrapText(aktifBaslik, cardX + 75, contentStartY, cardW - 150, 78, 5);
-
-    // 6. Alıntı / Spot Metin
-    const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 160) + '...';
-    ctx.fillStyle = '#4B5563';
-    ctx.font = 'italic 32px serif';
-    wrapText(`“${spotMetin}”`, cardX + 75, sonBaslikY + 90, cardW - 150, 48, 4);
-
-    // 7. Yazar Alanı (En Altta - Sadece İsim)
-    const footerY = cardY + cardH - 160;
-
-    const lineGrad = ctx.createLinearGradient(cardX + 75, footerY, cardX + cardW - 75, footerY);
-    lineGrad.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
-    lineGrad.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
-    lineGrad.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
-    ctx.fillStyle = lineGrad;
-    ctx.fillRect(cardX + 75, footerY - 30, cardW - 150, 2.5);
-
-    ctx.fillStyle = '#6B7280';
-    ctx.font = '800 16px sans-serif';
-    ctx.letterSpacing = '3px';
-    ctx.fillText('YAZAR', cardX + 75, footerY + 12);
-    ctx.letterSpacing = '0px';
-
-    ctx.fillStyle = '#111827';
-    ctx.font = '900 42px sans-serif';
-    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 75, footerY + 64);
-
-    setStoryImageUrl(canvas.toDataURL('image/png'));
+    if (yazi.kapak_url) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = yazi.kapak_url;
+      img.onload = () => renderCanvas(img);
+      img.onerror = () => renderCanvas(null);
+    } else {
+      renderCanvas(null);
+    }
   }, [isStoryOpen, yazi, aktifBaslik, aktifIcerik]);
 
   const handleStoryShare = async () => {
@@ -464,7 +511,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
               <div className="flex flex-wrap items-center gap-2">
                 
-                {/* 🌐 AÇILIR DİL MENÜSÜ */}
+                {/* DİL MENÜSÜ */}
                 <div className="relative" ref={langMenuRef}>
                   <button
                     onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
