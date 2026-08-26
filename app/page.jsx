@@ -41,23 +41,31 @@ export default function Home() {
   useEffect(() => {
     async function verileriGetir() {
       try {
-        const { data: yazilarData } = await supabase
+        // Güvenli ve doğrudan veri çekme sorgusu
+        const { data: yazilarData, error: yaziHata } = await supabase
           .from('yazilar')
-          .select('*, yazarlar(ad_soyad, slug, universite)')
+          .select('*, yazarlar(*)')
           .eq('durum', 'onaylandi')
-          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
           .limit(6);
+
+        if (yaziHata) {
+          console.error('Yazı çekme hatası:', yaziHata);
+        } else if (yazilarData) {
+          setYazilar(yazilarData);
+        }
 
         const { data: dergilerData } = await supabase
           .from('dergiler')
           .select('*')
-          .order('sayi_no', { ascending: false })
+          .order('id', { ascending: false })
           .limit(1);
 
-        if (yazilarData) setYazilar(yazilarData);
-        if (dergilerData && dergilerData.length > 0) setSonDergi(dergilerData[0]);
+        if (dergilerData && dergilerData.length > 0) {
+          setSonDergi(dergilerData[0]);
+        }
       } catch (e) {
-        console.error('Veri çekme hatası:', e);
+        console.error('Genel hata:', e);
       } finally {
         setLoading(false);
       }
@@ -146,7 +154,6 @@ export default function Home() {
 
         {/* 4 TEMEL BİLGİ KARTI */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-12">
-          
           <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#00a693]/40 transition-all">
             <span className="text-base font-black text-[#00a693] block mb-1">01</span>
             <h3 className="font-black text-xs text-gray-900 mb-1">Kimler Yazabilir?</h3>
@@ -178,7 +185,6 @@ export default function Home() {
               Onaylanan metin anında webde yayımlanır; seçilenler dönemsel e-dergi sayısına dahil edilir.
             </p>
           </div>
-
         </section>
 
         {/* SON YAZILAR BÖLÜMÜ */}
