@@ -81,7 +81,7 @@ export default function HomePage() {
                 className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
                 title="Rastgele Bir Metin Keşfet"
               >
-                <span>🔀</span> <span className="hidden sm:inline">Rastgele</span>
+                <span>Keşfet</span> <span className="hidden sm:inline">Rastgele</span>
               </button>
               <Link 
                 href="/basvuru" 
@@ -123,7 +123,7 @@ export default function HomePage() {
                 onClick={handleRastgele}
                 className="glass-panel px-5 py-2.5 sm:px-7 sm:py-3.5 font-bold text-xs sm:text-sm text-gray-800 hover:bg-white/90 transition-all shadow-sm flex items-center gap-2"
               >
-                <span>🔀</span> Rastgele Keşfet
+                <span>Keşfet</span> Rastgele Keşfet
               </button>
               <Link 
                 href="/basvuru" 
