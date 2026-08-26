@@ -35,7 +35,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [fontSize, setFontSize] = useState('text-lg');
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Okuma İlerleme Çubuğu Yüzdesi
+  // Okuma İlerleme Çubuğu Hesabı
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -45,6 +45,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // İlk yüklemede tetikle
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -81,13 +82,12 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
       
-      {/* 2. ÖZELLİK: EKRANIN EN ÜSTÜNDEKİ OKUMA İLERLEME ÇUBUĞU */}
+      {/* 🚀 GÜÇLENDİRİLMİŞ OKUMA İLERLEME ÇUBUĞU (En üstte, belirgin ve gölgeli) */}
       <div 
-        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[9999] transition-all duration-100 ease-out"
+        className="fixed top-0 left-0 h-1.5 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-[0_2px_8px_rgba(50,18,122,0.4)]"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      {/* METNİN KENDİ GÖRSELİNDEN AMBIENT IŞIK */}
       {yazi.kapak_url && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <img 
@@ -215,7 +215,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
           </div>
         </article>
 
-        {/* 3. ÖZELLİK: İLGİLİ METİNLER / BENZER DÜŞÜNCELER BÖLÜMÜ */}
         {ilgiliYazilar.length > 0 && (
           <section className="mt-12">
             <div className="flex items-center justify-between mb-4 px-1">
