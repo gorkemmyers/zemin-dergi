@@ -4,15 +4,14 @@ import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 
 export default function AdminPage() {
-  // Kimlik Doğrulama
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState(false);
 
   // Sekmeler & Filtreler
-  const [activeTab, setActiveTab] = useState('yazilar'); // 'yazilar' | 'dergiler' | 'yazarlar'
+  const [activeTab, setActiveTab] = useState('yazilar');
   const [yaziDurumFiltre, setYaziDurumFiltre] = useState('duzenleme'); // 'duzenleme' | 'beklemede' | 'onaylandi' | 'reddedildi' | 'tumu'
-  const [yaziKategoriFiltre, setYaziKategoriFiltre] = useState('tumu'); // 'tumu' | 'Felsefe' | 'Sosyoloji' | 'Psikoloji'
+  const [yaziKategoriFiltre, setYaziKategoriFiltre] = useState('tumu');
   const [aramaMetni, setAramaMetni] = useState('');
   const [yazarAramaMetni, setYazarAramaMetni] = useState('');
 
@@ -23,7 +22,7 @@ export default function AdminPage() {
   const [selectedYazi, setSelectedYazi] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Editör Hızlı Metin Düzenleme Modu
+  // Editör Düzenleme Modu
   const [isEditingYazi, setIsEditingYazi] = useState(false);
   const [editYaziData, setEditYaziData] = useState({ baslik: '', kategori: 'Felsefe', icerik: '', kapak_url: '' });
 
@@ -38,7 +37,7 @@ export default function AdminPage() {
     durum: 'hazirlaniyor'
   });
 
-  // Yazar Düzenleme Modal State
+  // Yazar Modal State
   const [duzenlenenYazar, setDuzenlenenYazar] = useState(null);
 
   useEffect(() => {
@@ -95,17 +94,61 @@ export default function AdminPage() {
     }
   }
 
-  // --- YAZI FONKSİYONLARI ---
-  async function yaziDurumGuncelle(id, yeniDurum) {
-    const guncelleme = { durum: yeniDurum };
-    if (yeniDurum === 'onaylandi') {
-      guncelleme.duzeltme_notu = null; // Düzenleme onaylanınca not temizlenir
-    }
+  // --- DÜZENLEME TALEBİNİ ONAYLA (CANLIYA AKTAR) ---
+  async function duzenlemeTalebiniOnayla(yazi) {
+    const guncelleme = {
+      baslik: yazi.taslak_baslik || yazi.baslik,
+      kategori: yazi.taslak_kategori || yazi.kategori,
+      icerik: yazi.taslak_icerik || yazi.icerik,
+      kapak_url: yazi.taslak_kapak_url !== undefined && yazi.taslak_kapak_url !== null ? yazi.taslak_kapak_url : yazi.kapak_url,
+      taslak_baslik: null,
+      taslak_kategori: null,
+      taslak_icerik: null,
+      taslak_kapak_url: null,
+      duzeltme_notu: null,
+      durum: 'onaylandi'
+    };
 
-    const { error } = await supabase.from('yazilar').update(guncelleme).eq('id', id);
+    const { error } = await supabase.from('yazilar').update(guncelleme).eq('id', yazi.id);
     if (!error) {
-      setYazilar(yazilar.map(y => y.id === id ? { ...y, ...guncelleme } : y));
-      if (selectedYazi?.id === id) setSelectedYazi({ ...selectedYazi, ...guncelleme });
+      const guncel = { ...yazi, ...guncelleme };
+      setYazilar(yazilar.map(y => y.id === yazi.id ? guncel : y));
+      setSelectedYazi(guncel);
+      alert('Yazarın düzenleme talebi onaylandı ve canlı yayına aktarıldı!');
+    } else {
+      alert('Hata: ' + error.message);
+    }
+  }
+
+  // --- DÜZENLEME TALEBİNİ REDDET (ORİJİNAL YAZI YAYINDA KALIR) ---
+  async function duzenlemeTalebiniReddet(yazi) {
+    if (!confirm('Düzenleme talebini reddetmek istediğinize emin misiniz? (Canlıdaki orijinal metin bozulmadan yayında kalacaktır)')) return;
+
+    const guncelleme = {
+      taslak_baslik: null,
+      taslak_kategori: null,
+      taslak_icerik: null,
+      taslak_kapak_url: null,
+      duzeltme_notu: null
+    };
+
+    const { error } = await supabase.from('yazilar').update(guncelleme).eq('id', yazi.id);
+    if (!error) {
+      const guncel = { ...yazi, ...guncelleme };
+      setYazilar(yazilar.map(y => y.id === yazi.id ? guncel : y));
+      setSelectedYazi(guncel);
+      alert('Düzenleme talebi silindi. Orijinal metin yayında kalmaya devam ediyor.');
+    } else {
+      alert('Hata: ' + error.message);
+    }
+  }
+
+  // Standart Durum Güncelle
+  async function yaziDurumGuncelle(id, yeniDurum) {
+    const { error } = await supabase.from('yazilar').update({ durum: yeniDurum }).eq('id', id);
+    if (!error) {
+      setYazilar(yazilar.map(y => y.id === id ? { ...y, durum: yeniDurum } : y));
+      if (selectedYazi?.id === id) setSelectedYazi({ ...selectedYazi, durum: yeniDurum });
     } else {
       alert('Hata: ' + error.message);
     }
@@ -168,7 +211,7 @@ export default function AdminPage() {
     }
   };
 
-  // --- DERGİ FONKSİYONLARI ---
+  // Dergi İşlemleri
   async function dergiKaydet(e) {
     e.preventDefault();
     if (duzenlenenDergiId) {
@@ -220,7 +263,7 @@ export default function AdminPage() {
     if (!error) loadData();
   }
 
-  // --- YAZAR FONKSİYONLARI ---
+  // Yazar İşlemleri
   async function yazarGuncelle(e) {
     e.preventDefault();
     const { error } = await supabase.from('yazarlar').update({
@@ -241,7 +284,7 @@ export default function AdminPage() {
   }
 
   async function yazarSil(id) {
-    if (!confirm('Yazarı silerseniz bu yazara bağlı tüm metinler de silinebilir. Devam edilsin mi?')) return;
+    if (!confirm('Yazarı silerseniz bu yazara bağlı metinler de etkilenebilir. Devam edilsin mi?')) return;
     const { error } = await supabase.from('yazarlar').delete().eq('id', id);
     if (!error) loadData();
   }
@@ -277,19 +320,26 @@ export default function AdminPage() {
     );
   }
 
-  // Sayı Hesaplamaları
-  const duzenlemeBekleyenler = yazilar.filter(y => y.durum === 'beklemede' && y.duzeltme_notu);
-  const yeniBasvurular = yazilar.filter(y => y.durum === 'beklemede' && !y.duzeltme_notu);
+  // Net Sayı Hesaplamaları
+  const duzenlemeBekleyenler = yazilar.filter(y => Boolean(y.duzeltme_notu && String(y.duzeltme_notu).trim() !== ''));
+  const yeniBasvurular = yazilar.filter(y => y.durum === 'beklemede' && (!y.duzeltme_notu || String(y.duzeltme_notu).trim() === ''));
+  const yayindakiler = yazilar.filter(y => y.durum === 'onaylandi' && (!y.duzeltme_notu || String(y.duzeltme_notu).trim() === ''));
 
-  // Metin Filtreleme Mantığı
+  // Kesin ve Net Filtreleme
   const filtrelenmisYazilar = yazilar.filter(y => {
     let durumUygun = true;
+    const hasDuzeltme = Boolean(y.duzeltme_notu && String(y.duzeltme_notu).trim() !== '');
+
     if (yaziDurumFiltre === 'duzenleme') {
-      durumUygun = y.durum === 'beklemede' && Boolean(y.duzeltme_notu);
+      durumUygun = hasDuzeltme;
     } else if (yaziDurumFiltre === 'beklemede') {
-      durumUygun = y.durum === 'beklemede' && !y.duzeltme_notu;
-    } else if (yaziDurumFiltre !== 'tumu') {
-      durumUygun = y.durum === yaziDurumFiltre;
+      durumUygun = y.durum === 'beklemede' && !hasDuzeltme;
+    } else if (yaziDurumFiltre === 'onaylandi') {
+      durumUygun = y.durum === 'onaylandi' && !hasDuzeltme;
+    } else if (yaziDurumFiltre === 'reddedildi') {
+      durumUygun = y.durum === 'reddedildi';
+    } else if (yaziDurumFiltre === 'tumu') {
+      durumUygun = true;
     }
 
     const kategoriUygun = yaziKategoriFiltre === 'tumu' ? true : y.kategori === yaziKategoriFiltre;
@@ -301,7 +351,6 @@ export default function AdminPage() {
     return durumUygun && kategoriUygun && aramaUygun;
   });
 
-  // Yazar Filtreleme
   const filtrelenmisYazarlar = yazarlar.filter(yz => {
     if (!yazarAramaMetni.trim()) return true;
     const q = yazarAramaMetni.toLowerCase();
@@ -329,6 +378,13 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={loadData}
+              className="bg-white/80 hover:bg-white text-gray-800 px-3 py-1.5 rounded-full text-xs font-bold border border-gray-200 transition-all shadow-xs"
+            >
+              Yenile
+            </button>
+
             {[
               { id: 'yazilar', label: `Metinler (${yazilar.length})`, uyari: duzenlemeBekleyenler.length + yeniBasvurular.length },
               { id: 'dergiler', label: `Dergiler (${dergiler.length})` },
@@ -364,10 +420,8 @@ export default function AdminPage() {
             {activeTab === 'yazilar' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                {/* SOL: FİLTRELER VE LİSTE */}
+                {/* SOL SÜTUN: FİLTRELER VE LİSTE */}
                 <div className="lg:col-span-5 space-y-3">
-                  
-                  {/* Arama */}
                   <input
                     type="text"
                     placeholder="Başlık veya yazar ara..."
@@ -376,12 +430,12 @@ export default function AdminPage() {
                     className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#32127a]"
                   />
 
-                  {/* Durum Sekmeleri (Düzenleme Ayrı Sekme) */}
+                  {/* Durum Sekmeleri */}
                   <div className="grid grid-cols-5 gap-1 p-1 glass-panel rounded-2xl bg-white/50 text-[10px] font-bold">
                     <button
                       onClick={() => setYaziDurumFiltre('duzenleme')}
                       className={`py-1.5 rounded-xl transition-all relative ${
-                        yaziDurumFiltre === 'duzenleme' ? 'bg-[#74112f] text-white' : 'text-gray-600 hover:text-gray-900'
+                        yaziDurumFiltre === 'duzenleme' ? 'bg-[#74112f] text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
                       Düzenleme {duzenlemeBekleyenler.length > 0 && `(${duzenlemeBekleyenler.length})`}
@@ -400,7 +454,7 @@ export default function AdminPage() {
                         yaziDurumFiltre === 'onaylandi' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
-                      Yayında
+                      Yayında ({yayindakiler.length})
                     </button>
                     <button
                       onClick={() => setYaziDurumFiltre('reddedildi')}
@@ -440,7 +494,7 @@ export default function AdminPage() {
                   {/* Metin Listesi */}
                   <div className="space-y-2 max-h-[64vh] overflow-y-auto pr-1">
                     {filtrelenmisYazilar.length === 0 ? (
-                      <div className="glass-card p-6 text-center text-xs text-gray-400">Bu sekmede metin bulunmuyor.</div>
+                      <div className="glass-card p-6 text-center text-xs text-gray-400">Bu filtrede metin bulunmuyor.</div>
                     ) : (
                       filtrelenmisYazilar.map(y => (
                         <div
@@ -456,7 +510,7 @@ export default function AdminPage() {
                             </span>
                             <div className="flex items-center gap-1.5">
                               {y.duzeltme_notu && (
-                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#74112f] text-white">
+                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#74112f] text-white shadow-2xs">
                                   Düzenleme Talebi
                                 </span>
                               )}
@@ -475,39 +529,61 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* SAĞ: DETAY VE İNCELEME */}
+                {/* SAĞ SÜTUN: İNCELEME & AKSİYON */}
                 <div className="lg:col-span-7">
                   {selectedYazi ? (
                     <div className="glass-card p-6 border border-white/90 shadow-xl space-y-4">
                       
-                      {/* Üst Aksiyon Butonları */}
                       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-200/60">
                         <div className="min-w-0">
                           <span className="text-[10px] font-bold text-[#74112f] uppercase">Metin No: #{selectedYazi.id}</span>
-                          <h2 className="text-base sm:text-lg font-black text-gray-900 truncate">{selectedYazi.baslik}</h2>
+                          <h2 className="text-base sm:text-lg font-black text-gray-900 truncate">
+                            {selectedYazi.taslak_baslik || selectedYazi.baslik}
+                          </h2>
                         </div>
+                        
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <button
-                            onClick={() => yaziDurumGuncelle(selectedYazi.id, 'onaylandi')}
-                            className="bg-emerald-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700 shadow-xs"
-                          >
-                            Yayına Al
-                          </button>
-                          <button
-                            onClick={() => yaziDurumGuncelle(selectedYazi.id, 'beklemede')}
-                            className="bg-amber-500 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
-                          >
-                            Beklemeye Al
-                          </button>
-                          <button
-                            onClick={() => yaziDurumGuncelle(selectedYazi.id, 'reddedildi')}
-                            className="bg-rose-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-rose-700 shadow-xs"
-                          >
-                            Reddet
-                          </button>
+                          {selectedYazi.duzeltme_notu ? (
+                            <>
+                              <button
+                                onClick={() => duzenlemeTalebiniOnayla(selectedYazi)}
+                                className="bg-emerald-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700 shadow-xs"
+                              >
+                                Düzenlemeyi Canlıya Al
+                              </button>
+                              <button
+                                onClick={() => duzenlemeTalebiniReddet(selectedYazi)}
+                                className="bg-amber-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-amber-700 shadow-xs"
+                              >
+                                Talebi Reddet
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => yaziDurumGuncelle(selectedYazi.id, 'onaylandi')}
+                                className="bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700 shadow-xs"
+                              >
+                                Yayına Al
+                              </button>
+                              <button
+                                onClick={() => yaziDurumGuncelle(selectedYazi.id, 'beklemede')}
+                                className="bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
+                              >
+                                Beklet
+                              </button>
+                              <button
+                                onClick={() => yaziDurumGuncelle(selectedYazi.id, 'reddedildi')}
+                                className="bg-rose-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-rose-700 shadow-xs"
+                              >
+                                Reddet
+                              </button>
+                            </>
+                          )}
+
                           <button
                             onClick={() => handleYaziDuzenleAc(selectedYazi)}
-                            className="bg-[#32127a] text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-[#74112f] shadow-xs"
+                            className="bg-[#32127a] text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-[#74112f] shadow-xs"
                           >
                             Düzelt
                           </button>
@@ -520,19 +596,22 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      {/* YAZARIN DÜZENLEME AÇIKLAMASI */}
+                      {/* DÜZENLEME AÇIKLAMASI KUTUSU */}
                       {selectedYazi.duzeltme_notu && (
                         <div className="p-3.5 rounded-xl bg-[#74112f]/10 border border-[#74112f]/30">
                           <span className="text-[10px] font-black uppercase text-[#74112f] block mb-0.5">
-                            Yazarın Düzenleme Notu
+                            Yazarın Düzenleme Açıklaması
                           </span>
                           <p className="text-xs text-gray-900 font-semibold italic">
                             “{selectedYazi.duzeltme_notu}”
                           </p>
+                          <span className="text-[10px] text-gray-500 mt-1 block">
+                            (Bu düzenlemeyi onaylayana kadar eski orijinal metin sitede kesintisiz yayında kalır.)
+                          </span>
                         </div>
                       )}
 
-                      {/* Yazar Bilgisi & Dergi Atama */}
+                      {/* Yazar Bilgisi */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/70 border border-white text-xs">
                         <div>
                           <p className="font-bold text-gray-900">{selectedYazi.yazarlar?.ad_soyad || 'İsimsiz'}</p>
@@ -561,7 +640,7 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      {/* EDİTÖR DÜZENLEME FORMU VEYA OKUMA ALANI */}
+                      {/* İÇERİK: DÜZENLEME MODU / TASLAK & CANLI KARŞILAŞTIRMASI */}
                       {isEditingYazi ? (
                         <form onSubmit={handleYaziDuzenleKaydet} className="space-y-3 pt-2">
                           <div className="grid grid-cols-3 gap-2">
@@ -616,7 +695,29 @@ export default function AdminPage() {
                             </button>
                           </div>
                         </form>
+                      ) : selectedYazi.duzeltme_notu ? (
+                        /* DÜZENLEME TALEBİ VARSA: YENİ VE MEVCUT METNİ AYRI AYRI GÖSTER */
+                        <div className="space-y-4">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-black uppercase text-[#00a693] block">
+                              Yazarın Önerdiği Yeni Taslak (Onay Bekliyor):
+                            </span>
+                            <div className="font-serif text-sm leading-relaxed whitespace-pre-wrap p-4 rounded-xl bg-white border-2 border-[#00a693]/30 max-h-[30vh] overflow-y-auto text-gray-900 shadow-2xs">
+                              {selectedYazi.taslak_icerik || selectedYazi.icerik}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold uppercase text-gray-400 block">
+                              Sitede Canlıda Olan Orijinal Metin:
+                            </span>
+                            <div className="font-serif text-xs leading-relaxed whitespace-pre-wrap p-3 rounded-xl bg-gray-50 border border-gray-200 max-h-[20vh] overflow-y-auto text-gray-500">
+                              {selectedYazi.icerik}
+                            </div>
+                          </div>
+                        </div>
                       ) : (
+                        /* NORMAL METİN GÖRÜNÜMÜ */
                         <div className="font-serif text-sm leading-relaxed whitespace-pre-wrap p-4 rounded-xl bg-white/90 border max-h-[46vh] overflow-y-auto text-gray-800">
                           {selectedYazi.icerik}
                         </div>
@@ -636,7 +737,6 @@ export default function AdminPage() {
             {/* 2. SEKME: DERGİLER */}
             {activeTab === 'dergiler' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
                 <div className="lg:col-span-5">
                   <div className="glass-card p-5 border border-white/90 shadow-xl">
                     <div className="flex justify-between items-center mb-3 pb-2 border-b">
@@ -725,21 +825,16 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
-
               </div>
             )}
 
-            {/* 3. SEKME: YAZARLAR (KOMPAKT LİSTE & CANLI ARAMA) */}
+            {/* 3. SEKME: YAZARLAR (KOMPAKT SATIR LİSTESİ) */}
             {activeTab === 'yazarlar' && (
               <div className="space-y-4">
-                
-                {/* Üst Arama ve Başlık Barı */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <div>
-                    <h2 className="text-xs font-black uppercase tracking-wider text-gray-900">
-                      Kayıtlı Yazarlar & PIN Masası ({filtrelenmisYazarlar.length})
-                    </h2>
-                  </div>
+                  <h2 className="text-xs font-black uppercase tracking-wider text-gray-900">
+                    Kayıtlı Yazarlar & PIN Masası ({filtrelenmisYazarlar.length})
+                  </h2>
                   <div className="w-full sm:w-72">
                     <input
                       type="text"
@@ -751,7 +846,6 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Kompakt Liste Formatı */}
                 <div className="space-y-2">
                   {filtrelenmisYazarlar.length === 0 ? (
                     <div className="glass-card p-8 text-center text-xs text-gray-400">
