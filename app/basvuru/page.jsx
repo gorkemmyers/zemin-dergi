@@ -116,29 +116,29 @@ export default function BasvuruPage() {
             </Link>
           </div>
         ) : (
-          <div className="glass-card p-6 md:p-10 border border-white/80 shadow-2xl">
+          <div className="glass-card p-6 md:p-10 border border-white/80 shadow-xl">
             <header className="border-b border-gray-200/60 pb-5 mb-6">
               <span className="text-xs uppercase tracking-widest text-[#00a693] font-bold">Yayın Başvurusu</span>
               <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mt-1">Düşünceni Arşive Dahil Et</h1>
-              <p className="text-xs text-gray-500 font-medium mt-1">Metinler editoryal kontrolden geçtikten sonra yayına alınır.</p>
+              <p className="text-xs text-gray-500 font-medium mt-1">Metinler editoryal kontrolden geçtikten sonra yazar adıyla yayına alınır.</p>
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Ad Soyad *</label>
-                  <input required type="text" className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
+                  <input required type="text" className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
                     onChange={(e) => setFormData({...formData, ad_soyad: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Instagram</label>
-                    <input type="text" placeholder="@" className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
+                    <input type="text" placeholder="@" className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
                       onChange={(e) => setFormData({...formData, instagram: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-xs uppercase font-bold text-[#74112f] mb-1">Yazar PIN *</label>
-                    <input required type="password" maxLength={6} placeholder="Örn: 1984" className="w-full bg-white/90 border border-[#74112f]/40 rounded-xl p-3 text-sm text-gray-900 font-bold focus:outline-none focus:border-[#74112f] shadow-sm" 
+                    <input required type="password" maxLength={6} placeholder="Örn: 1984" className="w-full bg-white/95 border border-[#74112f]/40 rounded-xl p-3 text-sm text-gray-900 font-bold focus:outline-none focus:border-[#74112f] shadow-sm" 
                       onChange={(e) => setFormData({...formData, pin: e.target.value})} />
                   </div>
                 </div>
@@ -147,19 +147,19 @@ export default function BasvuruPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Üniversite *</label>
-                  <input required type="text" placeholder="örn. Anadolu Üniversitesi" className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
+                  <input required type="text" placeholder="örn. Anadolu Üniversitesi" className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
                     onChange={(e) => setFormData({...formData, universite: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Bölüm *</label>
-                  <input required type="text" placeholder="örn. Felsefe 3. Sınıf" className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
+                  <input required type="text" placeholder="örn. Felsefe 3. Sınıf" className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
                     onChange={(e) => setFormData({...formData, bolum: e.target.value})} />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Kısa Yazar Biyografisi *</label>
-                <input required type="text" placeholder="İlgi alanların veya çalışma konun hakkında 1-2 cümle" className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
+                <input required type="text" placeholder="İlgi alanların veya çalışma konun hakkında 1-2 cümle" className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
                   onChange={(e) => setFormData({...formData, biyografi: e.target.value})} />
               </div>
 
@@ -167,12 +167,12 @@ export default function BasvuruPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="md:col-span-2">
                     <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Metin Başlığı *</label>
-                    <input required type="text" className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-bold focus:outline-none focus:border-[#74112f] shadow-sm" 
+                    <input required type="text" className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-bold focus:outline-none focus:border-[#74112f] shadow-sm" 
                       onChange={(e) => setFormData({...formData, baslik: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Disiplin</label>
-                    <select className="w-full bg-white/90 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-bold focus:outline-none focus:border-[#74112f] shadow-sm"
+                    <select className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-bold focus:outline-none focus:border-[#74112f] shadow-sm"
                       onChange={(e) => setFormData({...formData, kategori: e.target.value})}>
                       <option value="Felsefe">Felsefe</option>
                       <option value="Sosyoloji">Sosyoloji</option>
@@ -183,12 +183,25 @@ export default function BasvuruPage() {
 
                 <div>
                   <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Metin ve Kaynakça *</label>
-                  <textarea required rows={10} placeholder="Yazınızı ve kaynakçanızı buraya yapıştırın..." className="w-full bg-white/90 border border-gray-200 rounded-xl p-4 text-sm font-serif leading-relaxed text-gray-900 focus:outline-none focus:border-[#74112f] shadow-sm" 
+                  <textarea required rows={10} placeholder="Yazınızı ve kaynakçanızı buraya yapıştırın..." className="w-full bg-white/95 border border-gray-200 rounded-xl p-4 text-sm font-serif leading-relaxed text-gray-900 focus:outline-none focus:border-[#74112f] shadow-sm" 
                     onChange={(e) => setFormData({...formData, icerik: e.target.value})} />
                 </div>
               </div>
 
-              <button disabled={loading} type="submit" className="w-full bg-[#32127a] text-white py-3.5 rounded-2xl uppercase tracking-wider text-xs font-bold hover:bg-[#32127a]/90 transition-all shadow-lg shadow-[#32127a]/20">
+              {/* YAYIN ŞARTLARI & TELİF ONAY KUTUSU */}
+              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200/80 flex items-start gap-3">
+                <input 
+                  required 
+                  type="checkbox" 
+                  id="telif_onay" 
+                  className="mt-1 w-4 h-4 rounded accent-[#74112f] cursor-pointer flex-shrink-0" 
+                />
+                <label htmlFor="telif_onay" className="text-xs text-gray-600 font-medium leading-relaxed select-none cursor-pointer">
+                  Bu metnin fikri mülkiyeti şahsıma aittir. Metni göndererek <strong>ZEMİN</strong> platformuna açık arşivde ve tematik e-dergi sayılarında adıma atıfla yayımlama ve dağıtma hakkı verdiğimi onaylıyorum. Yayımlanan ve dergi sayılarına dahil edilen metinlerin daha sonra dergiden geri çekilemeyeceğini/silinemeyeceğini kabul ediyorum.
+                </label>
+              </div>
+
+              <button disabled={loading} type="submit" className="w-full bg-[#32127a] text-white py-3.5 rounded-2xl uppercase tracking-wider text-xs font-bold hover:bg-[#32127a]/90 transition-all shadow-md">
                 {loading ? 'İletiliyor...' : 'Yazıyı Gönder'}
               </button>
             </form>
