@@ -101,6 +101,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
 
+  // 1080x1920 Ultra Liquid Glass Story Canvas Motoru
   useEffect(() => {
     if (!isStoryOpen || !canvasRef.current || !yazi) return;
 
@@ -111,107 +112,142 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     canvas.width = width;
     canvas.height = height;
 
-    const stil = getDisiplinStili(yazi.kategori);
-
     const renderCanvas = (coverImg = null) => {
+      // 1. Zemin
       ctx.fillStyle = '#F4F5F7';
       ctx.fillRect(0, 0, width, height);
 
-      const g1 = ctx.createRadialGradient(250, 300, 50, 250, 300, 650);
-      g1.addColorStop(0, '#ECE7E1');
-      g1.addColorStop(1, 'transparent');
-      ctx.fillStyle = g1;
+      // 2. İmza 3 Rengimizin Sıvı Işık Küreleri (Liquid Mesh Glows)
+      // A) Bordo Işıltı (Sol Üst)
+      const gBordo = ctx.createRadialGradient(260, 280, 60, 260, 280, 650);
+      gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.16)');
+      gBordo.addColorStop(1, 'rgba(116, 17, 47, 0)');
+      ctx.fillStyle = gBordo;
       ctx.fillRect(0, 0, width, height);
 
-      const g2 = ctx.createRadialGradient(850, 600, 50, 850, 600, 700);
-      g2.addColorStop(0, `rgba(${stil.rgb}, 0.14)`);
-      g2.addColorStop(1, 'transparent');
-      ctx.fillStyle = g2;
+      // B) Mor Işıltı (Sağ Orta)
+      const gMor = ctx.createRadialGradient(880, 850, 70, 880, 850, 700);
+      gMor.addColorStop(0, 'rgba(50, 18, 122, 0.14)');
+      gMor.addColorStop(1, 'rgba(50, 18, 122, 0)');
+      ctx.fillStyle = gMor;
       ctx.fillRect(0, 0, width, height);
 
-      const g3 = ctx.createRadialGradient(400, 1600, 50, 400, 1600, 750);
-      g3.addColorStop(0, 'rgba(227, 234, 230, 0.9)');
-      g3.addColorStop(1, 'transparent');
-      ctx.fillStyle = g3;
+      // C) Zümrüt/Adaçayı Işıltısı (Sol Alt)
+      const gYesil = ctx.createRadialGradient(320, 1620, 60, 320, 1620, 750);
+      gYesil.addColorStop(0, 'rgba(0, 166, 147, 0.15)');
+      gYesil.addColorStop(1, 'rgba(0, 166, 147, 0)');
+      ctx.fillStyle = gYesil;
       ctx.fillRect(0, 0, width, height);
 
+      // 3. Monolitik Liquid Glass Kartı
       const cardX = 80;
-      const cardY = 180;
+      const cardY = 160;
       const cardW = 920;
-      const cardH = 1560;
-      const radius = 52;
+      const cardH = 1600;
+      const radius = 56;
 
+      // Cam Kartın Derinlik Gölgeleri
       ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.07)';
-      ctx.shadowBlur = 50;
-      ctx.shadowOffsetY = 20;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+      ctx.shadowBlur = 60;
+      ctx.shadowOffsetY = 24;
 
       ctx.beginPath();
       ctx.roundRect(cardX, cardY, cardW, cardH, radius);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
       ctx.fill();
       ctx.restore();
 
+      // Cam Çerçeve (3 Renk Geçişli Specular Border)
       ctx.save();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.lineWidth = 2.5;
+      const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+      borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+      borderGrad.addColorStop(0.25, 'rgba(116, 17, 47, 0.25)');
+      borderGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.9)');
+      borderGrad.addColorStop(0.75, 'rgba(50, 18, 122, 0.25)');
+      borderGrad.addColorStop(1, 'rgba(0, 166, 147, 0.35)');
+      ctx.strokeStyle = borderGrad;
       ctx.beginPath();
       ctx.roundRect(cardX, cardY, cardW, cardH, radius);
       ctx.stroke();
       ctx.restore();
 
-      const headerY = cardY + 90;
+      // 4. Üst Başlık Bandı (ZEMİN Logo & Disiplin Rozeti)
+      const headerY = cardY + 95;
       ctx.fillStyle = '#74112f';
-      ctx.font = '900 44px sans-serif';
-      ctx.fillText('ZEMİN', cardX + 60, headerY);
+      ctx.font = '900 46px sans-serif';
+      ctx.fillText('ZEMİN', cardX + 65, headerY);
 
       const badgeW = 160;
-      const badgeH = 44;
-      const badgeX = cardX + cardW - 60 - badgeW;
-      const badgeY = headerY - 34;
+      const badgeH = 46;
+      const badgeX = cardX + cardW - 65 - badgeW;
+      const badgeY = headerY - 36;
 
-      ctx.fillStyle = `rgba(${stil.rgb}, 0.12)`;
+      ctx.fillStyle = 'rgba(0, 166, 147, 0.14)';
       ctx.beginPath();
-      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 22);
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 23);
       ctx.fill();
 
-      ctx.fillStyle = stil.renk;
+      ctx.fillStyle = '#00a693';
       ctx.font = '900 18px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + badgeW / 2, badgeY + 28);
+      ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + badgeW / 2, badgeY + 29);
       ctx.textAlign = 'left';
 
-      let contentStartY = headerY + 60;
+      let currentY = headerY + 65;
 
+      // 5. Kapak Görseli Penceresi (En/Boy Oranını Asla Bozmayan Cover Algoritması)
       if (coverImg) {
-        const imgX = cardX + 60;
-        const imgY = contentStartY;
-        const imgW = cardW - 120;
-        const imgH = 460;
+        const imgX = cardX + 65;
+        const imgY = currentY;
+        const imgW = cardW - 130; // 790px
+        const imgH = 480;
         const imgRadius = 32;
+
+        // Cover Crop Hesabı (Görseli sıkıştırmadan/yamultmadan ortalayarak tam doldurur)
+        const srcW = coverImg.naturalWidth || coverImg.width;
+        const srcH = coverImg.naturalHeight || coverImg.height;
+        const srcRatio = srcW / srcH;
+        const targetRatio = imgW / imgH;
+
+        let sx, sy, sWidth, sHeight;
+        if (srcRatio > targetRatio) {
+          sHeight = srcH;
+          sWidth = srcH * targetRatio;
+          sx = (srcW - sWidth) / 2;
+          sy = 0;
+        } else {
+          sWidth = srcW;
+          sHeight = srcW / targetRatio;
+          sx = 0;
+          sy = (srcH - sHeight) / 2;
+        }
 
         ctx.save();
         ctx.beginPath();
         ctx.roundRect(imgX, imgY, imgW, imgH, imgRadius);
         ctx.clip();
-        ctx.drawImage(coverImg, imgX, imgY, imgW, imgH);
+        ctx.drawImage(coverImg, sx, sy, sWidth, sHeight, imgX, imgY, imgW, imgH);
         ctx.restore();
 
+        // Görselin Cam Çerçevesi
         ctx.save();
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.beginPath();
         ctx.roundRect(imgX, imgY, imgW, imgH, imgRadius);
         ctx.stroke();
         ctx.restore();
 
-        contentStartY = imgY + imgH + 60;
+        currentY = imgY + imgH + 65;
       } else {
-        contentStartY += 40;
+        currentY += 40;
       }
 
+      // 6. Makale Başlığı (Maksimum 3 Satır, Dengeli Tipografi)
       ctx.fillStyle = '#111827';
-      ctx.font = '900 54px sans-serif';
+      ctx.font = '900 56px sans-serif';
 
       const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 3) => {
         const words = text.split(' ');
@@ -238,40 +274,36 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         return y;
       };
 
-      const sonBaslikY = wrapText(aktifBaslik, cardX + 60, contentStartY + 20, cardW - 120, 68, 3);
+      const sonBaslikY = wrapText(aktifBaslik, cardX + 65, currentY + 15, cardW - 130, 72, 3);
 
+      // 7. Kısa Editoryal Alıntı (İtalik)
       const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 110) + '...';
       ctx.fillStyle = '#4B5563';
       ctx.font = 'italic 28px serif';
-      wrapText(`“${spotMetin}”`, cardX + 60, sonBaslikY + 65, cardW - 120, 42, 2);
+      wrapText(`“${spotMetin}”`, cardX + 65, sonBaslikY + 65, cardW - 130, 42, 2);
 
-      const footerY = cardY + cardH - 180;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
-      ctx.fillRect(cardX + 60, footerY - 40, cardW - 120, 1.5);
+      // 8. Minimal & Prestijli Yazar Alanı (Sadece İsim Soyisim)
+      const footerY = cardY + cardH - 140;
 
-      const avatarR = 36;
-      const avatarX = cardX + 60 + avatarR;
-      const avatarY = footerY + 20;
+      // 3 Renkli İnce Cam Ayraç Çizgisi
+      const lineGrad = ctx.createLinearGradient(cardX + 65, footerY, cardX + cardW - 65, footerY);
+      lineGrad.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
+      lineGrad.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
+      lineGrad.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
+      ctx.fillStyle = lineGrad;
+      ctx.fillRect(cardX + 65, footerY - 30, cardW - 130, 2);
 
-      ctx.fillStyle = '#74112f';
-      ctx.beginPath();
-      ctx.arc(avatarX, avatarY, avatarR, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '900 30px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z', avatarX, avatarY + 11);
-      ctx.textAlign = 'left';
-
-      const textLeft = avatarX + avatarR + 24;
-      ctx.fillStyle = '#111827';
-      ctx.font = '900 34px sans-serif';
-      ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', textLeft, avatarY - 4);
-
+      // Yazar Etiketi
       ctx.fillStyle = '#6B7280';
-      ctx.font = '600 22px sans-serif';
-      ctx.fillText(`${yazi.yazarlar?.universite || ''} — ${yazi.yazarlar?.bolum || ''}`, textLeft, avatarY + 28);
+      ctx.font = '800 16px sans-serif';
+      ctx.letterSpacing = '3px';
+      ctx.fillText('YAZAR', cardX + 65, footerY + 12);
+      ctx.letterSpacing = '0px';
+
+      // Büyük & Net İsim Soyisim
+      ctx.fillStyle = '#111827';
+      ctx.font = '900 40px sans-serif';
+      ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 65, footerY + 62);
 
       setStoryImageUrl(canvas.toDataURL('image/png'));
     };
