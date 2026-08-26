@@ -6,7 +6,6 @@ import { supabase } from '../lib/supabase';
 export default function HomePage() {
   const [yazilar, setYazilar] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [menuAcik, setMenuAcik] = useState(false);
 
   useEffect(() => {
     async function fetchYazilar() {
@@ -27,87 +26,74 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 pb-16">
         
-        {/* SÜZÜLEN MENÜ (NAVBAR) */}
-        <nav className="glass-panel mx-auto max-w-4xl px-6 py-3.5 mb-8 md:mb-12 flex justify-between items-center sticky top-4 z-50 rounded-full">
-          <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
-            ZEMİN
-          </Link>
+        {/* TEK PARÇA ÇİFT KATMANLI CAM NAVBAR (HAMBURGERSİZ) */}
+        <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 md:mb-10 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
+          {/* Üst Satır: Logo & Eylem Butonu */}
+          <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
+            <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
+              ZEMİN
+            </Link>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                Açık Düşünce
+              </span>
+              <Link 
+                href="/basvuru" 
+                className="bg-[#32127a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
+              >
+                METİN GÖNDER
+              </Link>
+            </div>
+          </div>
+
+          {/* Alt Satır: Yan Yana Asla Kırılmayan Menü Linkleri */}
+          <nav className="flex items-center justify-between sm:justify-center gap-4 sm:gap-8 pt-2.5 px-2 overflow-x-auto whitespace-nowrap text-xs sm:text-sm font-bold text-gray-700 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <Link href="/" className="text-[#00a693] flex-shrink-0">Ana Sayfa</Link>
+            <Link href="/yazilar" className="hover:text-[#00a693] transition-colors flex-shrink-0">Yazılar</Link>
+            <Link href="/dergiler" className="hover:text-[#00a693] transition-colors flex-shrink-0">Dergiler</Link>
+            <Link href="/yazarlar" className="hover:text-[#00a693] transition-colors flex-shrink-0">Yazarlar</Link>
+            <Link href="/iletisim" className="hover:text-[#00a693] transition-colors flex-shrink-0">İletişim</Link>
+          </nav>
+        </header>
+
+        {/* 3 RENK ÇERÇEVELİ LIQUID GLASS HERO PANELİ */}
+        <section className="relative mx-auto max-w-4xl mb-12">
+          {/* Arkadaki 3 Renk Degrade Işıltı Çerçevesi */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] rounded-[2.5rem] blur opacity-30"></div>
           
-          {/* Masaüstü Linkler */}
-          <div className="hidden md:flex gap-7 text-sm font-bold text-gray-700 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
-            <Link href="/" className="text-[#00a693]">Ana Sayfa</Link>
-            <Link href="/yazilar" className="hover:text-[#00a693] transition-colors">Yazılar</Link>
-            <Link href="/dergiler" className="hover:text-[#00a693] transition-colors">Dergiler</Link>
-            <Link href="/yazarlar" className="hover:text-[#00a693] transition-colors">Yazarlar</Link>
-            <Link href="/iletisim" className="hover:text-[#00a693] transition-colors">İletişim</Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link 
-              href="/basvuru" 
-              className="hidden sm:inline-block bg-[#32127a] text-white px-5 py-2 rounded-full text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
-            >
-              METİN GÖNDER
-            </Link>
+          {/* Ana Buzlu Cam Karşılama Kartı */}
+          <div className="relative glass-card p-6 sm:p-12 md:p-16 rounded-[2.3rem] text-center border border-white/90 shadow-xl overflow-hidden">
+            <span className="inline-block text-[#00a693] font-black tracking-widest uppercase text-[10px] sm:text-[11px] mb-4 px-4 py-1.5 rounded-full bg-[#00a693]/10 border border-[#00a693]/20">
+              Açık Düşünce İnisiyatifi
+            </span>
             
-            {/* Mobil Menü Butonu */}
-            <button 
-              onClick={() => setMenuAcik(!menuAcik)}
-              className="md:hidden p-2 rounded-full text-gray-800 hover:bg-white/50 focus:outline-none"
-              aria-label="Menü"
-            >
-              {menuAcik ? '✕' : '☰'}
-            </button>
-          </div>
-        </nav>
-
-        {/* MOBİL AÇILIR MENÜ */}
-        {menuAcik && (
-          <div className="md:hidden glass-panel p-6 mb-8 flex flex-col gap-4 text-center text-sm font-bold text-gray-800 shadow-xl">
-            <Link href="/" onClick={() => setMenuAcik(false)} className="text-[#00a693]">Ana Sayfa</Link>
-            <Link href="/yazilar" onClick={() => setMenuAcik(false)} className="hover:text-[#00a693]">Yazılar</Link>
-            <Link href="/dergiler" onClick={() => setMenuAcik(false)} className="hover:text-[#00a693]">Dergiler</Link>
-            <Link href="/yazarlar" onClick={() => setMenuAcik(false)} className="hover:text-[#00a693]">Yazarlar</Link>
-            <Link href="/iletisim" onClick={() => setMenuAcik(false)} className="hover:text-[#00a693]">İletişim</Link>
-            <Link 
-              href="/basvuru" 
-              onClick={() => setMenuAcik(false)}
-              className="bg-[#32127a] text-white py-2.5 rounded-full text-xs tracking-wider"
-            >
-              METİN GÖNDER
-            </Link>
-          </div>
-        )}
-
-        {/* KOMPAKT HERO BÖLÜMÜ */}
-        <section className="text-center py-8 md:py-14 flex flex-col items-center justify-center">
-          <span className="text-[#00a693] font-black tracking-widest uppercase text-[11px] mb-4 px-4 py-1.5 rounded-full bg-[#00a693]/10 border border-[#00a693]/20">
-            Açık Düşünce İnisiyatifi
-          </span>
-          <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight mb-4 max-w-3xl">
-            Fikri <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693]">Zeminini</span> Burada İnşa Et.
-          </h1>
-          <p className="text-base md:text-lg text-gray-600 max-w-xl mb-6 font-medium leading-relaxed">
-            Felsefe, sosyoloji ve psikoloji disiplinlerinde üretilen eleştirel metinleri açık arşivde buluşturuyoruz.
-          </p>
-          <div className="flex flex-row gap-3">
-            <Link 
-              href="/dergiler" 
-              className="glass-panel px-6 py-3 font-bold text-sm text-gray-800 hover:bg-white/80 transition-all shadow-sm"
-            >
-              Sayıları İncele
-            </Link>
-            <Link 
-              href="/basvuru" 
-              className="bg-gray-900 text-white px-6 py-3 rounded-3xl text-sm font-bold shadow-lg shadow-gray-900/10 hover:scale-105 transition-transform"
-            >
-              Yayın Başvurusu →
-            </Link>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+              Fikri <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693]">Zeminini</span> Burada İnşa Et.
+            </h1>
+            
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-xl mx-auto mb-8 font-medium leading-relaxed">
+              Felsefe, sosyoloji ve psikoloji disiplinlerinde üretilen eleştirel metinleri açık erişimli bir arşivde bir araya getiriyoruz.
+            </p>
+            
+            <div className="flex flex-row justify-center items-center gap-3 sm:gap-4">
+              <Link 
+                href="/dergiler" 
+                className="glass-panel px-5 py-2.5 sm:px-7 sm:py-3.5 font-bold text-xs sm:text-sm text-gray-800 hover:bg-white/90 transition-all shadow-sm"
+              >
+                Sayıları İncele
+              </Link>
+              <Link 
+                href="/basvuru" 
+                className="bg-gray-900 text-white px-5 py-2.5 sm:px-7 sm:py-3.5 rounded-3xl text-xs sm:text-sm font-bold shadow-lg shadow-gray-900/15 hover:scale-105 transition-transform"
+              >
+                Yayın Başvurusu →
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* SON YAZILAR */}
-        <section className="mt-8">
+        {/* SON YAYINLAR */}
+        <section className="mt-6">
           <div className="flex justify-between items-end mb-6 px-1">
             <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Son Yayınlar</h2>
             <Link href="/yazilar" className="text-xs md:text-sm font-bold text-[#32127a] hover:underline">Tümünü Gör</Link>
