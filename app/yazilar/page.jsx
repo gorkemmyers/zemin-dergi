@@ -3,6 +3,35 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 
+const getDisiplinStili = (kategori) => {
+  switch (kategori) {
+    case 'Felsefe':
+      return {
+        cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent',
+        badgeBg: 'bg-[#74112f]/15 text-[#74112f]',
+        pattern: 'radial-gradient(circle at 100% 0%, rgba(116, 17, 47, 0.12) 0%, transparent 60%)'
+      };
+    case 'Sosyoloji':
+      return {
+        cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent',
+        badgeBg: 'bg-[#00a693]/15 text-[#00a693]',
+        pattern: 'radial-gradient(circle at 100% 0%, rgba(0, 166, 147, 0.12) 0%, transparent 60%)'
+      };
+    case 'Psikoloji':
+      return {
+        cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent',
+        badgeBg: 'bg-[#32127a]/15 text-[#32127a]',
+        pattern: 'radial-gradient(circle at 100% 0%, rgba(50, 18, 122, 0.12) 0%, transparent 60%)'
+      };
+    default:
+      return {
+        cardBg: 'from-gray-100 to-transparent',
+        badgeBg: 'bg-gray-100 text-gray-700',
+        pattern: 'none'
+      };
+  }
+};
+
 export default function YazilarPage() {
   const [yazilar, setYazilar] = useState([]);
   const [seciliKategori, setSeciliKategori] = useState('Tümü');
@@ -13,7 +42,7 @@ export default function YazilarPage() {
     async function fetchYazilar() {
       const { data } = await supabase
         .from('yazilar')
-        .select('id, baslik, slug, kategori, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
+        .select('id, baslik, slug, kategori, icerik, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
         .eq('durum', 'onaylandi')
         .order('olusturulma_tarihi', { ascending: false });
       
@@ -35,7 +64,7 @@ export default function YazilarPage() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 pb-16">
         
-        {/* ÇİFT KATMANLI HAMBURGERSİZ CAM NAVBAR */}
+        {/* NAVBAR */}
         <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
           <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
@@ -63,7 +92,7 @@ export default function YazilarPage() {
           </nav>
         </header>
 
-        {/* BAŞLIK & ARAMA ALANI */}
+        {/* BAŞLIK & ARAMA */}
         <header className="text-center py-4 mb-6 max-w-2xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mb-2">
             Metin <span className="text-[#74112f]">Arşivi</span>
@@ -108,27 +137,42 @@ export default function YazilarPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtrelenmisYazilar.map((yazi) => (
-              <Link href={`/yazi/${yazi.slug}`} key={yazi.id} className="group outline-none">
-                <article className="glass-card p-5 h-full flex flex-col justify-between hover:shadow-xl hover:bg-white/85 transition-all duration-300 border border-white/60 group-hover:-translate-y-1">
-                  <div>
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-[#00a693] mb-3 bg-[#00a693]/10 px-2.5 py-0.5 rounded-md">
-                      {yazi.kategori}
-                    </span>
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#74112f] transition-colors line-clamp-2">
-                      {yazi.baslik}
-                    </h2>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-gray-200/50 flex items-center justify-between">
+            {filtrelenmisYazilar.map((yazi) => {
+              const stil = getDisiplinStili(yazi.kategori);
+              const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
+
+              return (
+                <Link href={`/yazi/${yazi.slug}`} key={yazi.id} className="group outline-none">
+                  <article 
+                    style={{ backgroundImage: stil.pattern }}
+                    className={`glass-card p-5 h-full flex flex-col justify-between hover:shadow-xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden bg-gradient-to-br ${stil.cardBg}`}
+                  >
                     <div>
-                      <p className="text-xs font-bold text-gray-800">{yazi.yazarlar?.ad_soyad}</p>
-                      <p className="text-[11px] text-gray-500 font-medium">{yazi.yazarlar?.universite}</p>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
+                          {yazi.kategori}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-bold bg-white/70 px-2 py-0.5 rounded-full border border-gray-100">
+                          ⏱ {okumaSuresi} dk
+                        </span>
+                      </div>
+                      
+                      <h2 className="text-lg font-bold text-gray-900 mb-2 leading-snug group-hover:text-[#74112f] transition-colors line-clamp-2">
+                        {yazi.baslik}
+                      </h2>
                     </div>
-                    <span className="text-xs text-[#32127a] font-bold">Oku →</span>
-                  </div>
-                </article>
-              </Link>
-            ))}
+
+                    <div className="mt-4 pt-3 border-t border-gray-200/50 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-gray-800">{yazi.yazarlar?.ad_soyad}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">{yazi.yazarlar?.universite}</p>
+                      </div>
+                      <span className="text-xs text-[#32127a] font-bold">Oku →</span>
+                    </div>
+                  </article>
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>
