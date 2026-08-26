@@ -1,6 +1,8 @@
 import { supabase } from '../../../lib/supabase';
 import YaziIcerik from './YaziIcerik';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const { data: yazi } = await supabase
@@ -8,7 +10,7 @@ export async function generateMetadata({ params }) {
     .select('baslik, kapak_url, yazarlar(ad_soyad)')
     .eq('slug', resolvedParams.slug)
     .eq('durum', 'onaylandi')
-    .single();
+    .maybeSingle();
 
   if (!yazi) return { title: 'Bulunamadı | ZEMİN' };
 
@@ -42,7 +44,7 @@ export default async function YaziDetayServerPage({ params }) {
     `)
     .eq('slug', resolvedParams.slug)
     .eq('durum', 'onaylandi')
-    .single();
+    .maybeSingle();
 
   let ilgiliYazilar = [];
   if (yazi) {
