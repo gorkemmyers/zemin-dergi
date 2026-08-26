@@ -36,13 +36,25 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState([]);
+  const [selectedVoiceIndex, setSelectedVoiceIndex] = useState('');
 
-  // Cihazdaki yüksek kaliteli sesleri asenkron olarak yükle
+  // Cihazdaki sesleri çek
   useEffect(() => {
     const yukleSesler = () => {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         const mevcutSesler = window.speechSynthesis.getVoices();
-        setVoices(mevcutSesler);
+        const trSesler = mevcutSesler.filter(v => v.lang.toLowerCase().includes('tr'));
+        setVoices(trSesler);
+        if (trSesler.length > 0 && selectedVoiceIndex === '') {
+          // Varsayılan olarak en iyi akıcı sesi seçmeye çalış
+          const iyiSesIndex = trSesler.findIndex(v => 
+            v.name.includes('Natural') || 
+            v.name.includes('Google') || 
+            v.name.includes('Siri') || 
+            v.name.includes('Enhanced')
+          );
+          setSelectedVoiceIndex(iyiSesIndex !== -1 ? iyiSesIndex : 0);
+        }
       }
     };
 
@@ -70,27 +82,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // En Akıcı ve Doğal Türkçe Sesi Bulan Algoritma
-  const getEnIyiTurkceSes = () => {
-    const trSesler = voices.filter(v => v.lang.includes('tr') || v.lang.includes('TR'));
-    if (trSesler.length === 0) return null;
-
-    // Doğal, Neural, Google ve Apple Premium sesleri önceliklendir
-    const premiumSes = trSesler.find(v => 
-      v.name.includes('Natural') || 
-      v.name.includes('Google') || 
-      v.name.includes('Siri') || 
-      v.name.includes('Yelda') || 
-      v.name.includes('Ahmet') || 
-      v.name.includes('Emel') ||
-      v.name.includes('Enhanced') ||
-      v.name.includes('Premium')
-    );
-
-    return premiumSes || trSesler[0];
-  };
-
-  // Doğal Sesli Okuma Fonksiyonu
+  // Sesli Okuma Fonksiyonu
   const handleToggleSpeech = () => {
     if (!('speechSynthesis' in window)) {
       alert('Tarayıcınız sesli okuma özelliğini desteklemiyor.');
@@ -101,19 +93,16 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
     } else {
-      window.speechSynthesis.cancel(); // Önceki sesleri temizle
+      window.speechSynthesis.cancel();
 
       const textToRead = `${yazi.baslik}. Yazar: ${yazi.yazarlar?.ad_soyad}. ${yazi.icerik}`;
       const utterance = new SpeechSynthesisUtterance(textToRead);
       utterance.lang = 'tr-TR';
-      
-      // Podcast sakinliği için optimize edilmiş hız ve ton ayarı
-      utterance.rate = 0.92; 
+      utterance.rate = 0.92; // Podcast temposu
       utterance.pitch = 1.0;
 
-      const secilenSes = getEnIyiTurkceSes();
-      if (secilenSes) {
-        utterance.voice = secilenSes;
+      if (voices.length > 0 && selectedVoiceIndex !== '' && voices[selectedVoiceIndex]) {
+        utterance.voice = voices[selectedVoiceIndex];
       }
 
       utterance.onend = () => setIsSpeaking(false);
@@ -238,9 +227,25 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 
-                {/* 🎧 DOĞAL SESLİ OKUMA BUTONU */}
+                {/* 🎛️ SES SEÇİM MENÜSÜ (Cihazdaki Türkçe sesleri listeler) */}
+                {voices.length > 0 && (
+                  <select 
+                    value={selectedVoiceIndex}
+                    onChange={(e) => setSelectedVoiceIndex(Number(e.target.value))}
+                    className="bg-white/90 border border-gray-200/80 rounded-full px-2.5 py-1 text-[10px] font-bold text-gray-700 outline-none shadow-xs cursor-pointer max-w-[120px] sm:max-w-[150px] truncate"
+                    title="Ses Karakteri Seç"
+                  >
+                    {voices.map((v, idx) => (
+                      <option key={idx} value={idx}>
+                        {v.name.replace(/Microsoft|Google|Apple|Turkish|Turkey/g, '').trim() || `Ses ${idx + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {/* 🎧 DİNLE / DURDUR BUTONU */}
                 <button
                   onClick={handleToggleSpeech}
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs border ${
@@ -248,7 +253,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                       ? 'bg-[#74112f] text-white border-[#74112f] animate-pulse' 
                       : 'bg-white/80 text-gray-700 border-gray-200/80 hover:bg-white'
                   }`}
-                  title={isSpeaking ? 'Sesli Okumayı Durdur' : 'Doğal Türkçe Sesle Dinle'}
                 >
                   <span>{isSpeaking ? '⏹ Durdur' : '🎧 Dinle'}</span>
                 </button>
