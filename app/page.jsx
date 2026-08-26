@@ -3,35 +3,30 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
-// Disipline göre soyut sanatsal arka plan ve rozet stili
 const getDisiplinStili = (kategori) => {
   switch (kategori) {
     case 'Felsefe':
       return {
         cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent',
         badgeBg: 'bg-[#74112f]/15 text-[#74112f]',
-        accent: '#74112f',
         pattern: 'radial-gradient(circle at 100% 0%, rgba(116, 17, 47, 0.12) 0%, transparent 60%)'
       };
     case 'Sosyoloji':
       return {
         cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent',
         badgeBg: 'bg-[#00a693]/15 text-[#00a693]',
-        accent: '#00a693',
         pattern: 'radial-gradient(circle at 100% 0%, rgba(0, 166, 147, 0.12) 0%, transparent 60%)'
       };
     case 'Psikoloji':
       return {
         cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent',
         badgeBg: 'bg-[#32127a]/15 text-[#32127a]',
-        accent: '#32127a',
         pattern: 'radial-gradient(circle at 100% 0%, rgba(50, 18, 122, 0.12) 0%, transparent 60%)'
       };
     default:
       return {
         cardBg: 'from-gray-100 to-transparent',
         badgeBg: 'bg-gray-100 text-gray-700',
-        accent: '#1A1A1A',
         pattern: 'none'
       };
   }
@@ -45,7 +40,7 @@ export default function HomePage() {
     async function fetchYazilar() {
       const { data } = await supabase
         .from('yazilar')
-        .select('id, baslik, slug, kategori, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
+        .select('id, baslik, slug, kategori, icerik, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
         .eq('durum', 'onaylandi')
         .order('olusturulma_tarihi', { ascending: false })
         .limit(6);
@@ -88,7 +83,7 @@ export default function HomePage() {
           </nav>
         </header>
 
-        {/* HERO BÖLÜMÜ */}
+        {/* HERO */}
         <section className="relative mx-auto max-w-4xl mb-12">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] rounded-[2.5rem] blur opacity-30"></div>
           
@@ -122,7 +117,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* DİSİPLİN DESENLİ SON YAYINLAR */}
+        {/* SON YAYINLAR (OKUMA SÜRELİ) */}
         <section className="mt-6">
           <div className="flex justify-between items-end mb-6 px-1">
             <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Son Yayınlar</h2>
@@ -139,19 +134,24 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {yazilar.map((yazi) => {
                 const stil = getDisiplinStili(yazi.kategori);
+                const okumaSuresi = yazi.icerik 
+                  ? Math.max(1, Math.ceil(yazi.icerik.trim().split(/\s+/).length / 200))
+                  : 1;
+
                 return (
                   <Link href={`/yazi/${yazi.slug}`} key={yazi.id} className="group outline-none">
                     <article 
                       style={{ backgroundImage: stil.pattern }}
                       className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden bg-gradient-to-br ${stil.cardBg}`}
                     >
-                      {/* Üst Kısım: Disiplin & Başlık */}
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
                             {yazi.kategori}
                           </span>
-                          <span className="text-[10px] text-gray-400 font-bold">Makale</span>
+                          <span className="text-[10px] text-gray-400 font-bold">
+                            ⏱ {okumaSuresi} dk
+                          </span>
                         </div>
                         
                         <h3 className="text-lg font-black text-gray-900 mb-2 leading-snug group-hover:text-[#74112f] transition-colors line-clamp-3">
@@ -159,7 +159,6 @@ export default function HomePage() {
                         </h3>
                       </div>
 
-                      {/* Alt Kısım: Yazar & Oku Butonu */}
                       <div className="mt-6 pt-3.5 border-t border-gray-200/50 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold text-gray-900">{yazi.yazarlar?.ad_soyad}</p>
@@ -178,7 +177,6 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* FOOTER */}
       <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
           <div>
