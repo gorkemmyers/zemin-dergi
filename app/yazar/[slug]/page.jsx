@@ -8,7 +8,6 @@ export default function YazarProfilPage() {
   const params = useParams();
   const [yazar, setYazar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     async function fetchYazarVeYazilar() {
@@ -18,7 +17,7 @@ export default function YazarProfilPage() {
         .from('yazarlar')
         .select(`
           id, ad_soyad, slug, universite, bolum, instagram, biyografi,
-          yazilar (id, baslik, slug, kategori, durum, olusturulma_tarihi, dergiler(sayi_no))
+          yazilar (id, baslik, slug, kategori, durum, icerik, olusturulma_tarihi, dergiler(sayi_no))
         `)
         .eq('slug', params.slug)
         .single();
@@ -86,21 +85,10 @@ export default function YazarProfilPage() {
         <section className="glass-card p-6 sm:p-8 border border-white/90 shadow-xl mb-10">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
             
-            {/* Instagram Profil Fotoğrafı & Fallback */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-3xl shadow-md flex-shrink-0 border-2 border-white">
-              {yazar.instagram && !imgError ? (
-                <img
-                  src={`https://unavatar.io/instagram/${yazar.instagram}`}
-                  alt={yazar.ad_soyad}
-                  onError={() => setImgError(true)}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                yazar.ad_soyad?.charAt(0) || 'Z'
-              )}
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-3xl shadow-md flex-shrink-0 border-2 border-white">
+              {yazar.ad_soyad?.charAt(0) || 'Z'}
             </div>
 
-            {/* Bilgiler */}
             <div className="flex-grow">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                 <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
@@ -108,12 +96,12 @@ export default function YazarProfilPage() {
                 </h1>
                 {yazar.instagram && (
                   <a
-                    href={`https://instagram.com/${yazar.instagram}`}
+                    href={`https://instagram.com/${yazar.instagram.replace('@', '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-bold text-[#00a693] hover:underline justify-center sm:justify-start"
                   >
-                    @{yazar.instagram} ↗
+                    @{yazar.instagram.replace('@', '')} ↗
                   </a>
                 )}
               </div>
@@ -131,7 +119,7 @@ export default function YazarProfilPage() {
           </div>
         </section>
 
-        {/* YAZARIN YAYINLANMIŞ TÜM METİNLERİ */}
+        {/* YAZARIN METİNLERİ (OKUMA SÜRELİ) */}
         <section>
           <div className="flex justify-between items-end mb-4 px-1">
             <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">
@@ -145,30 +133,37 @@ export default function YazarProfilPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {yayindakiYazilar.map((y) => (
-                <Link href={`/yazi/${y.slug}`} key={y.id} className="block group outline-none">
-                  <article className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-white/70 hover:bg-white/90 hover:shadow-md transition-all">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[#00a693] bg-[#00a693]/10 px-2 py-0.5 rounded">
-                          {y.kategori}
-                        </span>
-                        {y.dergiler?.sayi_no && (
-                          <span className="text-[9px] font-black uppercase tracking-widest text-white bg-[#74112f] px-2 py-0.5 rounded">
-                            Sayı {y.dergiler.sayi_no}
+              {yayindakiYazilar.map((y) => {
+                const okumaSuresi = Math.max(1, Math.ceil((y.icerik || '').trim().split(/\s+/).length / 200));
+
+                return (
+                  <Link href={`/yazi/${y.slug}`} key={y.id} className="block group outline-none">
+                    <article className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-white/70 hover:bg-white/90 hover:shadow-md transition-all">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-[#00a693] bg-[#00a693]/10 px-2 py-0.5 rounded">
+                            {y.kategori}
                           </span>
-                        )}
+                          {y.dergiler?.sayi_no && (
+                            <span className="text-[9px] font-black uppercase tracking-widest text-white bg-[#74112f] px-2 py-0.5 rounded">
+                              Sayı {y.dergiler.sayi_no}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-gray-500 font-bold bg-white/70 px-2 py-0.5 rounded-full border border-gray-100">
+                            ⏱ {okumaSuresi} dk
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-1">
+                          {y.baslik}
+                        </h3>
                       </div>
-                      <h3 className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-1">
-                        {y.baslik}
-                      </h3>
-                    </div>
-                    <span className="text-xs font-black text-[#32127a] flex-shrink-0 group-hover:translate-x-1 transition-transform">
-                      Metni Oku →
-                    </span>
-                  </article>
-                </Link>
-              ))}
+                      <span className="text-xs font-black text-[#32127a] flex-shrink-0 group-hover:translate-x-1 transition-transform">
+                        Metni Oku →
+                      </span>
+                    </article>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
