@@ -101,7 +101,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
 
-  // Yeniden Tasarlanmış 9:16 Canvas Story Motoru
   useEffect(() => {
     if (!isStoryOpen || !canvasRef.current || !yazi) return;
 
@@ -115,11 +114,9 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     const stil = getDisiplinStili(yazi.kategori);
 
     const renderCanvas = (coverImg = null) => {
-      // 1. Zemin
       ctx.fillStyle = '#F4F5F7';
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Liquid Glass Işık Hüzmeleri
       const g1 = ctx.createRadialGradient(250, 300, 50, 250, 300, 650);
       g1.addColorStop(0, '#ECE7E1');
       g1.addColorStop(1, 'transparent');
@@ -138,7 +135,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.fillStyle = g3;
       ctx.fillRect(0, 0, width, height);
 
-      // 3. Monolitik Cam Kart
       const cardX = 80;
       const cardY = 180;
       const cardW = 920;
@@ -156,7 +152,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.fill();
       ctx.restore();
 
-      // Cam Çerçeve Çizgisi
       ctx.save();
       ctx.lineWidth = 2;
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
@@ -165,7 +160,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.stroke();
       ctx.restore();
 
-      // 4. Üst Bant: Logo & Disiplin Rozeti
       const headerY = cardY + 90;
       ctx.fillStyle = '#74112f';
       ctx.font = '900 44px sans-serif';
@@ -187,13 +181,12 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + badgeW / 2, badgeY + 28);
       ctx.textAlign = 'left';
 
-      // 5. Kapak Görseli Penceresi
       let contentStartY = headerY + 60;
 
       if (coverImg) {
         const imgX = cardX + 60;
         const imgY = contentStartY;
-        const imgW = cardW - 120; // 800px
+        const imgW = cardW - 120;
         const imgH = 460;
         const imgRadius = 32;
 
@@ -204,7 +197,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         ctx.drawImage(coverImg, imgX, imgY, imgW, imgH);
         ctx.restore();
 
-        // Görselin Cam Çerçevesi
         ctx.save();
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
@@ -218,7 +210,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         contentStartY += 40;
       }
 
-      // 6. Başlık ve Alıntı
       ctx.fillStyle = '#111827';
       ctx.font = '900 54px sans-serif';
 
@@ -249,18 +240,15 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       const sonBaslikY = wrapText(aktifBaslik, cardX + 60, contentStartY + 20, cardW - 120, 68, 3);
 
-      // İtalik Alıntı
       const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 110) + '...';
       ctx.fillStyle = '#4B5563';
       ctx.font = 'italic 28px serif';
       wrapText(`“${spotMetin}”`, cardX + 60, sonBaslikY + 65, cardW - 120, 42, 2);
 
-      // 7. Genişletilmiş ve Belirgin Yazar İmzası (Alt Kısım)
       const footerY = cardY + cardH - 180;
       ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
       ctx.fillRect(cardX + 60, footerY - 40, cardW - 120, 1.5);
 
-      // Monogram Dairesi
       const avatarR = 36;
       const avatarX = cardX + 60 + avatarR;
       const avatarY = footerY + 20;
@@ -276,7 +264,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       ctx.fillText(yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z', avatarX, avatarY + 11);
       ctx.textAlign = 'left';
 
-      // Belirgin Yazar Adı (34px) ve Kurum (24px)
       const textLeft = avatarX + avatarR + 24;
       ctx.fillStyle = '#111827';
       ctx.font = '900 34px sans-serif';
@@ -433,7 +420,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
-      
       <div 
         className="fixed top-0 left-0 h-1.5 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-[0_2px_8px_rgba(50,18,122,0.4)]"
         style={{ width: `${scrollProgress}%` }}
@@ -450,7 +436,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       )}
 
       <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
-        
         <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
           <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
@@ -483,7 +468,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         </header>
 
         <article className="glass-card p-6 sm:p-12 border border-white/90 shadow-2xl relative">
-          
           <header className="border-b border-gray-200/70 pb-6 mb-8 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -501,7 +485,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                
                 <div className="flex items-center bg-white/90 border border-gray-200/80 p-0.5 rounded-full shadow-xs">
                   {DILLER.map((d) => (
                     <button
@@ -535,4 +518,198 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
                 <div className="flex items-center bg-white/80 border border-gray-200/80 p-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-600">
                   <button onClick={() => setFontSize('text-base')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A-</button>
-                  <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
+                  <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A</button>
+                  <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A+</button>
+                </div>
+
+                <button
+                  onClick={() => setIsStoryOpen(true)}
+                  className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
+                  title="Instagram Story Kartı"
+                  aria-label="Story Kartı"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </button>
+
+                <button
+                  onClick={handleShare}
+                  className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
+                  title="Paylaş"
+                  aria-label="Paylaş"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {isTranslating ? (
+              <div className="py-8 text-center text-xs font-bold text-gray-500 animate-pulse">
+                Düşünce metni {aktifDilObj.ad} diline çevriliyor...
+              </div>
+            ) : (
+              <>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+                  {aktifBaslik}
+                </h1>
+
+                <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="inline-flex items-center gap-2.5 group outline-none pt-2">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs shadow-sm">
+                    {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#74112f] transition-colors">
+                      {yazi.yazarlar?.ad_soyad}
+                    </p>
+                    <p className="text-[10px] text-gray-500 font-medium">{yazi.yazarlar?.universite}</p>
+                  </div>
+                </Link>
+              </>
+            )}
+          </header>
+
+          {yazi.kapak_url && (
+            <div className="mb-10 rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[2.4/1] w-full relative shadow-md border border-white/90">
+              <img 
+                src={yazi.kapak_url} 
+                alt={yazi.baslik} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent"></div>
+            </div>
+          )}
+
+          <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
+            {isTranslating ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-4 bg-gray-200/80 rounded w-full"></div>
+                <div className="h-4 bg-gray-200/80 rounded w-5/6"></div>
+                <div className="h-4 bg-gray-200/80 rounded w-4/6"></div>
+              </div>
+            ) : (
+              aktifIcerik
+            )}
+          </div>
+
+          <div className="mt-14 pt-6 border-t border-gray-200/70 font-sans">
+            <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="glass-panel p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white/50 hover:bg-white/80 transition-all group">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-lg flex-shrink-0 shadow-md border border-white">
+                {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
+              </div>
+              <div className="min-w-0 flex-grow text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                  <h3 className="font-black text-sm sm:text-base text-gray-900 group-hover:text-[#74112f] transition-colors">{yazi.yazarlar?.ad_soyad}</h3>
+                  {yazi.yazarlar?.instagram && <span className="text-xs font-bold text-[#00a693]">@{yazi.yazarlar.instagram}</span>}
+                </div>
+                <p className="text-[11px] text-gray-500 font-semibold mb-2">{yazi.yazarlar?.universite} — {yazi.yazarlar?.bolum}</p>
+                {yazi.yazarlar?.biyografi && <p className="text-xs text-gray-600 font-medium leading-relaxed line-clamp-2">{yazi.yazarlar.biyografi}</p>}
+              </div>
+            </Link>
+          </div>
+        </article>
+
+        {ilgiliYazilar.length > 0 && (
+          <section className="mt-12">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#74112f]">Keşfetmeye Devam Et</span>
+                <h2 className="text-lg font-black text-gray-900 tracking-tight">Benzer Düşünceler</h2>
+              </div>
+              <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşiv →</Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {ilgiliYazilar.map((iy) => {
+                const stil = getDisiplinStili(iy.kategori);
+                const iyOkumaSuresi = Math.max(1, Math.ceil((iy.icerik || '').trim().split(/\s+/).length / 200));
+
+                return (
+                  <Link href={`/yazi/${iy.slug}`} key={iy.id} className="group outline-none">
+                    <article 
+                      style={{ backgroundImage: !iy.kapak_url ? stil.pattern : 'none' }}
+                      className={`glass-card p-4 rounded-2xl h-full flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!iy.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
+                    >
+                      {iy.kapak_url && (
+                        <>
+                          <img src={iy.kapak_url} alt="" className="absolute -right-2 inset-y-0 w-3/5 h-full object-cover opacity-75 pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
+                        </>
+                      )}
+
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${stil.badgeBg}`}>
+                            {iy.kategori}
+                          </span>
+                          <span className="text-[9px] text-gray-600 font-bold bg-white/90 px-2 py-0.5 rounded-full border border-gray-100">
+                            ⏱ {iyOkumaSuresi} dk
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-2">
+                          {iy.baslik}
+                        </h3>
+                      </div>
+
+                      <div className="relative z-10 mt-3 pt-2 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-gray-700 truncate max-w-[150px]">{iy.yazarlar?.ad_soyad}</span>
+                        <span className="font-black text-[#32127a]">Oku →</span>
+                      </div>
+                    </article>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </main>
+
+      {isStoryOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/90 text-center shadow-2xl relative flex flex-col items-center animate-in fade-in zoom-in duration-150">
+            <button 
+              onClick={() => setIsStoryOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-sm font-bold bg-black/5 hover:bg-black/10 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+            >
+              ✕
+            </button>
+
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#00a693] mb-1">
+              Instagram Story Kartı
+            </span>
+            <h3 className="text-sm font-black text-gray-900 mb-3">Önizleme</h3>
+
+            <div className="w-full aspect-[9/16] max-h-[380px] rounded-2xl overflow-hidden shadow-lg border border-white/80 mb-4 bg-[#F8F9FA] flex items-center justify-center">
+              <canvas ref={canvasRef} className="w-full h-full object-contain" />
+            </div>
+
+            <button
+              onClick={handleStoryShare}
+              className="w-full bg-[#32127a] hover:bg-[#74112f] text-white py-3 rounded-2xl text-xs font-bold shadow-md active:scale-95 transition-all"
+            >
+              Hikayede Paylaş / İndir
+            </button>
+          </div>
+        </div>
+      )}
+
+      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
+          <div>
+            <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN</span>
+            <span>© 2026 Tüm hakları saklıdır.</span>
+          </div>
+          <div className="flex gap-6">
+            <Link href="/iletisim" className="hover:text-[#00a693]">İletişim</Link>
+            <Link href="/basvuru" className="hover:text-[#00a693]">Yayın Şartları</Link>
+            <Link href="/admin" className="text-[#32127a] hover:text-[#74112f]">Editör Girişi</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
