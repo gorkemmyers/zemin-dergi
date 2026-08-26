@@ -20,10 +20,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="tr" className={`${outfit.variable} ${lora.variable}`}>
-      <body className={`${outfit.className} text-gray-850 antialiased relative min-h-screen bg-[#F8F9FA] overflow-x-hidden selection:bg-[#74112f]/15`}>
+    <html lang="tr" className={`${outfit.variable} ${lora.variable}`} style={{ colorScheme: 'light' }}>
+      <body className={`${outfit.className} text-gray-900 antialiased relative min-h-screen bg-[#F8F9FA] overflow-x-hidden selection:bg-[#74112f]/15`}>
         
-        {/* ULTRA SOFT / EYE-FRIENDLY MESH GRADIENT */}
+        {/* ULTRA SOFT / EYE-FRIENDLY MESH GRADIENT (IŞIK KÜRELERİ) */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
           {/* Fildişi / Sıcak Işık */}
           <div className="absolute top-[-15%] left-[-10%] w-[55vw] h-[55vw] min-w-[500px] rounded-full bg-[#ECE7E1] filter blur-[140px] opacity-70"></div>
