@@ -67,8 +67,7 @@ async function translateText(text, targetLang) {
 }
 
 export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
-  // Okuma Boyutları: 'kucuk' (15px) | 'normal' (16.5px) | 'buyuk' (18.5px)
-  const [fontBoyut, setFontBoyut] = useState('normal');
+  const [fontBoyut, setFontBoyut] = useState('normal'); // 'kucuk' (14px) | 'normal' (15px) | 'buyuk' (16.5px)
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [seciliDil, setSeciliDil] = useState('tr');
@@ -125,8 +124,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     canvas.width = width;
     canvas.height = height;
 
-    const stil = getDisiplinStili(yazi.kategori);
-
     const renderCanvas = (coverImg = null) => {
       ctx.fillStyle = '#F4F5F7';
       ctx.fillRect(0, 0, width, height);
@@ -162,7 +159,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       ctx.beginPath();
       ctx.roundRect(cardX, cardY, cardW, cardH, radius);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.fill();
       ctx.restore();
 
@@ -421,7 +418,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   if (!yazi) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 bg-[#F8F9FA]">
-        <h1 className="text-xl font-black text-gray-900 mb-2">Metin Bulunamadı</h1>
+        <h1 className="text-lg font-black text-gray-900 mb-2">Metin Bulunamadı</h1>
         <Link href="/" className="bg-gray-900 text-white px-5 py-2 rounded-full text-xs font-bold">
           Ana Sayfaya Dön
         </Link>
@@ -432,15 +429,15 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const kelimeSayisi = (aktifIcerik || '').trim().split(/\s+/).length;
   const okumaSuresi = Math.max(1, Math.ceil(kelimeSayisi / 200));
 
-  // Punto Stilleri
+  // Punto Boyutu (Kompakt ve Göz Yormayan Kitap Boyutu)
   const getMetinPuntosu = () => {
     switch (fontBoyut) {
       case 'kucuk':
-        return 'text-[15px] sm:text-[15.5px] leading-[1.8]';
+        return 'text-[13.5px] sm:text-[14px] leading-[1.7]';
       case 'buyuk':
-        return 'text-[18px] sm:text-[19px] leading-[1.9]';
+        return 'text-[16px] sm:text-[16.5px] leading-[1.8]';
       default:
-        return 'text-[16px] sm:text-[17px] leading-[1.85]';
+        return 'text-[14.5px] sm:text-[15px] leading-[1.75]';
     }
   };
 
@@ -491,10 +488,10 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         <article className="glass-card p-6 sm:p-10 border border-white/90 shadow-xl relative">
           
           {/* ÜST BİLGİ & ARAÇ ÇUBUĞU */}
-          <header className="border-b border-gray-200/70 pb-6 mb-8">
+          <header className="border-b border-gray-200/70 pb-5 mb-6">
             
             {/* ETİKETLER & BUTONLAR */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               
               <div className="flex flex-wrap items-center gap-2">
                 <span className="bg-[#00a693]/15 text-[#00a693] text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
@@ -505,24 +502,26 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                     Sayı {yazi.dergiler.sayi_no}
                   </span>
                 )}
-                <span className="text-[10px] font-bold text-gray-600 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
-                  ⏱ {okumaSuresi} dk okuma • {kelimeSayisi} kelime
+                <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
+                  {okumaSuresi} dk okuma • {kelimeSayisi} kelime
                 </span>
               </div>
 
-              {/* ARAÇ BUTONLARI */}
-              <div className="flex flex-wrap items-center gap-2">
+              {/* SEMBOL / İKON BUTONLARI */}
+              <div className="flex items-center gap-1.5">
                 
-                {/* DİL MENÜSÜ */}
+                {/* DİL SEÇİMİ */}
                 <div className="relative" ref={langMenuRef}>
                   <button
                     onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
                     title="Dili Değiştir"
                   >
                     <span>{aktifDilObj.bayrak}</span>
-                    <span className="uppercase text-[10px] tracking-wider">{aktifDilObj.kod}</span>
-                    <span className="text-[9px] text-gray-400">▾</span>
+                    <span className="uppercase text-[10px] tracking-wider font-mono">{aktifDilObj.kod}</span>
+                    <svg className="w-2.5 h-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
 
                   {isLangMenuOpen && (
@@ -543,56 +542,69 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   )}
                 </div>
 
-                {/* SESLİ OKUMA */}
+                {/* SESLİ OKUMA İKONU */}
                 <button
                   onClick={handleToggleSpeech}
-                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full border transition-all shadow-xs ${
+                  className={`p-1.5 rounded-full border transition-all shadow-xs ${
                     isSpeaking
                       ? 'bg-[#74112f] text-white border-[#74112f] animate-pulse'
                       : 'bg-white/80 text-gray-700 hover:bg-white border-gray-200/80'
                   }`}
-                  title="Sesli Dinle"
+                  title={isSpeaking ? 'Okumayı Durdur' : 'Sesli Dinle'}
                 >
-                  <span>{isSpeaking ? '⏹ Durdur' : '🔊 Dinle'}</span>
+                  {isSpeaking ? (
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    </svg>
+                  ) : (
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                  )}
                 </button>
 
-                {/* HİKAYE KARTI / STORY */}
+                {/* STORY İKONU */}
                 <button
                   onClick={() => setIsStoryOpen(true)}
-                  className="px-3 py-1 text-xs font-bold text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
+                  className="p-1.5 text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
                   title="Instagram Story Görseli Oluştur"
                 >
-                  Story
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="5" y="2" width="14" height="20" rx="3" strokeWidth="2" />
+                    <circle cx="12" cy="18" r="1" fill="currentColor" />
+                  </svg>
                 </button>
 
-                {/* PAYLAŞ */}
+                {/* PAYLAŞ İKONU */}
                 <button
                   onClick={handleShare}
-                  className="px-3 py-1 text-xs font-bold text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
+                  className="p-1.5 text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
                   title="Metni Paylaş"
                 >
-                  Paylaş
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
                 </button>
 
-                {/* PUNTO SEÇİCİ (A- / A+) */}
+                {/* PUNTO SEÇİCİ */}
                 <div className="flex items-center bg-white/80 border border-gray-200/80 rounded-full p-0.5 shadow-xs text-[10px] font-bold">
                   <button
                     onClick={() => setFontBoyut('kucuk')}
-                    className={`px-2 py-0.5 rounded-full transition-all ${fontBoyut === 'kucuk' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`px-1.5 py-0.5 rounded-full transition-all ${fontBoyut === 'kucuk' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     title="Küçük Punto"
                   >
                     A-
                   </button>
                   <button
                     onClick={() => setFontBoyut('normal')}
-                    className={`px-2 py-0.5 rounded-full transition-all ${fontBoyut === 'normal' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`px-1.5 py-0.5 rounded-full transition-all ${fontBoyut === 'normal' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     title="Normal Punto"
                   >
                     A
                   </button>
                   <button
                     onClick={() => setFontBoyut('buyuk')}
-                    className={`px-2 py-0.5 rounded-full transition-all ${fontBoyut === 'buyuk' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`px-1.5 py-0.5 rounded-full transition-all ${fontBoyut === 'buyuk' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     title="Büyük Punto"
                   >
                     A+
@@ -603,20 +615,20 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             </div>
 
             {/* BAŞLIK */}
-            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black font-serif text-gray-900 leading-tight tracking-tight mb-5 text-left">
+            <h1 className="text-xl sm:text-2xl font-black font-serif text-gray-900 leading-snug tracking-tight mb-4 text-left">
               {isTranslating ? 'Çevriliyor...' : aktifBaslik}
             </h1>
 
             {/* YAZAR BİLGİSİ */}
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 rounded-full bg-[#32127a]/10 border border-[#32127a]/20 flex items-center justify-center text-xs font-black text-[#32127a]">
+            <div className="flex items-center gap-2.5 text-left">
+              <div className="w-8 h-8 rounded-full bg-[#32127a]/10 border border-[#32127a]/20 flex items-center justify-center text-[11px] font-black text-[#32127a]">
                 {(yazi.yazarlar?.ad_soyad || 'Z')[0].toUpperCase()}
               </div>
               <div>
-                <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+                <h3 className="text-xs font-bold text-gray-900 leading-tight">
                   {yazi.yazarlar?.ad_soyad}
                 </h3>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[10px] text-gray-500 leading-tight">
                   {yazi.yazarlar?.universite ? `${yazi.yazarlar.universite}` : ''}
                   {yazi.yazarlar?.bolum ? ` • ${yazi.yazarlar.bolum}` : ''}
                 </p>
@@ -627,7 +639,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
           {/* KAPAK GÖRSELİ */}
           {yazi.kapak_url && (
-            <div className="mb-8 rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs max-h-96">
+            <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs max-h-80">
               <img 
                 src={yazi.kapak_url} 
                 alt={yazi.baslik} 
@@ -638,8 +650,8 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             </div>
           )}
 
-          {/* AKICI OKUMA ALANI (MAX-W-[680PX] İDEAL GENİŞLİK) */}
-          <div className="max-w-[680px] mx-auto">
+          {/* AKICI OKUMA ALANI */}
+          <div className="max-w-[650px] mx-auto">
             {isTranslating ? (
               <div className="py-16 text-center text-xs font-bold text-gray-400 animate-pulse">
                 Metin {aktifDilObj.ad} diline çevriliyor...
@@ -653,14 +665,14 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             )}
           </div>
 
-          {/* YAZAR BİYOGRAFİ KUTUSU */}
+          {/* YAZAR BİYOGRAFİSİ */}
           {yazi.yazarlar && (
-            <div className="mt-14 pt-6 border-t border-gray-200/80 max-w-[680px] mx-auto">
-              <div className="glass-card p-5 border border-gray-200/80 bg-white/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1 max-w-md">
+            <div className="mt-10 pt-5 border-t border-gray-200/80 max-w-[650px] mx-auto">
+              <div className="glass-card p-4 border border-gray-200/80 bg-white/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="space-y-0.5 max-w-md">
                   <span className="text-[9px] font-black uppercase tracking-widest text-[#74112f]">Yazar Hakkında</span>
-                  <h4 className="text-sm font-bold text-gray-900">{yazi.yazarlar.ad_soyad}</h4>
-                  <p className="text-xs text-gray-600 leading-relaxed font-serif">
+                  <h4 className="text-xs font-bold text-gray-900">{yazi.yazarlar.ad_soyad}</h4>
+                  <p className="text-[11px] text-gray-600 leading-relaxed font-serif">
                     {yazi.yazarlar.biyografi || 'ZEMİN düşünce topluluğu yazarı.'}
                   </p>
                 </div>
@@ -669,7 +681,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                     href={`https://instagram.com/${yazi.yazarlar.instagram}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-gray-100 hover:bg-[#00a693]/10 text-gray-800 hover:text-[#00a693] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap self-end sm:self-center"
+                    className="bg-gray-100 hover:bg-[#00a693]/10 text-gray-800 hover:text-[#00a693] px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap self-end sm:self-center"
                   >
                     @{yazi.yazarlar.instagram}
                   </a>
@@ -680,8 +692,8 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
           {/* İLGİLİ DİĞER YAZILAR */}
           {ilgiliYazilar.length > 0 && (
-            <div className="mt-12 pt-6 border-t border-gray-200/80 max-w-[680px] mx-auto space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
+            <div className="mt-8 pt-5 border-t border-gray-200/80 max-w-[650px] mx-auto space-y-2.5">
+              <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-900">
                 Bu Alandaki Diğer Metinler
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -689,26 +701,26 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   <Link
                     key={iy.id}
                     href={`/yazi/${iy.slug}`}
-                    className="glass-card p-3.5 border border-gray-200/70 bg-white hover:border-[#32127a] transition-all block group"
+                    className="glass-card p-3 border border-gray-200/70 bg-white hover:border-[#32127a] transition-all block group"
                   >
-                    <span className="text-[9px] font-bold uppercase text-[#00a693] bg-[#00a693]/10 px-2 py-0.5 rounded">
+                    <span className="text-[8.5px] font-bold uppercase text-[#00a693] bg-[#00a693]/10 px-2 py-0.5 rounded">
                       {iy.kategori}
                     </span>
-                    <h4 className="font-bold text-xs text-gray-900 group-hover:text-[#32127a] transition-colors mt-2 line-clamp-2">
+                    <h4 className="font-bold text-[11px] text-gray-900 group-hover:text-[#32127a] transition-colors mt-1.5 line-clamp-2">
                       {iy.baslik}
                     </h4>
-                    <p className="text-[10px] text-gray-500 mt-1">{iy.yazarlar?.ad_soyad}</p>
+                    <p className="text-[9.5px] text-gray-500 mt-1">{iy.yazarlar?.ad_soyad}</p>
                   </Link>
                 ))}
               </div>
             </div>
           )}
 
-          {/* GERİ DÖN BUTONU */}
-          <div className="text-center mt-12">
+          {/* GERİ DÖN BAĞLANTISI */}
+          <div className="text-center mt-10">
             <Link 
               href="/yazilar" 
-              className="inline-flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-[#74112f] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#74112f] transition-colors"
             >
               ← Tüm Metin Arşivine Dön
             </Link>
@@ -740,7 +752,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             )}
             <button
               onClick={handleStoryShare}
-              className="w-full bg-[#32127a] hover:bg-[#74112f] text-white py-3 rounded-2xl text-xs font-bold tracking-wider uppercase transition-all shadow-md"
+              className="w-full bg-[#32127a] hover:bg-[#74112f] text-white py-2.5 rounded-2xl text-xs font-bold tracking-wider uppercase transition-all shadow-md"
             >
               Görseli İndir / Paylaş
             </button>
@@ -748,7 +760,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         </div>
       )}
 
-      {/* GİZLİ CANVAS (STORY OLUŞTURUCU) */}
+      {/* GİZLİ CANVAS */}
       <canvas ref={canvasRef} className="hidden" />
 
       {/* FOOTER */}
