@@ -36,8 +36,20 @@ export default function YaziIcerik({ yazi }) {
   const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA]">
-      <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20">
+    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
+      
+      {/* METNİN KENDİ GÖRSELİNDEN ÜRETİLEN AMBIENT ARKA PLAN IŞILTISI */}
+      {yazi.kapak_url && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          <img 
+            src={yazi.kapak_url} 
+            alt="" 
+            className="absolute top-0 right-0 w-[60vw] h-[50vh] object-cover filter blur-[100px] opacity-15"
+          />
+        </div>
+      )}
+
+      <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
         
         {/* NAVBAR */}
         <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
@@ -67,7 +79,7 @@ export default function YaziIcerik({ yazi }) {
           </nav>
         </header>
 
-        {/* MAKALE KARTI */}
+        {/* MAKALE GÖVDESİ */}
         <article className="glass-card p-6 sm:p-12 border border-white/90 shadow-2xl relative">
           
           <header className="border-b border-gray-200/70 pb-6 mb-8 text-center sm:text-left">
@@ -81,39 +93,19 @@ export default function YaziIcerik({ yazi }) {
                     Sayı {yazi.dergiler.sayi_no}
                   </span>
                 )}
-                <span className="text-[10px] font-bold text-gray-500 bg-white/70 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-gray-600 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
                   ⏱ {okumaSuresi} dk okuma
                 </span>
               </div>
 
-              {/* MİNİMALİST KONTROL ALANI */}
+              {/* FONT BOYUTU & PAYLAŞ BUTONU */}
               <div className="flex items-center gap-2">
-                {/* Ultra-Kompakt Yazı Boyutu Butonu */}
                 <div className="flex items-center bg-white/80 border border-gray-200/80 p-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-600">
-                  <button 
-                    onClick={() => setFontSize('text-base')} 
-                    className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
-                    title="Küçük Boyut"
-                  >
-                    A-
-                  </button>
-                  <button 
-                    onClick={() => setFontSize('text-lg')} 
-                    className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
-                    title="Normal Boyut"
-                  >
-                    A
-                  </button>
-                  <button 
-                    onClick={() => setFontSize('text-xl')} 
-                    className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
-                    title="Büyük Boyut"
-                  >
-                    A+
-                  </button>
+                  <button onClick={() => setFontSize('text-base')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A-</button>
+                  <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A</button>
+                  <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A+</button>
                 </div>
 
-                {/* Minimalist Paylaşım İkonu */}
                 <button
                   onClick={handleShare}
                   className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
@@ -143,12 +135,24 @@ export default function YaziIcerik({ yazi }) {
             </Link>
           </header>
 
+          {/* EDITÖRYAL ÇERÇEVELİ KAPAK FOTOĞRAFI */}
+          {yazi.kapak_url && (
+            <div className="mb-10 rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[2.4/1] w-full relative shadow-md border border-white/90">
+              <img 
+                src={yazi.kapak_url} 
+                alt={yazi.baslik} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent"></div>
+            </div>
+          )}
+
           {/* DİNAMİK METİN GÖVDESİ */}
           <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
             {yazi.icerik}
           </div>
 
-          {/* ALT YAZAR PROFİL BLOĞU */}
+          {/* ALT YAZAR BİYOGRAFİSİ */}
           <div className="mt-14 pt-6 border-t border-gray-200/70 font-sans">
             <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="glass-panel p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white/50 hover:bg-white/80 transition-all group">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-lg flex-shrink-0 shadow-md border border-white">
@@ -167,7 +171,7 @@ export default function YaziIcerik({ yazi }) {
         </article>
       </main>
 
-      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6">
+      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
           <div>
             <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN</span>
