@@ -42,7 +42,7 @@ export default function BasvuruPage() {
   const [panelLoading, setPanelLoading] = useState(false);
   const [panelStatus, setPanelStatus] = useState({ type: '', msg: '' });
 
-  // Profil Güncelleme Alanları
+  // Profil Alanları
   const [editUniversite, setEditUniversite] = useState('');
   const [editBolum, setEditBolum] = useState('');
   const [editBiyografi, setEditBiyografi] = useState('');
@@ -57,13 +57,13 @@ export default function BasvuruPage() {
   const [editYaziKapakUrl, setEditYaziKapakUrl] = useState('');
   const [duzeltmeNotu, setDuzeltmeNotu] = useState('');
 
-  // 1. Yeni Yazı Gönder
+  // 1. Yeni Yazı Gönderimi
   const handleYaziGonder = async (e) => {
     e.preventDefault();
     setStatus({ type: '', msg: '' });
 
     if (!adSoyad.trim() || !pin.trim() || !kategori || !baslik.trim() || !icerik.trim()) {
-      setStatus({ type: 'error', msg: 'Lütfen zorunlu alanları (İsim/Mahlas, PIN, Kategori, Başlık, Metin) doldurun.' });
+      setStatus({ type: 'error', msg: 'Lütfen zorunlu alanları doldurun.' });
       return;
     }
 
@@ -93,7 +93,7 @@ export default function BasvuruPage() {
         if (mevcutYazar.pin && String(mevcutYazar.pin) !== temizPin) {
           setStatus({
             type: 'error',
-            msg: 'Bu isim/mahlas daha önce kullanılmış ancak girdiğiniz PIN hatalı. Lütfen doğru PIN kodunu girin.'
+            msg: 'Bu isim/mahlas için girdiğiniz PIN hatalı.'
           });
           setLoading(false);
           return;
@@ -151,14 +151,14 @@ export default function BasvuruPage() {
 
       setStatus({
         type: 'success',
-        msg: 'Metniniz başarıyla gönderildi. Editör onayından geçtikten sonra web arşivinde ve profilinizde yayımlanacaktır.'
+        msg: 'Metniniz editör masasına iletildi. Onaylandıktan sonra yayına alınacaktır.'
       });
 
       setBaslik('');
       setIcerik('');
       setKapakUrl('');
     } catch (err) {
-      setStatus({ type: 'error', msg: 'Bir hata oluştu: ' + (err.message || 'Lütfen tekrar deneyin.') });
+      setStatus({ type: 'error', msg: 'Hata: ' + err.message });
     } finally {
       setLoading(false);
     }
@@ -170,7 +170,7 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
 
     if (!panelIsim.trim() || !panelPin.trim()) {
-      setPanelStatus({ type: 'error', msg: 'Lütfen İsim/Mahlas ve PIN kodunuzu girin.' });
+      setPanelStatus({ type: 'error', msg: 'Lütfen İsim ve PIN girin.' });
       return;
     }
 
@@ -185,7 +185,7 @@ export default function BasvuruPage() {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        setPanelStatus({ type: 'error', msg: 'Bu isimle kayıtlı bir yazar bulunamadı.' });
+        setPanelStatus({ type: 'error', msg: 'Bu isimle kayıtlı yazar bulunamadı.' });
         setPanelLoading(false);
         return;
       }
@@ -193,7 +193,7 @@ export default function BasvuruPage() {
       const yazar = data[0];
 
       if (yazar.pin && String(yazar.pin) !== panelPin.trim()) {
-        setPanelStatus({ type: 'error', msg: 'Girdiğiniz PIN kodu hatalı.' });
+        setPanelStatus({ type: 'error', msg: 'PIN kodu hatalı.' });
         setPanelLoading(false);
         return;
       }
@@ -210,19 +210,16 @@ export default function BasvuruPage() {
         .eq('yazar_id', yazar.id)
         .order('id', { ascending: false });
 
-      if (yazilarData) {
-        setPanelYazilar(yazilarData);
-      }
-
-      setPanelStatus({ type: 'success', msg: 'Giriş başarılı. Profilinizi ve metinlerinizi yönetebilirsiniz.' });
+      if (yazilarData) setPanelYazilar(yazilarData);
+      setPanelStatus({ type: 'success', msg: 'Giriş yapıldı.' });
     } catch (err) {
-      setPanelStatus({ type: 'error', msg: 'Hata: ' + (err.message || 'Giriş yapılamadı.') });
+      setPanelStatus({ type: 'error', msg: 'Hata: ' + err.message });
     } finally {
       setPanelLoading(false);
     }
   };
 
-  // 3. Profil Bilgilerini Güncelle
+  // 3. Profil Güncelleme
   const handleProfilGuncelle = async (e) => {
     e.preventDefault();
     if (!panelYazar) return;
@@ -247,26 +244,22 @@ export default function BasvuruPage() {
         guncellenecekler.pin = editYeniPin.trim();
       }
 
-      const { error } = await supabase
-        .from('yazarlar')
-        .update(guncellenecekler)
-        .eq('id', panelYazar.id);
-
+      const { error } = await supabase.from('yazarlar').update(guncellenecekler).eq('id', panelYazar.id);
       if (error) throw error;
 
-      setPanelStatus({ type: 'success', msg: 'Profil bilgileriniz başarıyla güncellendi.' });
+      setPanelStatus({ type: 'success', msg: 'Profil bilgileriniz güncellendi.' });
       if (editYeniPin.trim()) {
         setPanelPin(editYeniPin.trim());
         setEditYeniPin('');
       }
     } catch (err) {
-      setPanelStatus({ type: 'error', msg: 'Güncelleme hatası: ' + err.message });
+      setPanelStatus({ type: 'error', msg: 'Hata: ' + err.message });
     } finally {
       setPanelLoading(false);
     }
   };
 
-  // 4. Düzenlenecek Metni Seç (Varsa daha önce gönderdiği taslağı aç)
+  // 4. Düzenlenecek Yazıyı Seçme
   const handleYaziSec = (yazi) => {
     setSeciliDuzenlenenYazi(yazi);
     setEditYaziBaslik(yazi.taslak_baslik || yazi.baslik || '');
@@ -277,18 +270,18 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
   };
 
-  // 5. Düzenleme Gönder (Canlı Yayını Bozmadan Taslak Olarak İletir)
+  // 5. Düzenleme Talebini Gönderme (CANLI YAYINI ASLA BOZMAZ)
   const handleYaziDuzenlemeGonder = async (e) => {
     e.preventDefault();
     if (!seciliDuzenlenenYazi) return;
 
     if (!editYaziBaslik.trim() || !editYaziIcerik.trim()) {
-      setPanelStatus({ type: 'error', msg: 'Başlık ve içerik boş bırakılamaz.' });
+      setPanelStatus({ type: 'error', msg: 'Başlık ve metin boş olamaz.' });
       return;
     }
 
     if (!duzeltmeNotu.trim()) {
-      setPanelStatus({ type: 'error', msg: 'Lütfen editöre iletilmek üzere neyi değiştirdiğinizi belirten kısa bir not yazın.' });
+      setPanelStatus({ type: 'error', msg: 'Lütfen neyi değiştirdiğinizi belirten kısa bir açıklama yazın.' });
       return;
     }
 
@@ -296,7 +289,7 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
 
     try {
-      // Önemli: durum 'onaylandi' ise öyle kalır, canlıdaki yazı kesilmez.
+      // DİKKAT: 'durum' kolonuna kesinlikle DOKUNULMUYOR. Yayındaysa 'onaylandi' kalır.
       const guncelleme = {
         taslak_baslik: editYaziBaslik.trim(),
         taslak_kategori: editYaziKategori,
@@ -322,7 +315,7 @@ export default function BasvuruPage() {
 
       setPanelStatus({
         type: 'success',
-        msg: 'Düzenleme talebiniz iletildi. Mevcut metniniz sitede kesintisiz yayında kalmaya devam eder; editör onayladığında yeni haliniz yayına girecektir.'
+        msg: 'Düzenleme talebiniz iletildi. Mevcut metniniz sitede kesintisiz yayında kalmaya devam ediyor; editör onayladığı anda yenisiyle güncellenecektir.'
       });
       setSeciliDuzenlenenYazi(null);
     } catch (err) {
@@ -347,7 +340,7 @@ export default function BasvuruPage() {
           </div>
         </header>
 
-        {/* ANA SEKME SEÇİCİ */}
+        {/* SEKME SEÇİCİ */}
         <div className="flex justify-center mb-8">
           <div className="glass-panel p-1 rounded-full border border-gray-200/80 shadow-xs inline-flex gap-1">
             <button
@@ -384,7 +377,7 @@ export default function BasvuruPage() {
                 Düşünceni Zemine Bırak
               </h1>
               <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                İster adını ister mahlasını kullan. Öğrenci olma şartı yoktur; 5 temel alan zorunludur.
+                Öğrenci olma şartı yoktur; yalnızca 5 temel alan zorunludur.
               </p>
             </div>
 
@@ -406,7 +399,7 @@ export default function BasvuruPage() {
                     <input
                       type="text"
                       required
-                      placeholder="Örn: Deniz Yılmaz veya Mahlasınız"
+                      placeholder="Örn: Deniz Yılmaz"
                       value={adSoyad}
                       onChange={(e) => setAdSoyad(e.target.value)}
                       className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#74112f]"
@@ -426,7 +419,6 @@ export default function BasvuruPage() {
                       onChange={(e) => setPin(e.target.value)}
                       className="w-full bg-white/80 border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#74112f]"
                     />
-                    <span className="text-[10px] text-gray-500 mt-1 block">Sonraki yazılarını profiline bağlamak için kullanılır.</span>
                   </div>
                 </div>
 
@@ -445,7 +437,7 @@ export default function BasvuruPage() {
                     <label className="block text-[10px] font-bold text-gray-500 mb-1">Bölüm (İsteğe Bağlı)</label>
                     <input
                       type="text"
-                      placeholder="Örn: Felsefe"
+                      placeholder="Örn: Sosyoloji"
                       value={bolum}
                       onChange={(e) => setBolum(e.target.value)}
                       className="w-full bg-white/60 border border-gray-200/80 rounded-xl px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#74112f]"
@@ -569,7 +561,6 @@ export default function BasvuruPage() {
               )}
 
               {!panelYazar ? (
-                /* GİRİŞ FORMU */
                 <form onSubmit={handleYazarGiris} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -609,7 +600,6 @@ export default function BasvuruPage() {
                   </button>
                 </form>
               ) : (
-                /* YAZAR PANELİ İÇİ */
                 <div>
                   <div className="bg-gray-100 p-3 rounded-2xl flex flex-wrap justify-between items-center gap-2 mb-6 text-xs">
                     <span className="font-black text-gray-900">Yazar: {panelYazar.ad_soyad}</span>
@@ -622,7 +612,6 @@ export default function BasvuruPage() {
                     </button>
                   </div>
 
-                  {/* PANEL ALT MENÜ */}
                   <div className="flex border-b border-gray-200 mb-6 gap-4 text-xs font-bold">
                     <button
                       onClick={() => { setPanelAltSekme('profil'); setSeciliDuzenlenenYazi(null); }}
@@ -638,7 +627,7 @@ export default function BasvuruPage() {
                     </button>
                   </div>
 
-                  {/* ALT SEKME 1: PROFİL DÜZENLEME */}
+                  {/* PROFİL SEKMESİ */}
                   {panelAltSekme === 'profil' && (
                     <form onSubmit={handleProfilGuncelle} className="space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -710,13 +699,13 @@ export default function BasvuruPage() {
                     </form>
                   )}
 
-                  {/* ALT SEKME 2: YAZILAR LİSTESİ & DÜZENLEME */}
+                  {/* YAZILAR VE DÜZENLEME SEKMESİ */}
                   {panelAltSekme === 'yazilar' && (
                     <div>
                       {!seciliDuzenlenenYazi ? (
                         <div className="space-y-3">
                           <p className="text-xs text-gray-500 mb-3 font-medium">
-                            Düzenlemek istediğiniz metnin üzerine tıklayın:
+                            Düzenlemek istediğiniz metni seçin:
                           </p>
                           {panelYazilar.length === 0 ? (
                             <p className="text-xs font-bold text-gray-400 py-6 text-center">Henüz gönderilmiş bir metniniz bulunmuyor.</p>
@@ -754,13 +743,12 @@ export default function BasvuruPage() {
                           )}
                         </div>
                       ) : (
-                        /* SEÇİLEN YAZIYI DÜZENLEME FORMU */
                         <form onSubmit={handleYaziDuzenlemeGonder} className="space-y-4">
                           <div className="flex items-center justify-between pb-2 border-b border-gray-200">
                             <div>
                               <span className="text-xs font-black text-gray-900">Metin Düzenleme Talebi</span>
                               <span className="text-[10px] text-[#00a693] font-bold block">
-                                {seciliDuzenlenenYazi.durum === 'onaylandi' ? 'Mevcut yazınız sitede kesintisiz yayında kalmaya devam eder.' : 'İlk onay bekliyor.'}
+                                Mevcut yazınız sitede kesintisiz yayında kalmaya devam eder.
                               </span>
                             </div>
                             <button
@@ -818,7 +806,6 @@ export default function BasvuruPage() {
                             />
                           </div>
 
-                          {/* DÜZENLEME AÇIKLAMASI (ZORUNLU) */}
                           <div className="p-4 rounded-2xl bg-[#74112f]/5 border border-[#74112f]/20">
                             <label className="block text-[11px] font-black text-[#74112f] mb-1">
                               Düzenleme Notu / Açıklaması (Editör Masasına İletilecek) *
@@ -826,7 +813,7 @@ export default function BasvuruPage() {
                             <textarea
                               required
                               rows={2}
-                              placeholder="Örn: 2. paragraftaki kaynakça güncellendi ve sonuç paragrafı netleştirildi..."
+                              placeholder="Örn: 2. paragraftaki kaynakça güncellendi..."
                               value={duzeltmeNotu}
                               onChange={(e) => setDuzeltmeNotu(e.target.value)}
                               className="w-full bg-white border border-[#74112f]/30 rounded-xl p-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#74112f]"
