@@ -1,9 +1,52 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-export default function YaziIcerik({ yazi }) {
+const getDisiplinStili = (kategori) => {
+  switch (kategori) {
+    case 'Felsefe':
+      return {
+        cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent',
+        badgeBg: 'bg-[#74112f]/15 text-[#74112f]',
+        pattern: 'radial-gradient(circle at 100% 0%, rgba(116, 17, 47, 0.12) 0%, transparent 60%)'
+      };
+    case 'Sosyoloji':
+      return {
+        cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent',
+        badgeBg: 'bg-[#00a693]/15 text-[#00a693]',
+        pattern: 'radial-gradient(circle at 100% 0%, rgba(0, 166, 147, 0.12) 0%, transparent 60%)'
+      };
+    case 'Psikoloji':
+      return {
+        cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent',
+        badgeBg: 'bg-[#32127a]/15 text-[#32127a]',
+        pattern: 'radial-gradient(circle at 100% 0%, rgba(50, 18, 122, 0.12) 0%, transparent 60%)'
+      };
+    default:
+      return {
+        cardBg: 'from-gray-100 to-transparent',
+        badgeBg: 'bg-gray-100 text-gray-700',
+        pattern: 'none'
+      };
+  }
+};
+
+export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [fontSize, setFontSize] = useState('text-lg');
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Okuma İlerleme Çubuğu Yüzdesi
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        const progress = (window.scrollY / totalHeight) * 100;
+        setScrollProgress(Math.min(100, Math.max(0, progress)));
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -38,7 +81,13 @@ export default function YaziIcerik({ yazi }) {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
       
-      {/* METNİN KENDİ GÖRSELİNDEN ÜRETİLEN AMBIENT ARKA PLAN IŞILTISI */}
+      {/* 2. ÖZELLİK: EKRANIN EN ÜSTÜNDEKİ OKUMA İLERLEME ÇUBUĞU */}
+      <div 
+        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[9999] transition-all duration-100 ease-out"
+        style={{ width: `${scrollProgress}%` }}
+      />
+
+      {/* METNİN KENDİ GÖRSELİNDEN AMBIENT IŞIK */}
       {yazi.kapak_url && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
           <img 
@@ -98,7 +147,6 @@ export default function YaziIcerik({ yazi }) {
                 </span>
               </div>
 
-              {/* FONT BOYUTU & PAYLAŞ BUTONU */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center bg-white/80 border border-gray-200/80 p-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-600">
                   <button onClick={() => setFontSize('text-base')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A-</button>
@@ -135,7 +183,6 @@ export default function YaziIcerik({ yazi }) {
             </Link>
           </header>
 
-          {/* EDITÖRYAL ÇERÇEVELİ KAPAK FOTOĞRAFI */}
           {yazi.kapak_url && (
             <div className="mb-10 rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[2.4/1] w-full relative shadow-md border border-white/90">
               <img 
@@ -147,12 +194,10 @@ export default function YaziIcerik({ yazi }) {
             </div>
           )}
 
-          {/* DİNAMİK METİN GÖVDESİ */}
           <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
             {yazi.icerik}
           </div>
 
-          {/* ALT YAZAR BİYOGRAFİSİ */}
           <div className="mt-14 pt-6 border-t border-gray-200/70 font-sans">
             <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="glass-panel p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white/50 hover:bg-white/80 transition-all group">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-lg flex-shrink-0 shadow-md border border-white">
@@ -169,6 +214,62 @@ export default function YaziIcerik({ yazi }) {
             </Link>
           </div>
         </article>
+
+        {/* 3. ÖZELLİK: İLGİLİ METİNLER / BENZER DÜŞÜNCELER BÖLÜMÜ */}
+        {ilgiliYazilar.length > 0 && (
+          <section className="mt-12">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#74112f]">Keşfetmeye Devam Et</span>
+                <h2 className="text-lg font-black text-gray-900 tracking-tight">Benzer Düşünceler</h2>
+              </div>
+              <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşiv →</Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {ilgiliYazilar.map((iy) => {
+                const stil = getDisiplinStili(iy.kategori);
+                const iyOkumaSuresi = Math.max(1, Math.ceil((iy.icerik || '').trim().split(/\s+/).length / 200));
+
+                return (
+                  <Link href={`/yazi/${iy.slug}`} key={iy.id} className="group outline-none">
+                    <article 
+                      style={{ backgroundImage: !iy.kapak_url ? stil.pattern : 'none' }}
+                      className={`glass-card p-4 rounded-2xl h-full flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!iy.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
+                    >
+                      {iy.kapak_url && (
+                        <>
+                          <img src={iy.kapak_url} alt="" className="absolute -right-2 inset-y-0 w-3/5 h-full object-cover opacity-75 pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
+                        </>
+                      )}
+
+                      <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${stil.badgeBg}`}>
+                            {iy.kategori}
+                          </span>
+                          <span className="text-[9px] text-gray-600 font-bold bg-white/90 px-2 py-0.5 rounded-full border border-gray-100">
+                            ⏱ {iyOkumaSuresi} dk
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-2">
+                          {iy.baslik}
+                        </h3>
+                      </div>
+
+                      <div className="relative z-10 mt-3 pt-2 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-gray-700 truncate max-w-[150px]">{iy.yazarlar?.ad_soyad}</span>
+                        <span className="font-black text-[#32127a]">Oku →</span>
+                      </div>
+                    </article>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
       </main>
 
       <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
