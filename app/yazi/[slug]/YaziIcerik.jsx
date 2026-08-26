@@ -34,8 +34,9 @@ const getDisiplinStili = (kategori) => {
 export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [fontSize, setFontSize] = useState('text-lg');
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Okuma İlerleme Çubuğu Hesabı
+  // Okuma İlerleme Çubuğu
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -45,9 +46,51 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // İlk yüklemede tetikle
-    return () => window.removeEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
+
+  // Sesli Okuma Fonksiyonu (Web Speech API)
+  const handleToggleSpeech = () => {
+    if (!('speechSynthesis' in window)) {
+      alert('Tarayıcınız sesli okuma özelliğini desteklemiyor.');
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    } else {
+      const textToRead = `${yazi.baslik}. Yazar: ${yazi.yazarlar?.ad_soyad}. ${yazi.icerik}`;
+      const utterance = new SpeechSynthesisUtterance(textToRead);
+      utterance.lang = 'tr-TR';
+      utterance.rate = 1.0; // Konuşma hızı
+
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+    }
+  };
+
+  const handleRastgele = async () => {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    const { supabase } = await import('../../../lib/supabase');
+    const { data } = await supabase
+      .from('yazilar')
+      .select('slug')
+      .eq('durum', 'onaylandi');
+    if (data && data.length > 0) {
+      const rastgeleYazi = data[Math.floor(Math.random() * data.length)];
+      window.location.href = `/yazi/${rastgeleYazi.slug}`;
+    }
+  };
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -82,7 +125,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
       
-      {/* 🚀 GÜÇLENDİRİLMİŞ OKUMA İLERLEME ÇUBUĞU (En üstte, belirgin ve gölgeli) */}
+      {/* OKUMA İLERLEME ÇUBUĞU */}
       <div 
         className="fixed top-0 left-0 h-1.5 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-[0_2px_8px_rgba(50,18,122,0.4)]"
         style={{ width: `${scrollProgress}%` }}
@@ -106,10 +149,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
               ZEMİN
             </Link>
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline-block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Açık Düşünce
-              </span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button 
+                onClick={handleRastgele}
+                className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
+              >
+                <span>🔀</span> <span className="hidden sm:inline">Rastgele</span>
+              </button>
               <Link 
                 href="/basvuru" 
                 className="bg-[#32127a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
@@ -148,12 +194,28 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               </div>
 
               <div className="flex items-center gap-2">
+                
+                {/* 🎧 SESLİ OKUMA ASİSTANI BUTONU */}
+                <button
+                  onClick={handleToggleSpeech}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs border ${
+                    isSpeaking 
+                      ? 'bg-[#74112f] text-white border-[#74112f] animate-pulse' 
+                      : 'bg-white/80 text-gray-700 border-gray-200/80 hover:bg-white'
+                  }`}
+                  title={isSpeaking ? 'Sesli Okumayı Durdur' : 'Makaleyi Sesli Dinle'}
+                >
+                  <span>{isSpeaking ? '⏹ Durdur' : '🎧 Dinle'}</span>
+                </button>
+
+                {/* Font Boyutu */}
                 <div className="flex items-center bg-white/80 border border-gray-200/80 p-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-600">
                   <button onClick={() => setFontSize('text-base')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A-</button>
                   <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A</button>
                   <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A+</button>
                 </div>
 
+                {/* Paylaş */}
                 <button
                   onClick={handleShare}
                   className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
