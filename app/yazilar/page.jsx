@@ -52,6 +52,19 @@ export default function YazilarPage() {
     fetchYazilar();
   }, []);
 
+  const handleRastgele = async () => {
+    const { data } = await supabase
+      .from('yazilar')
+      .select('slug')
+      .eq('durum', 'onaylandi');
+    if (data && data.length > 0) {
+      const rastgeleYazi = data[Math.floor(Math.random() * data.length)];
+      window.location.href = `/yazi/${rastgeleYazi.slug}`;
+    } else {
+      alert('Henüz yayında yazı bulunmuyor.');
+    }
+  };
+
   const filtrelenmisYazilar = yazilar.filter((y) => {
     const kategoriUyumu = seciliKategori === 'Tümü' || y.kategori === seciliKategori;
     const aramaUyumu = 
@@ -70,10 +83,13 @@ export default function YazilarPage() {
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
               ZEMİN
             </Link>
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline-block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                Açık Düşünce
-              </span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button 
+                onClick={handleRastgele}
+                className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
+              >
+                <span>🔀</span> <span className="hidden sm:inline">Rastgele</span>
+              </button>
               <Link 
                 href="/basvuru" 
                 className="bg-[#32127a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
@@ -128,7 +144,6 @@ export default function YazilarPage() {
           </div>
         </header>
 
-        {/* LİSTE */}
         {loading ? (
           <div className="text-center py-12 text-gray-500 font-medium text-xs">Metinler taranıyor...</div>
         ) : filtrelenmisYazilar.length === 0 ? (
@@ -147,7 +162,6 @@ export default function YazilarPage() {
                     style={{ backgroundImage: !yazi.kapak_url ? stil.pattern : 'none' }}
                     className={`glass-card p-5 h-full flex flex-col justify-between hover:shadow-xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden ${!yazi.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
                   >
-                    {/* SAĞDA GÖRSEL, SOLA ERİYEN DEGRADE */}
                     {yazi.kapak_url && (
                       <>
                         <img 
