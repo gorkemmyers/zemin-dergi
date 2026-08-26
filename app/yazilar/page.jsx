@@ -88,7 +88,7 @@ export default function YazilarPage() {
                 onClick={handleRastgele}
                 className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
               >
-                <span>🔀</span> <span className="hidden sm:inline">Rastgele</span>
+                <span>Keşfet</span> <span className="hidden sm:inline">Rastgele</span>
               </button>
               <Link 
                 href="/basvuru" 
