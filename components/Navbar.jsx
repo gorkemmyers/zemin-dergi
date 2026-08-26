@@ -5,9 +5,11 @@ import Link from 'next/link';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
+  const navLinkClass =
+    "relative pb-1 hover:text-zemin-bordo transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-zemin-turuncu after:transition-all hover:after:w-full";
+
   return (
     <header className="border-b-2 border-zemin-bordo bg-zemin-bej sticky top-0 z-50 shadow-sm">
-      {/* Üst Şerit: Yosun Yeşili & Bej Detay */}
       <div className="bg-zemin-yesil text-zemin-bej text-[11px] py-2 px-6 font-medium tracking-wider">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <span className="uppercase tracking-widest text-[10px] font-semibold">
@@ -19,7 +21,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Ana Başlık (Bordo Masthead) */}
       <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex-1 hidden md:block">
           <span className="text-[10px] uppercase tracking-widest bg-zemin-yesil text-zemin-bej px-2.5 py-1 font-bold">
@@ -56,18 +57,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Navigasyon Linkleri */}
       <div className="border-t border-zemin-cizgi bg-zemin-kagit/40 hidden md:block">
         <nav className="max-w-6xl mx-auto px-6 flex justify-center items-center gap-10 py-2.5 text-xs uppercase tracking-[0.16em] font-bold text-zemin-metin">
-          <Link href="/" className="hover:text-zemin-bordo transition-colors">Tüm Yazılar</Link>
-          <Link href="/dergiler" className="hover:text-zemin-bordo transition-colors">Dergiler</Link>
-          <Link href="/yazarlar" className="hover:text-zemin-bordo transition-colors">Yazarlar</Link>
-          <Link href="/sss" className="hover:text-zemin-bordo transition-colors">Yayın İlkeleri</Link>
-          <Link href="/iletisim" className="hover:text-zemin-bordo transition-colors">İletişim</Link>
+          <Link href="/" className={navLinkClass}>Tüm Yazılar</Link>
+          <Link href="/dergiler" className={navLinkClass}>Dergiler</Link>
+          <Link href="/yazarlar" className={navLinkClass}>Yazarlar</Link>
+          <Link href="/sss" className={navLinkClass}>Yayın İlkeleri</Link>
+          <Link href="/iletisim" className={navLinkClass}>İletişim</Link>
         </nav>
       </div>
 
-      {/* Mobil Menü */}
       {isOpen && (
         <div className="md:hidden border-t-2 border-zemin-bordo bg-zemin-kagit px-6 py-6 space-y-4 text-xs uppercase tracking-widest font-bold">
           <Link href="/" onClick={() => setIsOpen(false)} className="block py-2 border-b border-zemin-cizgi text-zemin-bordo">Tüm Yazılar</Link>
