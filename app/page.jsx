@@ -130,7 +130,7 @@ export default function HomePage() {
 
               <div className="pt-4 border-t border-zemin-kagit/15 flex flex-wrap gap-3">
                 {sonDergi.pdf_url && (
-                  <a
+                  
                     href={sonDergi.pdf_url}
                     target="_blank"
                     rel="noreferrer"
@@ -206,7 +206,7 @@ export default function HomePage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           {yazilar.map((yazi, i) => {
             const stil = KATEGORI_STIL[yazi.kategori] || VARSAYILAN_STIL;
             const noStr = String(i + 1).padStart(2, '0');
@@ -214,7 +214,7 @@ export default function HomePage() {
             return (
               <article
                 key={yazi.id}
-                className={`zemin-giris relative rounded-md border border-zemin-cizgi ${stil.border} ${stil.tint} p-6 pt-8 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group ${oneCikan ? 'md:col-span-2' : ''}`}
+                className={`zemin-giris relative rounded-md border border-zemin-cizgi ${stil.border} ${stil.tint} p-5 pt-7 flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-1 transition-all group ${oneCikan ? 'md:col-span-2' : ''}`}
                 style={{ animationDelay: `${i * 70}ms` }}
               >
                 <span className={`absolute top-4 left-5 text-xs font-black font-serif ${stil.index}`}>
