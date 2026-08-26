@@ -2,6 +2,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+const DILLER = [
+  { kod: 'tr', ad: 'Türkçe', sesKod: 'tr-TR', bayrak: '🇹🇷' },
+  { kod: 'en', ad: 'English', sesKod: 'en-US', bayrak: '🇬🇧' },
+  { kod: 'de', ad: 'Deutsch', sesKod: 'de-DE', bayrak: '🇩🇪' },
+  { kod: 'fr', ad: 'Français', sesKod: 'fr-FR', bayrak: '🇫🇷' },
+  { kod: 'ru', ad: 'Русский', sesKod: 'ru-RU', bayrak: '🇷🇺' },
+];
+
 const getDisiplinStili = (kategori) => {
   switch (kategori) {
     case 'Felsefe':
@@ -31,38 +39,38 @@ const getDisiplinStili = (kategori) => {
   }
 };
 
+// Paragraf bazlı güvenli anlık çeviri motoru
+async function translateText(text, targetLang) {
+  if (targetLang === 'tr') return text;
+  const paragraphs = text.split('\n');
+  const translated = await Promise.all(
+    paragraphs.map(async (p) => {
+      if (!p.trim()) return '';
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(p)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data[0].map((item) => item[0]).join('');
+      } catch (e) {
+        return p;
+      }
+    })
+  );
+  return translated.join('\n');
+}
+
 export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [fontSize, setFontSize] = useState('text-lg');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [voices, setVoices] = useState([]);
-  const [selectedVoiceIndex, setSelectedVoiceIndex] = useState('');
+  const [seciliDil, setSeciliDil] = useState('tr');
+  const [isTranslating, setIsTranslating] = useState(false);
+  
+  // Çeviri önbelleği (aynı dile tekrar geçildiğinde anında gelmesi için)
+  const [translations, setTranslations] = useState({});
 
-  // Cihazdaki sesleri çek
+  // Okuma İlerleme Çubuğu & Ses Temizliği
   useEffect(() => {
-    const yukleSesler = () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        const mevcutSesler = window.speechSynthesis.getVoices();
-        const trSesler = mevcutSesler.filter(v => v.lang.toLowerCase().includes('tr'));
-        setVoices(trSesler);
-        if (trSesler.length > 0 && selectedVoiceIndex === '') {
-          // Varsayılan olarak en iyi akıcı sesi seçmeye çalış
-          const iyiSesIndex = trSesler.findIndex(v => 
-            v.name.includes('Natural') || 
-            v.name.includes('Google') || 
-            v.name.includes('Siri') || 
-            v.name.includes('Enhanced')
-          );
-          setSelectedVoiceIndex(iyiSesIndex !== -1 ? iyiSesIndex : 0);
-        }
-      }
-    };
-
-    yukleSesler();
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = yukleSesler;
-    }
-
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
@@ -70,7 +78,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         setScrollProgress(Math.min(100, Math.max(0, progress)));
       }
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
@@ -82,7 +89,39 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // Sesli Okuma Fonksiyonu
+  // Dil Değiştirme ve Çeviri Tetikleme
+  const handleDilDegistir = async (yeniDil) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+    setSeciliDil(yeniDil);
+
+    if (yeniDil === 'tr') return;
+
+    if (!translations[yeniDil]) {
+      setIsTranslating(true);
+      try {
+        const [yeniBaslik, yeniIcerik] = await Promise.all([
+          translateText(yazi.baslik, yeniDil),
+          translateText(yazi.icerik, yeniDil)
+        ]);
+        setTranslations((prev) => ({
+          ...prev,
+          [yeniDil]: { baslik: yeniBaslik, icerik: yeniIcerik }
+        }));
+      } catch (err) {
+        alert('Çeviri yapılırken bir hata oluştu.');
+      }
+      setIsTranslating(false);
+    }
+  };
+
+  const aktifBaslik = seciliDil === 'tr' ? yazi.baslik : (translations[seciliDil]?.baslik || yazi.baslik);
+  const aktifIcerik = seciliDil === 'tr' ? yazi.icerik : (translations[seciliDil]?.icerik || yazi.icerik);
+  const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
+
+  // Seçilen Dilde Seslendirme
   const handleToggleSpeech = () => {
     if (!('speechSynthesis' in window)) {
       alert('Tarayıcınız sesli okuma özelliğini desteklemiyor.');
@@ -95,14 +134,17 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     } else {
       window.speechSynthesis.cancel();
 
-      const textToRead = `${yazi.baslik}. Yazar: ${yazi.yazarlar?.ad_soyad}. ${yazi.icerik}`;
+      const textToRead = `${aktifBaslik}. ${aktifIcerik}`;
       const utterance = new SpeechSynthesisUtterance(textToRead);
-      utterance.lang = 'tr-TR';
-      utterance.rate = 0.92; // Podcast temposu
+      utterance.lang = aktifDilObj.sesKod;
+      utterance.rate = 0.93;
       utterance.pitch = 1.0;
 
-      if (voices.length > 0 && selectedVoiceIndex !== '' && voices[selectedVoiceIndex]) {
-        utterance.voice = voices[selectedVoiceIndex];
+      // Cihazdaki ilgili dile en uygun sesi seç
+      const mevcutSesler = window.speechSynthesis.getVoices();
+      const uygunSes = mevcutSesler.find(v => v.lang.toLowerCase().startsWith(aktifDilObj.kod));
+      if (uygunSes) {
+        utterance.voice = uygunSes;
       }
 
       utterance.onend = () => setIsSpeaking(false);
@@ -130,8 +172,8 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: yazi.baslik,
-          text: `${yazi.baslik} - ${yazi.yazarlar?.ad_soyad} | ZEMİN`,
+          title: aktifBaslik,
+          text: `${aktifBaslik} - ${yazi.yazarlar?.ad_soyad} | ZEMİN`,
           url: window.location.href,
         });
       } catch (err) {
@@ -154,7 +196,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     );
   }
 
-  const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
+  const okumaSuresi = Math.max(1, Math.ceil((aktifIcerik || '').trim().split(/\s+/).length / 200));
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
@@ -187,6 +229,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               <button 
                 onClick={handleRastgele}
                 className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
+                title="Rastgele Bir Metin Keşfet"
               >
                 <span>🔀</span> <span className="hidden sm:inline">Rastgele</span>
               </button>
@@ -227,34 +270,40 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                 </span>
               </div>
 
+              {/* ARAÇ ÇUBUĞU */}
               <div className="flex flex-wrap items-center gap-2">
                 
-                {/* 🎛️ SES SEÇİM MENÜSÜ (Cihazdaki Türkçe sesleri listeler) */}
-                {voices.length > 0 && (
-                  <select 
-                    value={selectedVoiceIndex}
-                    onChange={(e) => setSelectedVoiceIndex(Number(e.target.value))}
-                    className="bg-white/90 border border-gray-200/80 rounded-full px-2.5 py-1 text-[10px] font-bold text-gray-700 outline-none shadow-xs cursor-pointer max-w-[120px] sm:max-w-[150px] truncate"
-                    title="Ses Karakteri Seç"
-                  >
-                    {voices.map((v, idx) => (
-                      <option key={idx} value={idx}>
-                        {v.name.replace(/Microsoft|Google|Apple|Turkish|Turkey/g, '').trim() || `Ses ${idx + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                {/* 🌐 DİL SEÇİM MENÜSÜ */}
+                <div className="flex items-center bg-white/90 border border-gray-200/80 p-0.5 rounded-full shadow-xs">
+                  {DILLER.map((d) => (
+                    <button
+                      key={d.kod}
+                      onClick={() => handleDilDegistir(d.kod)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all flex items-center gap-1 ${
+                        seciliDil === d.kod
+                          ? 'bg-gray-900 text-white shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                      title={d.ad}
+                    >
+                      <span>{d.bayrak}</span>
+                      <span className="hidden sm:inline uppercase">{d.kod}</span>
+                    </button>
+                  ))}
+                </div>
 
-                {/* 🎧 DİNLE / DURDUR BUTONU */}
+                {/* 🎧 SESLİ DİNLE BUTONU */}
                 <button
+                  disabled={isTranslating}
                   onClick={handleToggleSpeech}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs border ${
+                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all shadow-xs border ${
                     isSpeaking 
                       ? 'bg-[#74112f] text-white border-[#74112f] animate-pulse' 
-                      : 'bg-white/80 text-gray-700 border-gray-200/80 hover:bg-white'
+                      : 'bg-white/90 text-gray-700 border-gray-200/80 hover:bg-white'
                   }`}
+                  title={`${aktifDilObj.ad} dilinde dinle`}
                 >
-                  <span>{isSpeaking ? '⏹ Durdur' : '🎧 Dinle'}</span>
+                  <span>{isSpeaking ? '⏹ Durdur' : `🎧 ${aktifDilObj.kod.toUpperCase()} Dinle`}</span>
                 </button>
 
                 {/* Font Boyutu */}
@@ -277,21 +326,29 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               </div>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
-              {yazi.baslik}
-            </h1>
+            {isTranslating ? (
+              <div className="py-8 text-center text-xs font-bold text-gray-500 animate-pulse">
+                Düşünce metni {aktifDilObj.ad} diline çevriliyor...
+              </div>
+            ) : (
+              <>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+                  {aktifBaslik}
+                </h1>
 
-            <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="inline-flex items-center gap-2.5 group outline-none pt-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs shadow-sm">
-                {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
-              </div>
-              <div className="text-left">
-                <p className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#74112f] transition-colors">
-                  {yazi.yazarlar?.ad_soyad}
-                </p>
-                <p className="text-[10px] text-gray-500 font-medium">{yazi.yazarlar?.universite}</p>
-              </div>
-            </Link>
+                <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="inline-flex items-center gap-2.5 group outline-none pt-2">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs shadow-sm">
+                    {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#74112f] transition-colors">
+                      {yazi.yazarlar?.ad_soyad}
+                    </p>
+                    <p className="text-[10px] text-gray-500 font-medium">{yazi.yazarlar?.universite}</p>
+                  </div>
+                </Link>
+              </>
+            )}
           </header>
 
           {yazi.kapak_url && (
@@ -305,8 +362,17 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             </div>
           )}
 
+          {/* DİNAMİK METİN GÖVDESİ */}
           <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
-            {yazi.icerik}
+            {isTranslating ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-4 bg-gray-200/80 rounded w-full"></div>
+                <div className="h-4 bg-gray-200/80 rounded w-5/6"></div>
+                <div className="h-4 bg-gray-200/80 rounded w-4/6"></div>
+              </div>
+            ) : (
+              aktifIcerik
+            )}
           </div>
 
           <div className="mt-14 pt-6 border-t border-gray-200/70 font-sans">
