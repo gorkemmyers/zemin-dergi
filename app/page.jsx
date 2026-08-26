@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
@@ -32,26 +32,40 @@ const getDisiplinStili = (kategori) => {
   }
 };
 
-export default function HomePage() {
+export default function Home() {
   const [yazilar, setYazilar] = useState([]);
+  const [sonDergi, setSonDergi] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   useEffect(() => {
-    async function fetchYazilar() {
-      const { data } = await supabase
-        .from('yazilar')
-        .select('id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi, yazarlar(ad_soyad, universite)')
-        .eq('durum', 'onaylandi')
-        .order('olusturulma_tarihi', { ascending: false })
-        .limit(6);
-      
-      if (data) setYazilar(data);
-      setLoading(false);
+    async function verileriGetir() {
+      try {
+        const { data: yazilarData } = await supabase
+          .from('yazilar')
+          .select('*, yazarlar(ad_soyad, slug, universite)')
+          .eq('durum', 'onaylandi')
+          .order('created_at', { ascending: false })
+          .limit(6);
+
+        const { data: dergilerData } = await supabase
+          .from('dergiler')
+          .select('*')
+          .order('sayi_no', { ascending: false })
+          .limit(1);
+
+        if (yazilarData) setYazilar(yazilarData);
+        if (dergilerData && dergilerData.length > 0) setSonDergi(dergilerData[0]);
+      } catch (e) {
+        console.error('Veri çekme hatası:', e);
+      } finally {
+        setLoading(false);
+      }
     }
-    fetchYazilar();
+
+    verileriGetir();
   }, []);
 
-  // Rastgele Düşünce Fonksiyonu
   const handleRastgele = async () => {
     const { data } = await supabase
       .from('yazilar')
@@ -60,17 +74,15 @@ export default function HomePage() {
     if (data && data.length > 0) {
       const rastgeleYazi = data[Math.floor(Math.random() * data.length)];
       window.location.href = `/yazi/${rastgeleYazi.slug}`;
-    } else {
-      alert('Henüz yayında yazı bulunmuyor.');
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 pb-16">
+    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
+      <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
         
         {/* NAVBAR */}
-        <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 md:mb-10 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
+        <header className="glass-panel mx-auto max-w-5xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
           <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
               ZEMİN
@@ -78,10 +90,9 @@ export default function HomePage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <button 
                 onClick={handleRastgele}
-                className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all flex items-center gap-1 shadow-xs"
-                title="Rastgele Bir Metin Keşfet"
+                className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all shadow-xs"
               >
-                <span>Keşfet</span> <span className="hidden sm:inline">Rastgele</span>
+                Rastgele
               </button>
               <Link 
                 href="/basvuru" 
@@ -101,99 +112,120 @@ export default function HomePage() {
           </nav>
         </header>
 
-        {/* HERO */}
-        <section className="relative mx-auto max-w-4xl mb-12">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] rounded-[2.5rem] blur opacity-30"></div>
-          
-          <div className="relative glass-card p-6 sm:p-12 md:p-16 rounded-[2.3rem] text-center border border-white/90 shadow-xl overflow-hidden">
-            <span className="inline-block text-[#00a693] font-black tracking-widest uppercase text-[10px] sm:text-[11px] mb-4 px-4 py-1.5 rounded-full bg-[#00a693]/10 border border-[#00a693]/20">
+        {/* HERO BÖLÜMÜ */}
+        <section className="glass-card p-6 sm:p-12 mb-8 border border-white/90 shadow-2xl relative overflow-hidden text-center sm:text-left">
+          <div className="relative z-10 max-w-2xl">
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#00a693] bg-[#00a693]/10 px-3 py-1 rounded-full inline-block mb-3">
               Açık Düşünce İnisiyatifi
             </span>
-            
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight mb-4">
-              Fikri <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693]">Zeminini</span> Burada İnşa Et.
+            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+              Düşüncenin Zemini, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693]">
+                Özgür İfade Alanı.
+              </span>
             </h1>
-            
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-xl mx-auto mb-8 font-medium leading-relaxed">
-              Felsefe, sosyoloji ve psikoloji disiplinlerinde üretilen eleştirel metinleri açık erişimli bir arşivde bir araya getiriyoruz.
+            <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed mb-6">
+              Felsefe, sosyoloji ve psikoloji alanlarında düşünen herkes için bağımsız açık yayın platformu.
             </p>
-            
-            <div className="flex flex-row justify-center items-center gap-3 sm:gap-4">
-              <button 
-                onClick={handleRastgele}
-                className="glass-panel px-5 py-2.5 sm:px-7 sm:py-3.5 font-bold text-xs sm:text-sm text-gray-800 hover:bg-white/90 transition-all shadow-sm flex items-center gap-2"
-              >
-               Rastgele Keşfet
-              </button>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
               <Link 
                 href="/basvuru" 
-                className="bg-gray-900 text-white px-5 py-2.5 sm:px-7 sm:py-3.5 rounded-3xl text-xs sm:text-sm font-bold shadow-lg shadow-gray-900/15 hover:scale-105 transition-transform"
+                className="bg-[#32127a] text-white px-5 py-2.5 rounded-full text-xs font-black shadow-md hover:bg-[#74112f] transition-all"
               >
-                Yayın Başvurusu →
+                Yazını Gönder
               </Link>
+              <button 
+                onClick={() => setIsGuideOpen(true)}
+                className="glass-panel text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:text-[#00a693] transition-all"
+              >
+                Nasıl Çalışır? 💡
+              </button>
             </div>
           </div>
         </section>
 
-        {/* SON YAYINLAR */}
-        <section className="mt-6">
-          <div className="flex justify-between items-end mb-6 px-1">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Son Yayınlar</h2>
-            <Link href="/yazilar" className="text-xs md:text-sm font-bold text-[#32127a] hover:underline">Tümünü Gör</Link>
+        {/* 4 TEMEL BİLGİ KARTI (SADE VE NET) */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-12">
+          
+          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#00a693]/40 transition-all">
+            <span className="text-base font-black text-[#00a693] block mb-1">01</span>
+            <h3 className="font-black text-xs text-gray-900 mb-1">Kimler Yazabilir?</h3>
+            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+              Öğrenci olma şartı yoktur. Düşünen, araştıran ve soru soran herkes metin gönderebilir.
+            </p>
+          </div>
+
+          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#74112f]/40 transition-all">
+            <span className="text-base font-black text-[#74112f] block mb-1">02</span>
+            <h3 className="font-black text-xs text-gray-900 mb-1">İsim veya Mahlas</h3>
+            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+              İster gerçek adını, ister bir mahlas kullan. Her iki seçenek de eşit editoryal saygı görür.
+            </p>
+          </div>
+
+          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#32127a]/40 transition-all">
+            <span className="text-base font-black text-[#32127a] block mb-1">03</span>
+            <h3 className="font-black text-xs text-gray-900 mb-1">Tek PIN ile Gönderim</h3>
+            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+              Hesap açma zorunluluğu yok. Belirlediğin 4 haneli PIN ile tüm yazıların aynı profilde toplanır.
+            </p>
+          </div>
+
+          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-gray-400 transition-all">
+            <span className="text-base font-black text-gray-900 block mb-1">04</span>
+            <h3 className="font-black text-xs text-gray-900 mb-1">Web & Dergi Yayını</h3>
+            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+              Onaylanan metin anında webde yayımlanır; seçilenler dönemsel e-dergi sayısına dahil edilir.
+            </p>
+          </div>
+
+        </section>
+
+        {/* SON YAZILAR */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-lg font-black text-gray-900 tracking-tight">Son Metinler</h2>
+            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tümünü Gör →</Link>
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-gray-500 font-medium text-xs">Metinler çekiliyor...</div>
-          ) : yazilar.length === 0 ? (
-            <div className="glass-card p-8 text-center">
-              <p className="text-gray-500 font-medium text-xs">Henüz yayımlanmış bir metin bulunmuyor.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="glass-card p-5 rounded-2xl h-44 animate-pulse bg-white/40"></div>
+              ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {yazilar.map((yazi) => {
-                const stil = getDisiplinStili(yazi.kategori);
-                const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {yazilar.map((y) => {
+                const stil = getDisiplinStili(y.kategori);
+                const okumaSuresi = Math.max(1, Math.ceil((y.icerik || '').trim().split(/\s+/).length / 200));
 
                 return (
-                  <Link href={`/yazi/${yazi.slug}`} key={yazi.id} className="group outline-none">
+                  <Link href={`/yazi/${y.slug}`} key={y.id} className="group outline-none">
                     <article 
-                      style={{ backgroundImage: !yazi.kapak_url ? stil.pattern : 'none' }}
-                      className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden ${!yazi.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
+                      style={{ backgroundImage: !y.kapak_url ? stil.pattern : 'none' }}
+                      className={`glass-card p-5 rounded-2xl h-full flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!y.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
                     >
-                      {yazi.kapak_url && (
-                        <>
-                          <img 
-                            src={yazi.kapak_url} 
-                            alt="" 
-                            className="absolute -right-2 inset-y-0 w-3/5 h-full object-cover object-center opacity-75 group-hover:scale-105 group-hover:opacity-90 transition-all duration-500 pointer-events-none" 
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
-                        </>
-                      )}
-
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg} shadow-xs`}>
-                            {yazi.kategori}
+                        <div className="flex items-center justify-between mb-2.5">
+                          <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
+                            {y.kategori}
                           </span>
-                          <span className="text-[10px] text-gray-700 font-bold bg-white/90 backdrop-blur-xs px-2.5 py-0.5 rounded-full border border-gray-200/60 shadow-xs">
+                          <span className="text-[9px] text-gray-500 font-bold">
                             ⏱ {okumaSuresi} dk
                           </span>
                         </div>
-                        
-                        <h3 className="text-lg font-black text-gray-900 mb-2 leading-snug group-hover:text-[#74112f] transition-colors line-clamp-3">
-                          {yazi.baslik}
+                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-2 mb-1.5">
+                          {y.baslik}
                         </h3>
+                        <p className="text-[11px] text-gray-600 line-clamp-2 font-serif">
+                          {y.icerik}
+                        </p>
                       </div>
 
-                      <div className="relative z-10 mt-6 pt-3.5 border-t border-gray-200/60 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-gray-900">{yazi.yazarlar?.ad_soyad}</p>
-                          <p className="text-[11px] text-gray-600 font-medium truncate max-w-[170px]">{yazi.yazarlar?.universite}</p>
-                        </div>
-                        <span className="text-xs font-black text-[#32127a] group-hover:translate-x-1 transition-transform">
-                          Oku →
-                        </span>
+                      <div className="relative z-10 mt-4 pt-2.5 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-gray-700 truncate max-w-[140px]">{y.yazarlar?.ad_soyad}</span>
+                        <span className="font-black text-[#32127a]">Oku →</span>
                       </div>
                     </article>
                   </Link>
@@ -202,9 +234,74 @@ export default function HomePage() {
             </div>
           )}
         </section>
+
+        {/* E-DERGİ VİTRİNİ */}
+        {sonDergi && (
+          <section className="glass-panel p-6 rounded-3xl border border-white/90 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#74112f]">Resmi E-Dergi</span>
+              <h3 className="text-xl font-black text-gray-900 mt-0.5">Sayı {sonDergi.sayi_no}: {sonDergi.baslik}</h3>
+              <p className="text-xs text-gray-600 mt-1 max-w-md">Editör masasının seçtiği tematik yazılardan oluşan dijital sayı.</p>
+            </div>
+            <Link 
+              href={`/dergi/${sonDergi.id}`}
+              className="bg-gray-900 hover:bg-[#74112f] text-white px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap shadow-md transition-all"
+            >
+              Sayıyı İncele & İndir
+            </Link>
+          </section>
+        )}
+
       </main>
 
-      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6">
+      {/* 💡 REHBER VE İŞLEYİŞ ÇEKMECESİ (MODAL) */}
+      {isGuideOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card max-w-lg w-full p-6 sm:p-8 rounded-3xl border border-white/90 shadow-2xl relative animate-in fade-in zoom-in duration-150 max-h-[85vh] overflow-y-auto">
+            <button 
+              onClick={() => setIsGuideOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-sm font-bold bg-black/5 w-7 h-7 rounded-full flex items-center justify-center"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-base font-black text-gray-900 mb-4 pb-2 border-b border-gray-200">
+              ZEMİN Yayın Rehberi
+            </h3>
+
+            <div className="space-y-4 text-xs text-gray-700 leading-relaxed">
+              <div>
+                <h4 className="font-bold text-gray-900 mb-1">1. İsim & Mahlas Özgürlüğü</h4>
+                <p className="text-gray-600">Yazılarında gerçek adını, üniversite ve bölümünü kullanabileceğin gibi tamamen bir mahlasla da yazabilirsin. İkisi de aynı editoryal değerlendirmeden geçer.</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-900 mb-1">2. Kimler Yazabilir?</h4>
+                <p className="text-gray-600">Felsefe, sosyoloji ve psikoloji alanlarında eleştirel düşünen, soru soran tüm üniversite öğrencileri ve bağımsız araştırmacılar metin gönderebilir.</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-900 mb-1">3. PIN Sistemi Nasıl Çalışır?</h4>
+                <p className="text-gray-600">Hesap açma bürokrasisi yoktur. İlk yazında belirlediğin 4 haneli PIN kodunu daha sonraki yazı gönderimlerinde kullanarak metinlerini aynı yazar profiline bağlayabilirsin.</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-900 mb-1">4. Yayın Süreci</h4>
+                <p className="text-gray-600">Gönderilen metin editör onayından geçtiğinde doğrudan web arşivinde ve yazar sayfanda yerini alır. Seçilen yazılar dönemsel PDF e-dergiye dahil edilir.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsGuideOpen(false)}
+              className="w-full mt-6 bg-[#32127a] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-[#74112f] transition-all"
+            >
+              Anladım
+            </button>
+          </div>
+        </div>
+      )}
+
+      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
           <div>
             <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN</span>
