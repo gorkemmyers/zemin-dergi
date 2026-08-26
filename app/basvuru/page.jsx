@@ -6,7 +6,6 @@ import Link from 'next/link';
 export default function BasvuruPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [menuAcik, setMenuAcik] = useState(false);
   const [formData, setFormData] = useState({
     ad_soyad: '',
     universite: '',
@@ -16,6 +15,7 @@ export default function BasvuruPage() {
     baslik: '',
     kategori: 'Felsefe',
     icerik: '',
+    kapak_url: '',
     pin: '',
   });
 
@@ -54,6 +54,7 @@ export default function BasvuruPage() {
         slug: yaziSlug,
         kategori: formData.kategori,
         icerik: formData.icerik,
+        kapak_url: formData.kapak_url || null,
         durum: 'beklemede'
       }]);
 
@@ -70,39 +71,32 @@ export default function BasvuruPage() {
       <main className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-16">
         
         {/* NAVBAR */}
-        <nav className="glass-panel mx-auto max-w-4xl px-6 py-3.5 mb-8 flex justify-between items-center sticky top-4 z-50 rounded-full">
-          <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter">
-            ZEMİN
-          </Link>
-          
-          <div className="hidden md:flex gap-7 text-sm font-bold text-gray-700 items-center justify-center absolute left-1/2 transform -translate-x-1/2">
-            <Link href="/" className="hover:text-[#00a693]">Ana Sayfa</Link>
-            <Link href="/yazilar" className="hover:text-[#00a693]">Yazılar</Link>
-            <Link href="/dergiler" className="hover:text-[#00a693]">Dergiler</Link>
-            <Link href="/yazarlar" className="hover:text-[#00a693]">Yazarlar</Link>
-            <Link href="/iletisim" className="hover:text-[#00a693]">İletişim</Link>
+        <header className="glass-panel mx-auto max-w-4xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
+          <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
+            <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
+              ZEMİN
+            </Link>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-block text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                Açık Düşünce
+              </span>
+              <Link 
+                href="/basvuru" 
+                className="bg-[#32127a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
+              >
+                METİN GÖNDER
+              </Link>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setMenuAcik(!menuAcik)}
-              className="md:hidden p-2 rounded-full text-gray-800 hover:bg-white/50"
-              aria-label="Menü"
-            >
-              {menuAcik ? '✕' : '☰'}
-            </button>
-          </div>
-        </nav>
-
-        {menuAcik && (
-          <div className="md:hidden glass-panel p-6 mb-8 flex flex-col gap-4 text-center text-sm font-bold text-gray-800 shadow-xl">
-            <Link href="/" onClick={() => setMenuAcik(false)}>Ana Sayfa</Link>
-            <Link href="/yazilar" onClick={() => setMenuAcik(false)}>Yazılar</Link>
-            <Link href="/dergiler" onClick={() => setMenuAcik(false)}>Dergiler</Link>
-            <Link href="/yazarlar" onClick={() => setMenuAcik(false)}>Yazarlar</Link>
-            <Link href="/iletisim" onClick={() => setMenuAcik(false)}>İletişim</Link>
-          </div>
-        )}
+          <nav className="flex items-center justify-between sm:justify-center gap-4 sm:gap-8 pt-2.5 px-2 overflow-x-auto whitespace-nowrap text-xs sm:text-sm font-bold text-gray-700 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <Link href="/" className="hover:text-[#00a693] transition-colors flex-shrink-0">Ana Sayfa</Link>
+            <Link href="/yazilar" className="hover:text-[#00a693] transition-colors flex-shrink-0">Yazılar</Link>
+            <Link href="/dergiler" className="hover:text-[#00a693] transition-colors flex-shrink-0">Dergiler</Link>
+            <Link href="/yazarlar" className="hover:text-[#00a693] transition-colors flex-shrink-0">Yazarlar</Link>
+            <Link href="/iletisim" className="hover:text-[#00a693] transition-colors flex-shrink-0">İletişim</Link>
+          </nav>
+        </header>
 
         {success ? (
           <div className="glass-card p-10 max-w-lg mx-auto text-center my-12 border border-white">
@@ -181,6 +175,18 @@ export default function BasvuruPage() {
                   </div>
                 </div>
 
+                <div className="mb-4">
+                  <label className="block text-xs uppercase font-bold text-gray-700 mb-1">
+                    Kapak Görseli Bağlantısı <span className="text-gray-400 font-normal">(İsteğe Bağlı)</span>
+                  </label>
+                  <input 
+                    type="url" 
+                    placeholder="https://images.unsplash.com/... (Görsel kartın solunda akıcı arka plan olur)" 
+                    className="w-full bg-white/95 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-medium focus:outline-none focus:border-[#74112f] shadow-sm" 
+                    onChange={(e) => setFormData({...formData, kapak_url: e.target.value})} 
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs uppercase font-bold text-gray-700 mb-1">Metin ve Kaynakça *</label>
                   <textarea required rows={10} placeholder="Yazınızı ve kaynakçanızı buraya yapıştırın..." className="w-full bg-white/95 border border-gray-200 rounded-xl p-4 text-sm font-serif leading-relaxed text-gray-900 focus:outline-none focus:border-[#74112f] shadow-sm" 
@@ -188,7 +194,6 @@ export default function BasvuruPage() {
                 </div>
               </div>
 
-              {/* YAYIN ŞARTLARI & TELİF ONAY KUTUSU */}
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-200/80 flex items-start gap-3">
                 <input 
                   required 
@@ -197,7 +202,7 @@ export default function BasvuruPage() {
                   className="mt-1 w-4 h-4 rounded accent-[#74112f] cursor-pointer flex-shrink-0" 
                 />
                 <label htmlFor="telif_onay" className="text-xs text-gray-600 font-medium leading-relaxed select-none cursor-pointer">
-                  Bu metnin fikri mülkiyeti şahsıma aittir. Metni göndererek <strong>ZEMİN</strong> platformuna açık arşivde ve tematik e-dergi sayılarında adıma atıfla yayımlama ve dağıtma hakkı verdiğimi onaylıyorum. Yayımlanan ve dergi sayılarına dahil edilen metinlerin daha sonra dergiden geri çekilemeyeceğini/silinemeyeceğini kabul ediyorum.
+                  Bu metnin fikri mülkiyeti şahsıma aittir. Metni göndererek <strong>ZEMİN</strong> platformuna açık arşivde ve tematik e-dergi sayılarında adıma atıfla yayımlama ve dağıtma hakkı verdiğimi onaylıyorum.
                 </label>
               </div>
 
