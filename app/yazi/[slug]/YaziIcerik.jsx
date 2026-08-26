@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 const DILLER = [
@@ -14,24 +14,28 @@ const getDisiplinStili = (kategori) => {
   switch (kategori) {
     case 'Felsefe':
       return {
+        renk: '#74112f',
         cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent',
         badgeBg: 'bg-[#74112f]/15 text-[#74112f]',
         pattern: 'radial-gradient(circle at 100% 0%, rgba(116, 17, 47, 0.12) 0%, transparent 60%)'
       };
     case 'Sosyoloji':
       return {
+        renk: '#00a693',
         cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent',
         badgeBg: 'bg-[#00a693]/15 text-[#00a693]',
         pattern: 'radial-gradient(circle at 100% 0%, rgba(0, 166, 147, 0.12) 0%, transparent 60%)'
       };
     case 'Psikoloji':
       return {
+        renk: '#32127a',
         cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent',
         badgeBg: 'bg-[#32127a]/15 text-[#32127a]',
         pattern: 'radial-gradient(circle at 100% 0%, rgba(50, 18, 122, 0.12) 0%, transparent 60%)'
       };
     default:
       return {
+        renk: '#111827',
         cardBg: 'from-gray-100 to-transparent',
         badgeBg: 'bg-gray-100 text-gray-700',
         pattern: 'none'
@@ -39,7 +43,6 @@ const getDisiplinStili = (kategori) => {
   }
 };
 
-// Paragraf bazlı güvenli anlık çeviri motoru
 async function translateText(text, targetLang) {
   if (targetLang === 'tr') return text;
   const paragraphs = text.split('\n');
@@ -65,11 +68,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [seciliDil, setSeciliDil] = useState('tr');
   const [isTranslating, setIsTranslating] = useState(false);
-  
-  // Çeviri önbelleği (aynı dile tekrar geçildiğinde anında gelmesi için)
   const [translations, setTranslations] = useState({});
 
-  // Okuma İlerleme Çubuğu & Ses Temizliği
+  // Instagram Story Modal Durumları
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
+  const canvasRef = useRef(null);
+  const [storyImageUrl, setStoryImageUrl] = useState('');
+
   useEffect(() => {
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -89,7 +94,188 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // Dil Değiştirme ve Çeviri Tetikleme
+  const aktifBaslik = seciliDil === 'tr' ? yazi?.baslik : (translations[seciliDil]?.baslik || yazi?.baslik);
+  const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
+  const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
+
+  // 9:16 Instagram Story Kartı Çizim Motoru
+  useEffect(() => {
+    if (!isStoryOpen || !canvasRef.current || !yazi) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const width = 1080;
+    const height = 1920;
+    canvas.width = width;
+    canvas.height = height;
+
+    const stil = getDisiplinStili(yazi.kategori);
+
+    // 1. Arka Plan: Koyu Editoryal Gece Zemin
+    ctx.fillStyle = '#0F1115';
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Işık Küreleri (Degrade ambient)
+    const radGlow = ctx.createRadialGradient(850, 300, 50, 850, 300, 700);
+    radGlow.addColorStop(0, stil.renk + '88');
+    radGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = radGlow;
+    ctx.fillRect(0, 0, width, height);
+
+    const radGlow2 = ctx.createRadialGradient(200, 1600, 50, 200, 1600, 700);
+    radGlow2.addColorStop(0, '#32127a66');
+    radGlow2.addColorStop(1, 'transparent');
+    ctx.fillStyle = radGlow2;
+    ctx.fillRect(0, 0, width, height);
+
+    // 3. Merkezdeki Buzlu Cam Kart
+    const cardX = 90;
+    const cardY = 240;
+    const cardW = 900;
+    const cardH = 1440;
+    const radius = 64;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cardX + radius, cardY);
+    ctx.lineTo(cardX + cardW - radius, cardY);
+    ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+    ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+    ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+    ctx.lineTo(cardX + radius, cardY + cardH);
+    ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+    ctx.lineTo(cardX, cardY + radius);
+    ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+    ctx.closePath();
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. Logo ve Başlık
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 48px sans-serif';
+    ctx.letterSpacing = '8px';
+    ctx.fillText('Z E M İ N', cardX + 80, cardY + 140);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.font = '700 22px sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('AÇIK DÜŞÜNCE İNİSİYATİFİ', cardX + 80, cardY + 180);
+
+    // 5. Disiplin Rozeti
+    const badgeX = cardX + 80;
+    const badgeY = cardY + 260;
+    ctx.fillStyle = stil.renk;
+    ctx.beginPath();
+    ctx.roundRect(badgeX, badgeY, 200, 54, 27);
+    ctx.fill();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 22px sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + 35, badgeY + 36);
+
+    // 6. Makale Başlığı (Otomatik Satır Bölme)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 68px sans-serif';
+    ctx.letterSpacing = '-1px';
+
+    const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 5) => {
+      const words = text.split(' ');
+      let line = '';
+      let lineCount = 0;
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+          lineCount++;
+          if (lineCount >= maxLines - 1) {
+            ctx.fillText(line + '...', x, y);
+            return y;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, y);
+      return y;
+    };
+
+    const sonBaslikY = wrapText(aktifBaslik, cardX + 80, cardY + 440, 740, 86, 5);
+
+    // 7. Alıntı / İlk Cümleler (İtalik)
+    const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 180) + '...';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = 'italic 34px serif';
+    wrapText(`“${spotMetin}”`, cardX + 80, sonBaslikY + 110, 740, 52, 4);
+
+    // 8. Yazar Bilgisi (Kartın Altı)
+    const authorY = cardY + cardH - 180;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillRect(cardX + 80, authorY - 40, 740, 2);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 36px sans-serif';
+    ctx.letterSpacing = '0px';
+    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 80, authorY + 20);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '600 24px sans-serif';
+    ctx.fillText(`${yazi.yazarlar?.universite || ''} — ${yazi.yazarlar?.bolum || ''}`, cardX + 80, authorY + 65);
+
+    // 9. Hikaye Alt Çıkartma Çağrısı
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '700 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔗 Link çıkartmasına tıklayarak oku', width / 2, height - 120);
+    ctx.textAlign = 'left';
+
+    setStoryImageUrl(canvas.toDataURL('image/png'));
+  }, [isStoryOpen, yazi, aktifBaslik, aktifIcerik]);
+
+  // Hikaye Paylaşım ve İndirme Tetikleyicisi
+  const handleStoryShare = async () => {
+    // 1. Linki panoya kopyala
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch (e) {}
+
+    // 2. Görseli Blob'a dönüştür
+    if (!canvasRef.current) return;
+    canvasRef.current.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], `${yazi.slug}-story.png`, { type: 'image/png' });
+
+      // Mobil cihazda resim paylaşımı destekleniyorsa doğrudan Instagram/Story paylaşım menüsünü aç
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: aktifBaslik,
+            text: window.location.href,
+          });
+        } catch (err) {
+          console.log('Paylaşım iptal edildi');
+        }
+      } else {
+        // Desteklenmeyen cihazlarda doğrudan indir
+        const a = document.createElement('a');
+        a.href = storyImageUrl;
+        a.download = `${yazi.slug}-zemin-story.png`;
+        a.click();
+        alert('✨ Hikaye kartı indirildi ve makale linki panoya kopyalandı! Instagram hikayenize ekleyip link çıkartmasını yapıştırabilirsiniz.');
+      }
+    }, 'image/png');
+  };
+
   const handleDilDegistir = async (yeniDil) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -117,11 +303,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   };
 
-  const aktifBaslik = seciliDil === 'tr' ? yazi.baslik : (translations[seciliDil]?.baslik || yazi.baslik);
-  const aktifIcerik = seciliDil === 'tr' ? yazi.icerik : (translations[seciliDil]?.icerik || yazi.icerik);
-  const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
-
-  // Seçilen Dilde Seslendirme
   const handleToggleSpeech = () => {
     if (!('speechSynthesis' in window)) {
       alert('Tarayıcınız sesli okuma özelliğini desteklemiyor.');
@@ -140,7 +321,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       utterance.rate = 0.93;
       utterance.pitch = 1.0;
 
-      // Cihazdaki ilgili dile en uygun sesi seç
       const mevcutSesler = window.speechSynthesis.getVoices();
       const uygunSes = mevcutSesler.find(v => v.lang.toLowerCase().startsWith(aktifDilObj.kod));
       if (uygunSes) {
@@ -165,23 +345,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     if (data && data.length > 0) {
       const rastgeleYazi = data[Math.floor(Math.random() * data.length)];
       window.location.href = `/yazi/${rastgeleYazi.slug}`;
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: aktifBaslik,
-          text: `${aktifBaslik} - ${yazi.yazarlar?.ad_soyad} | ZEMİN`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log('Paylaşım iptal edildi');
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Bağlantı panoya kopyalandı.');
     }
   };
 
@@ -273,7 +436,17 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               {/* ARAÇ ÇUBUĞU */}
               <div className="flex flex-wrap items-center gap-2">
                 
-                {/* 🌐 DİL SEÇİM MENÜSÜ */}
+                {/* 📸 SUBSTACK / SPOTIFY TARZI STORY KARTI BUTONU */}
+                <button
+                  onClick={() => setIsStoryOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] text-white shadow-md hover:opacity-95 transition-all hover:scale-105"
+                  title="Instagram Story Kartı Oluştur"
+                >
+                  <span>📸</span>
+                  <span>Story</span>
+                </button>
+
+                {/* DİL SEÇİMİ */}
                 <div className="flex items-center bg-white/90 border border-gray-200/80 p-0.5 rounded-full shadow-xs">
                   {DILLER.map((d) => (
                     <button
@@ -292,7 +465,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   ))}
                 </div>
 
-                {/* 🎧 SESLİ DİNLE BUTONU */}
+                {/* SESLİ DİNLE */}
                 <button
                   disabled={isTranslating}
                   onClick={handleToggleSpeech}
@@ -303,7 +476,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   }`}
                   title={`${aktifDilObj.ad} dilinde dinle`}
                 >
-                  <span>{isSpeaking ? '⏹ Durdur' : `🎧 ${aktifDilObj.kod.toUpperCase()} Dinle`}</span>
+                  <span>{isSpeaking ? '⏹ Durdur' : `🎧 ${aktifDilObj.kod.toUpperCase()}`}</span>
                 </button>
 
                 {/* Font Boyutu */}
@@ -312,17 +485,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A</button>
                   <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A+</button>
                 </div>
-
-                {/* Paylaş */}
-                <button
-                  onClick={handleShare}
-                  className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
-                  aria-label="Paylaş"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                  </svg>
-                </button>
               </div>
             </div>
 
@@ -362,7 +524,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             </div>
           )}
 
-          {/* DİNAMİK METİN GÖVDESİ */}
           <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
             {isTranslating ? (
               <div className="space-y-4 animate-pulse">
@@ -392,6 +553,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
           </div>
         </article>
 
+        {/* İLGİLİ METİNLER */}
         {ilgiliYazilar.length > 0 && (
           <section className="mt-12">
             <div className="flex items-center justify-between mb-4 px-1">
@@ -447,6 +609,44 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         )}
 
       </main>
+
+      {/* 📸 İNSTAGRAM STORY KART MODALI */}
+      {isStoryOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/30 text-center shadow-2xl relative flex flex-col items-center animate-in fade-in zoom-in duration-200">
+            
+            <button 
+              onClick={() => setIsStoryOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold bg-white/10 w-8 h-8 rounded-full flex items-center justify-center"
+            >
+              ✕
+            </button>
+
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#00a693] mb-1">
+              Instagram Hikaye Kartı
+            </span>
+            <h3 className="text-base font-black text-white mb-4">Paylaşmaya Hazır</h3>
+
+            {/* Canvas Önizleme */}
+            <div className="w-full aspect-[9/16] max-h-[380px] rounded-2xl overflow-hidden shadow-2xl border border-white/20 mb-4 bg-black flex items-center justify-center">
+              <canvas ref={canvasRef} className="w-full h-full object-contain" />
+            </div>
+
+            <p className="text-[11px] text-gray-300 font-medium mb-4">
+              Görseli hikayenize ekleyip kopyalanan linki yapıştırarak paylaşabilirsiniz.
+            </p>
+
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={handleStoryShare}
+                className="flex-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] text-white py-3 rounded-2xl text-xs font-black shadow-lg hover:opacity-90 active:scale-95 transition-all"
+              >
+                📲 Hikayede Paylaş / İndir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
