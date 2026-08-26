@@ -140,17 +140,18 @@ export default function HomePage() {
                   <Link href={`/yazi/${yazi.slug}`} key={yazi.id} className="group outline-none">
                     <article 
                       style={{ backgroundImage: !yazi.kapak_url ? stil.pattern : 'none' }}
-                      className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden ${!yazi.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/80'}`}
+                      className={`glass-card p-6 h-full flex flex-col justify-between hover:shadow-2xl hover:bg-white transition-all duration-300 border border-white/80 group-hover:-translate-y-1 relative overflow-hidden ${!yazi.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
                     >
-                      {/* AKICI SOL-SAĞ GÖRSEL MASKESİ */}
+                      {/* SAĞDA NET, SOLA DOĞRU ERİYEN GÖRSEL KATMANI */}
                       {yazi.kapak_url && (
                         <>
                           <img 
                             src={yazi.kapak_url} 
                             alt="" 
-                            className="absolute -left-4 inset-y-0 w-3/4 h-full object-cover object-left opacity-60 group-hover:scale-105 group-hover:opacity-75 transition-all duration-500 pointer-events-none" 
+                            className="absolute -right-2 inset-y-0 w-3/5 h-full object-cover object-center opacity-75 group-hover:scale-105 group-hover:opacity-90 transition-all duration-500 pointer-events-none" 
                           />
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/85 to-white/95 backdrop-blur-[1.5px] pointer-events-none"></div>
+                          {/* Soldaki metinleri koruyan sağa doğru eriyen beyaz degrade */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
                         </>
                       )}
 
@@ -160,7 +161,7 @@ export default function HomePage() {
                           <span className={`inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg} shadow-xs`}>
                             {yazi.kategori}
                           </span>
-                          <span className="text-[10px] text-gray-500 font-bold bg-white/80 backdrop-blur-xs px-2 py-0.5 rounded-full border border-gray-100">
+                          <span className="text-[10px] text-gray-700 font-bold bg-white/90 backdrop-blur-xs px-2.5 py-0.5 rounded-full border border-gray-200/60 shadow-xs">
                             ⏱ {okumaSuresi} dk
                           </span>
                         </div>
@@ -171,10 +172,10 @@ export default function HomePage() {
                       </div>
 
                       {/* ALT BİLGİ */}
-                      <div className="relative z-10 mt-6 pt-3.5 border-t border-gray-200/50 flex items-center justify-between">
+                      <div className="relative z-10 mt-6 pt-3.5 border-t border-gray-200/60 flex items-center justify-between">
                         <div>
                           <p className="text-xs font-bold text-gray-900">{yazi.yazarlar?.ad_soyad}</p>
-                          <p className="text-[11px] text-gray-500 font-medium truncate max-w-[170px]">{yazi.yazarlar?.universite}</p>
+                          <p className="text-[11px] text-gray-600 font-medium truncate max-w-[170px]">{yazi.yazarlar?.universite}</p>
                         </div>
                         <span className="text-xs font-black text-[#32127a] group-hover:translate-x-1 transition-transform">
                           Oku →
