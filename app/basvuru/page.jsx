@@ -266,7 +266,7 @@ export default function BasvuruPage() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              ✍️ Metin Gönder
+              Metin Gönder
             </button>
             <button
               onClick={() => { setAktifSekme('profil'); setEditStatus({ type: '', msg: '' }); }}
@@ -276,7 +276,7 @@ export default function BasvuruPage() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              ⚙️ Profili Düzenle
+              Profili Düzenle
             </button>
           </div>
         </div>
