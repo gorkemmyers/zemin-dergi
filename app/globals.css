@@ -1,21 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 body {
-  background-color: #F5F2EB;
+  background-color: #FBF7EF;
   color: #1F1E1B;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-
 h1, h2, h3, h4, .font-editorial {
   font-family: 'EB Garamond', Georgia, serif;
 }
-
 ::selection {
   background-color: #4E141E;
-  color: #F5F2EB;
+  color: #FBF7EF;
 }
