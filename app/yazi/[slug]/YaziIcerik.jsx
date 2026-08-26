@@ -70,7 +70,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translations, setTranslations] = useState({});
 
-  // Instagram Story Modal Durumları
+  // Story Modal
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const canvasRef = useRef(null);
   const [storyImageUrl, setStoryImageUrl] = useState('');
@@ -98,7 +98,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
 
-  // 9:16 Instagram Story Kartı Çizim Motoru
+  // Açık Renkli Liquid Glass Story Kartı Çizimi
   useEffect(() => {
     if (!isStoryOpen || !canvasRef.current || !yazi) return;
 
@@ -111,80 +111,82 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
     const stil = getDisiplinStili(yazi.kategori);
 
-    // 1. Arka Plan: Koyu Editoryal Gece Zemin
-    ctx.fillStyle = '#0F1115';
+    // 1. Zemin (Açık Nötr Gri / Fildişi)
+    ctx.fillStyle = '#F8F9FA';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Işık Küreleri (Degrade ambient)
-    const radGlow = ctx.createRadialGradient(850, 300, 50, 850, 300, 700);
-    radGlow.addColorStop(0, stil.renk + '88');
-    radGlow.addColorStop(1, 'transparent');
-    ctx.fillStyle = radGlow;
+    // 2. Yumuşak Işık Hüzmeleri
+    const g1 = ctx.createRadialGradient(250, 350, 40, 250, 350, 600);
+    g1.addColorStop(0, 'rgba(236, 231, 225, 0.95)');
+    g1.addColorStop(1, 'rgba(236, 231, 225, 0)');
+    ctx.fillStyle = g1;
     ctx.fillRect(0, 0, width, height);
 
-    const radGlow2 = ctx.createRadialGradient(200, 1600, 50, 200, 1600, 700);
-    radGlow2.addColorStop(0, '#32127a66');
-    radGlow2.addColorStop(1, 'transparent');
-    ctx.fillStyle = radGlow2;
+    const g2 = ctx.createRadialGradient(850, 450, 50, 850, 450, 650);
+    g2.addColorStop(0, stil.renk + '18');
+    g2.addColorStop(1, 'transparent');
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, width, height);
+
+    const g3 = ctx.createRadialGradient(400, 1550, 50, 400, 1550, 700);
+    g3.addColorStop(0, 'rgba(227, 234, 230, 0.85)');
+    g3.addColorStop(1, 'rgba(227, 234, 230, 0)');
+    ctx.fillStyle = g3;
     ctx.fillRect(0, 0, width, height);
 
     // 3. Merkezdeki Buzlu Cam Kart
-    const cardX = 90;
+    const cardX = 80;
     const cardY = 240;
-    const cardW = 900;
+    const cardW = 920;
     const cardH = 1440;
-    const radius = 64;
+    const radius = 56;
 
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(cardX + radius, cardY);
-    ctx.lineTo(cardX + cardW - radius, cardY);
-    ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
-    ctx.lineTo(cardX + cardW, cardY + cardH - radius);
-    ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
-    ctx.lineTo(cardX + radius, cardY + cardH);
-    ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
-    ctx.lineTo(cardX, cardY + radius);
-    ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
-    ctx.closePath();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetY = 20;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, radius);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
     ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+
+    ctx.shadowColor = 'transparent';
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.stroke();
     ctx.restore();
 
     // 4. Logo ve Başlık
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = '#74112f';
     ctx.font = '900 48px sans-serif';
-    ctx.letterSpacing = '8px';
-    ctx.fillText('Z E M İ N', cardX + 80, cardY + 140);
+    ctx.fillText('ZEMİN', cardX + 75, cardY + 120);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '700 22px sans-serif';
+    ctx.fillStyle = '#6B7280';
+    ctx.font = '700 18px sans-serif';
     ctx.letterSpacing = '3px';
-    ctx.fillText('AÇIK DÜŞÜNCE İNİSİYATİFİ', cardX + 80, cardY + 180);
+    ctx.fillText('AÇIK DÜŞÜNCE İNİSİYATİFİ', cardX + 75, cardY + 160);
+    ctx.letterSpacing = '0px';
 
     // 5. Disiplin Rozeti
-    const badgeX = cardX + 80;
-    const badgeY = cardY + 260;
-    ctx.fillStyle = stil.renk;
+    const badgeX = cardX + 75;
+    const badgeY = cardY + 230;
+    ctx.fillStyle = stil.renk + '18';
     ctx.beginPath();
-    ctx.roundRect(badgeX, badgeY, 200, 54, 27);
+    ctx.roundRect(badgeX, badgeY, 180, 48, 24);
     ctx.fill();
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 22px sans-serif';
-    ctx.letterSpacing = '3px';
-    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + 35, badgeY + 36);
+    ctx.fillStyle = stil.renk;
+    ctx.font = '900 20px sans-serif';
+    ctx.letterSpacing = '2px';
+    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), badgeX + 28, badgeY + 31);
+    ctx.letterSpacing = '0px';
 
-    // 6. Makale Başlığı (Otomatik Satır Bölme)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 68px sans-serif';
-    ctx.letterSpacing = '-1px';
+    // 6. Başlık Satır Bölme (Maksimum 4 satır)
+    ctx.fillStyle = '#111827';
+    ctx.font = '900 64px sans-serif';
 
-    const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 5) => {
+    const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 4) => {
       const words = text.split(' ');
       let line = '';
       let lineCount = 0;
@@ -209,52 +211,53 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       return y;
     };
 
-    const sonBaslikY = wrapText(aktifBaslik, cardX + 80, cardY + 440, 740, 86, 5);
+    const sonBaslikY = wrapText(aktifBaslik, cardX + 75, cardY + 390, 770, 80, 4);
 
-    // 7. Alıntı / İlk Cümleler (İtalik)
-    const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 180) + '...';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = 'italic 34px serif';
-    wrapText(`“${spotMetin}”`, cardX + 80, sonBaslikY + 110, 740, 52, 4);
+    // 7. Kısa Spot / İlk Cümle Alıntısı (1-2 satır)
+    const spotMetin = (aktifIcerik || '').replace(/[\n\r]/g, ' ').slice(0, 140) + '...';
+    ctx.fillStyle = '#4B5563';
+    ctx.font = 'italic 32px serif';
+    wrapText(`“${spotMetin}”`, cardX + 75, sonBaslikY + 90, 770, 48, 3);
 
-    // 8. Yazar Bilgisi (Kartın Altı)
-    const authorY = cardY + cardH - 180;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.fillRect(cardX + 80, authorY - 40, 740, 2);
+    // 8. Yazar Künyesi
+    const authorY = cardY + cardH - 160;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+    ctx.fillRect(cardX + 75, authorY - 35, 770, 1.5);
+
+    // Yazar İnisiyal Rozeti
+    const avatarX = cardX + 75;
+    const avatarY = authorY - 5;
+    ctx.fillStyle = '#74112f';
+    ctx.beginPath();
+    ctx.arc(avatarX + 32, avatarY + 32, 32, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 36px sans-serif';
-    ctx.letterSpacing = '0px';
-    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 80, authorY + 20);
+    ctx.font = '900 28px sans-serif';
+    ctx.fillText(yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z', avatarX + 22, avatarY + 42);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = '600 24px sans-serif';
-    ctx.fillText(`${yazi.yazarlar?.universite || ''} — ${yazi.yazarlar?.bolum || ''}`, cardX + 80, authorY + 65);
+    // Yazar Adı ve Üniversite
+    ctx.fillStyle = '#111827';
+    ctx.font = '900 32px sans-serif';
+    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', avatarX + 85, avatarY + 26);
 
-    // 9. Hikaye Alt Çıkartma Çağrısı
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '700 28px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🔗 Link çıkartmasına tıklayarak oku', width / 2, height - 120);
-    ctx.textAlign = 'left';
+    ctx.fillStyle = '#6B7280';
+    ctx.font = '600 22px sans-serif';
+    ctx.fillText(`${yazi.yazarlar?.universite || ''} — ${yazi.yazarlar?.bolum || ''}`, avatarX + 85, avatarY + 58);
 
     setStoryImageUrl(canvas.toDataURL('image/png'));
   }, [isStoryOpen, yazi, aktifBaslik, aktifIcerik]);
 
-  // Hikaye Paylaşım ve İndirme Tetikleyicisi
   const handleStoryShare = async () => {
-    // 1. Linki panoya kopyala
     try {
       await navigator.clipboard.writeText(window.location.href);
     } catch (e) {}
 
-    // 2. Görseli Blob'a dönüştür
     if (!canvasRef.current) return;
     canvasRef.current.toBlob(async (blob) => {
       if (!blob) return;
       const file = new File([blob], `${yazi.slug}-story.png`, { type: 'image/png' });
 
-      // Mobil cihazda resim paylaşımı destekleniyorsa doğrudan Instagram/Story paylaşım menüsünü aç
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
@@ -262,16 +265,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             title: aktifBaslik,
             text: window.location.href,
           });
-        } catch (err) {
-          console.log('Paylaşım iptal edildi');
-        }
+        } catch (err) {}
       } else {
-        // Desteklenmeyen cihazlarda doğrudan indir
         const a = document.createElement('a');
         a.href = storyImageUrl;
-        a.download = `${yazi.slug}-zemin-story.png`;
+        a.download = `${yazi.slug}-story.png`;
         a.click();
-        alert('✨ Hikaye kartı indirildi ve makale linki panoya kopyalandı! Instagram hikayenize ekleyip link çıkartmasını yapıştırabilirsiniz.');
+        alert('Görsel indirildi ve bağlantı panoya kopyalandı.');
       }
     }, 'image/png');
   };
@@ -345,6 +345,24 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     if (data && data.length > 0) {
       const rastgeleYazi = data[Math.floor(Math.random() * data.length)];
       window.location.href = `/yazi/${rastgeleYazi.slug}`;
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch (e) {}
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: aktifBaslik,
+          text: `${aktifBaslik} - ${yazi.yazarlar?.ad_soyad} | ZEMİN`,
+          url: window.location.href,
+        });
+      } catch (err) {}
+    } else {
+      alert('Bağlantı panoya kopyalandı.');
     }
   };
 
@@ -436,16 +454,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               {/* ARAÇ ÇUBUĞU */}
               <div className="flex flex-wrap items-center gap-2">
                 
-                {/* 📸 SUBSTACK / SPOTIFY TARZI STORY KARTI BUTONU */}
-                <button
-                  onClick={() => setIsStoryOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] text-white shadow-md hover:opacity-95 transition-all hover:scale-105"
-                  title="Instagram Story Kartı Oluştur"
-                >
-                  <span>📸</span>
-                  <span>Story</span>
-                </button>
-
                 {/* DİL SEÇİMİ */}
                 <div className="flex items-center bg-white/90 border border-gray-200/80 p-0.5 rounded-full shadow-xs">
                   {DILLER.map((d) => (
@@ -485,182 +493,22 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A</button>
                   <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}>A+</button>
                 </div>
-              </div>
-            </div>
 
-            {isTranslating ? (
-              <div className="py-8 text-center text-xs font-bold text-gray-500 animate-pulse">
-                Düşünce metni {aktifDilObj.ad} diline çevriliyor...
-              </div>
-            ) : (
-              <>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
-                  {aktifBaslik}
-                </h1>
+                {/* 📷 MİNİMALİST INSTAGRAM STORY BUTONU */}
+                <button
+                  onClick={() => setIsStoryOpen(true)}
+                  className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
+                  title="Instagram Story Kartı"
+                  aria-label="Story Kartı"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </button>
 
-                <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="inline-flex items-center gap-2.5 group outline-none pt-2">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs shadow-sm">
-                    {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
-                  </div>
-                  <div className="text-left">
-                    <p className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#74112f] transition-colors">
-                      {yazi.yazarlar?.ad_soyad}
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-medium">{yazi.yazarlar?.universite}</p>
-                  </div>
-                </Link>
-              </>
-            )}
-          </header>
-
-          {yazi.kapak_url && (
-            <div className="mb-10 rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[2.4/1] w-full relative shadow-md border border-white/90">
-              <img 
-                src={yazi.kapak_url} 
-                alt={yazi.baslik} 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent"></div>
-            </div>
-          )}
-
-          <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
-            {isTranslating ? (
-              <div className="space-y-4 animate-pulse">
-                <div className="h-4 bg-gray-200/80 rounded w-full"></div>
-                <div className="h-4 bg-gray-200/80 rounded w-5/6"></div>
-                <div className="h-4 bg-gray-200/80 rounded w-4/6"></div>
-              </div>
-            ) : (
-              aktifIcerik
-            )}
-          </div>
-
-          <div className="mt-14 pt-6 border-t border-gray-200/70 font-sans">
-            <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="glass-panel p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white/50 hover:bg-white/80 transition-all group">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-lg flex-shrink-0 shadow-md border border-white">
-                {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
-              </div>
-              <div className="min-w-0 flex-grow text-center sm:text-left">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                  <h3 className="font-black text-sm sm:text-base text-gray-900 group-hover:text-[#74112f] transition-colors">{yazi.yazarlar?.ad_soyad}</h3>
-                  {yazi.yazarlar?.instagram && <span className="text-xs font-bold text-[#00a693]">@{yazi.yazarlar.instagram}</span>}
-                </div>
-                <p className="text-[11px] text-gray-500 font-semibold mb-2">{yazi.yazarlar?.universite} — {yazi.yazarlar?.bolum}</p>
-                {yazi.yazarlar?.biyografi && <p className="text-xs text-gray-600 font-medium leading-relaxed line-clamp-2">{yazi.yazarlar.biyografi}</p>}
-              </div>
-            </Link>
-          </div>
-        </article>
-
-        {/* İLGİLİ METİNLER */}
-        {ilgiliYazilar.length > 0 && (
-          <section className="mt-12">
-            <div className="flex items-center justify-between mb-4 px-1">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#74112f]">Keşfetmeye Devam Et</span>
-                <h2 className="text-lg font-black text-gray-900 tracking-tight">Benzer Düşünceler</h2>
-              </div>
-              <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşiv →</Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {ilgiliYazilar.map((iy) => {
-                const stil = getDisiplinStili(iy.kategori);
-                const iyOkumaSuresi = Math.max(1, Math.ceil((iy.icerik || '').trim().split(/\s+/).length / 200));
-
-                return (
-                  <Link href={`/yazi/${iy.slug}`} key={iy.id} className="group outline-none">
-                    <article 
-                      style={{ backgroundImage: !iy.kapak_url ? stil.pattern : 'none' }}
-                      className={`glass-card p-4 rounded-2xl h-full flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!iy.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
-                    >
-                      {iy.kapak_url && (
-                        <>
-                          <img src={iy.kapak_url} alt="" className="absolute -right-2 inset-y-0 w-3/5 h-full object-cover opacity-75 pointer-events-none" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
-                        </>
-                      )}
-
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${stil.badgeBg}`}>
-                            {iy.kategori}
-                          </span>
-                          <span className="text-[9px] text-gray-600 font-bold bg-white/90 px-2 py-0.5 rounded-full border border-gray-100">
-                            ⏱ {iyOkumaSuresi} dk
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-2">
-                          {iy.baslik}
-                        </h3>
-                      </div>
-
-                      <div className="relative z-10 mt-3 pt-2 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-gray-700 truncate max-w-[150px]">{iy.yazarlar?.ad_soyad}</span>
-                        <span className="font-black text-[#32127a]">Oku →</span>
-                      </div>
-                    </article>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-      </main>
-
-      {/* 📸 İNSTAGRAM STORY KART MODALI */}
-      {isStoryOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/30 text-center shadow-2xl relative flex flex-col items-center animate-in fade-in zoom-in duration-200">
-            
-            <button 
-              onClick={() => setIsStoryOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold bg-white/10 w-8 h-8 rounded-full flex items-center justify-center"
-            >
-              ✕
-            </button>
-
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#00a693] mb-1">
-              Instagram Hikaye Kartı
-            </span>
-            <h3 className="text-base font-black text-white mb-4">Paylaşmaya Hazır</h3>
-
-            {/* Canvas Önizleme */}
-            <div className="w-full aspect-[9/16] max-h-[380px] rounded-2xl overflow-hidden shadow-2xl border border-white/20 mb-4 bg-black flex items-center justify-center">
-              <canvas ref={canvasRef} className="w-full h-full object-contain" />
-            </div>
-
-            <p className="text-[11px] text-gray-300 font-medium mb-4">
-              Görseli hikayenize ekleyip kopyalanan linki yapıştırarak paylaşabilirsiniz.
-            </p>
-
-            <div className="flex gap-2 w-full">
-              <button
-                onClick={handleStoryShare}
-                className="flex-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] text-white py-3 rounded-2xl text-xs font-black shadow-lg hover:opacity-90 active:scale-95 transition-all"
-              >
-                📲 Hikayede Paylaş / İndir
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
-          <div>
-            <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN</span>
-            <span>© 2026 Tüm hakları saklıdır.</span>
-          </div>
-          <div className="flex gap-6">
-            <Link href="/iletisim" className="hover:text-[#00a693]">İletişim</Link>
-            <Link href="/basvuru" className="hover:text-[#00a693]">Yayın Şartları</Link>
-            <Link href="/admin" className="text-[#32127a] hover:text-[#74112f]">Editör Girişi</Link>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+                {/* PAYLAŞ */}
+                <button
+                  onClick={handleShare}
+                  className="p-1.5 text-gray-600 hover:text-[#
