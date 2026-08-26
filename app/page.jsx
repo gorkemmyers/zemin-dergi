@@ -130,7 +130,7 @@ export default function HomePage() {
 
               <div className="pt-4 border-t border-zemin-bej/20 flex flex-wrap gap-4">
                 {sonDergi.pdf_url && (
-                  
+                  <a
                     href={sonDergi.pdf_url}
                     target="_blank"
                     rel="noreferrer"
