@@ -34,38 +34,32 @@ const getDisiplinStili = (kategori) => {
 
 export default function Home() {
   const [yazilar, setYazilar] = useState([]);
-  const [sonDergi, setSonDergi] = useState(null);
+  const [dergiler, setDergiler] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   useEffect(() => {
     async function verileriGetir() {
       try {
-        // Güvenli ve doğrudan veri çekme sorgusu
-        const { data: yazilarData, error: yaziHata } = await supabase
+        // En fazla 10 metin
+        const { data: yazilarData } = await supabase
           .from('yazilar')
           .select('*, yazarlar(*)')
           .eq('durum', 'onaylandi')
           .order('id', { ascending: false })
-          .limit(6);
+          .limit(10);
 
-        if (yaziHata) {
-          console.error('Yazı çekme hatası:', yaziHata);
-        } else if (yazilarData) {
-          setYazilar(yazilarData);
-        }
-
+        // En fazla 4 dergi
         const { data: dergilerData } = await supabase
           .from('dergiler')
           .select('*')
-          .order('id', { ascending: false })
-          .limit(1);
+          .order('sayi_no', { ascending: false })
+          .limit(4);
 
-        if (dergilerData && dergilerData.length > 0) {
-          setSonDergi(dergilerData[0]);
-        }
+        if (yazilarData) setYazilar(yazilarData);
+        if (dergilerData) setDergiler(dergilerData);
       } catch (e) {
-        console.error('Genel hata:', e);
+        console.error('Veri çekme hatası:', e);
       } finally {
         setLoading(false);
       }
@@ -187,17 +181,17 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SON YAZILAR BÖLÜMÜ */}
-        <section className="mb-12">
+        {/* SON METİNLER (MAX 10) */}
+        <section className="mb-14">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg font-black text-gray-900 tracking-tight">Son Metinler</h2>
-            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşiv →</Link>
+            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşivi Görüntüle →</Link>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="glass-card p-5 rounded-2xl h-44 animate-pulse bg-white/40"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="glass-card p-5 rounded-2xl h-40 animate-pulse bg-white/40"></div>
               ))}
             </div>
           ) : yazilar.length === 0 ? (
@@ -211,7 +205,7 @@ export default function Home() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {yazilar.map((y) => {
                 const stil = getDisiplinStili(y.kategori);
                 const okumaSuresi = Math.max(1, Math.ceil((y.icerik || '').trim().split(/\s+/).length / 200));
@@ -220,18 +214,25 @@ export default function Home() {
                   <Link href={`/yazi/${y.slug}`} key={y.id} className="group outline-none">
                     <article 
                       style={{ backgroundImage: !y.kapak_url ? stil.pattern : 'none' }}
-                      className={`glass-card p-5 rounded-2xl h-full flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!y.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/90'}`}
+                      className={`glass-card p-4 rounded-2xl h-44 flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!y.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/95'}`}
                     >
+                      {y.kapak_url && (
+                        <>
+                          <img src={y.kapak_url} alt="" className="absolute right-0 inset-y-0 w-3/5 h-full object-cover opacity-80 pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
+                        </>
+                      )}
+
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center justify-between mb-2">
                           <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
                             {y.kategori}
                           </span>
-                          <span className="text-[9px] text-gray-500 font-bold">
+                          <span className="text-[9px] text-gray-500 font-bold bg-white/80 px-2 py-0.5 rounded-full">
                             ⏱ {okumaSuresi} dk
                           </span>
                         </div>
-                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-2 mb-1.5">
+                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-1 mb-1">
                           {y.baslik}
                         </h3>
                         <p className="text-[11px] text-gray-600 line-clamp-2 font-serif">
@@ -239,8 +240,8 @@ export default function Home() {
                         </p>
                       </div>
 
-                      <div className="relative z-10 mt-4 pt-2.5 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-gray-700 truncate max-w-[140px]">{y.yazarlar?.ad_soyad}</span>
+                      <div className="relative z-10 pt-2 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-gray-700 truncate max-w-[150px]">{y.yazarlar?.ad_soyad}</span>
                         <span className="font-black text-[#32127a]">Oku →</span>
                       </div>
                     </article>
@@ -249,28 +250,54 @@ export default function Home() {
               })}
             </div>
           )}
+
+          {yazilar.length > 0 && (
+            <div className="text-center mt-8">
+              <Link 
+                href="/yazilar" 
+                className="inline-block glass-panel px-6 py-3 rounded-full text-xs font-bold text-gray-800 hover:text-[#74112f] border border-gray-200/80 shadow-xs transition-all"
+              >
+                Tüm Metin Arşivini Görüntüle →
+              </Link>
+            </div>
+          )}
         </section>
 
-        {/* E-DERGİ VİTRİNİ */}
-        {sonDergi && (
-          <section className="glass-panel p-6 rounded-3xl border border-white/90 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#74112f]">Resmi E-Dergi</span>
-              <h3 className="text-xl font-black text-gray-900 mt-0.5">Sayı {sonDergi.sayi_no}: {sonDergi.baslik}</h3>
-              <p className="text-xs text-gray-600 mt-1 max-w-md">Editör masasının seçtiği tematik yazılardan oluşan dijital sayı.</p>
+        {/* E-DERGİLER (MAX 4) */}
+        {dergiler.length > 0 && (
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">Resmi E-Dergiler</h2>
+              <Link href="/dergiler" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Sayılar →</Link>
             </div>
-            <Link 
-              href="/dergiler"
-              className="bg-gray-900 hover:bg-[#74112f] text-white px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap shadow-md transition-all"
-            >
-              Dergileri İncele & İndir
-            </Link>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {dergiler.map((d) => (
+                <div key={d.id} className="glass-panel p-5 rounded-2xl border border-white/90 shadow-md flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-[#74112f] bg-[#74112f]/10 px-2 py-0.5 rounded-full">
+                      Sayı {d.sayi_no}
+                    </span>
+                    <h3 className="font-bold text-sm text-gray-900 mt-1">{d.baslik}</h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{d.aciklama || 'Tematik e-dergi sayısı.'}</p>
+                  </div>
+                  <a 
+                    href={d.pdf_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-[#32127a] hover:bg-[#74112f] text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm transition-all"
+                  >
+                    İndir
+                  </a>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
       </main>
 
-      {/* 💡 REHBER VE İŞLEYİŞ ÇEKMECESİ (MODAL) */}
+      {/* REHBER VE İŞLEYİŞ ÇEKMECESİ (MODAL) */}
       {isGuideOpen && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="glass-card max-w-lg w-full p-6 sm:p-8 rounded-3xl border border-white/90 shadow-2xl relative animate-in fade-in zoom-in duration-150 max-h-[85vh] overflow-y-auto">
