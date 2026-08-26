@@ -2,10 +2,11 @@ import { supabase } from '../../../lib/supabase';
 import YaziIcerik from './YaziIcerik';
 
 export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
   const { data: yazi } = await supabase
     .from('yazilar')
     .select('baslik, kapak_url, yazarlar(ad_soyad)')
-    .eq('slug', params.slug)
+    .eq('slug', resolvedParams.slug)
     .eq('durum', 'onaylandi')
     .single();
 
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function YaziDetayServerPage({ params }) {
+  const resolvedParams = await params;
   const { data: yazi } = await supabase
     .from('yazilar')
     .select(`
@@ -38,9 +40,26 @@ export default async function YaziDetayServerPage({ params }) {
       dergiler (id, sayi_no, baslik),
       yazarlar (id, ad_soyad, slug, universite, bolum, instagram, biyografi)
     `)
-    .eq('slug', params.slug)
+    .eq('slug', resolvedParams.slug)
     .eq('durum', 'onaylandi')
     .single();
 
-  return <YaziIcerik yazi={yazi} />;
+  let ilgiliYazilar = [];
+  if (yazi) {
+    const { data: ilgililer } = await supabase
+      .from('yazilar')
+      .select(`
+        id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi,
+        yazarlar (ad_soyad, universite)
+      `)
+      .eq('kategori', yazi.kategori)
+      .eq('durum', 'onaylandi')
+      .neq('id', yazi.id)
+      .order('olusturulma_tarihi', { ascending: false })
+      .limit(2);
+
+    if (ilgililer) ilgiliYazilar = ilgililer;
+  }
+
+  return <YaziIcerik yazi={yazi} ilgiliYazilar={ilgiliYazilar} />;
 }
