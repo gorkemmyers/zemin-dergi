@@ -118,7 +118,6 @@ export default function AdminPage() {
   async function dergiKaydet(e) {
     e.preventDefault();
     if (duzenlenenDergiId) {
-      // Güncelleme
       const { error } = await supabase.from('dergiler').update({
         sayi_no: parseInt(dergiForm.sayi_no),
         baslik: dergiForm.baslik,
@@ -134,7 +133,6 @@ export default function AdminPage() {
         loadData();
       }
     } else {
-      // Yeni Ekleme
       const { error } = await supabase.from('dergiler').insert([{
         sayi_no: parseInt(dergiForm.sayi_no),
         baslik: dergiForm.baslik,
@@ -175,7 +173,7 @@ export default function AdminPage() {
       ad_soyad: duzenlenenYazar.ad_soyad,
       universite: duzenlenenYazar.universite,
       bolum: duzenlenenYazar.bolum,
-      instagram: duzenlenenYazar.instagram?.replace('@', ''),
+      instagram: duzenlenenYazar.instagram?.replace('@', '').trim(),
       biyografi: duzenlenenYazar.biyografi,
       pin: duzenlenenYazar.pin
     }).eq('id', duzenlenenYazar.id);
@@ -194,7 +192,7 @@ export default function AdminPage() {
     if (!error) loadData();
   }
 
-  // 1923 ŞİFRE KİLİDİ EKRANI
+  // 1923 ŞİFRE KİLİDİ
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -229,7 +227,7 @@ export default function AdminPage() {
     <div className="flex flex-col min-h-screen bg-[#F8F9FA]">
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-16">
         
-        {/* ÜST BAR & TABLAR */}
+        {/* ÜST BAR */}
         <header className="glass-panel p-3.5 sm:p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-3 border border-white/80 shadow-md">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter">
@@ -267,11 +265,10 @@ export default function AdminPage() {
           <div className="text-center py-20 text-xs font-bold text-gray-500">Veriler yükleniyor...</div>
         ) : (
           <>
-            {/* 1. SEVİYE: YAZI İNCELEME */}
+            {/* YAZI İNCELEME */}
             {activeTab === 'yazilar' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                {/* Sol Sütun: Filtre Sekmeleri & Liste */}
                 <div className="lg:col-span-5 space-y-3">
                   <div className="flex gap-1.5 p-1 glass-panel rounded-2xl bg-white/40">
                     {[
@@ -322,7 +319,6 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Sağ Sütun: Okuma & Eylem Alanı */}
                 <div className="lg:col-span-7">
                   {selectedYazi ? (
                     <div className="glass-card p-6 border border-white/90 shadow-xl space-y-4">
@@ -348,7 +344,12 @@ export default function AdminPage() {
                         <div>
                           <p className="font-bold text-gray-900">{selectedYazi.yazarlar?.ad_soyad}</p>
                           <p className="text-[11px] text-gray-500">{selectedYazi.yazarlar?.universite} — {selectedYazi.yazarlar?.bolum}</p>
-                          <p className="font-mono text-[#74112f] font-bold text-[10px] mt-1">PIN: {selectedYazi.yazarlar?.pin || 'Belirlenmedi'}</p>
+                          <div className="pt-1 flex items-center gap-2">
+                            <span className="font-mono text-[#74112f] font-bold text-[10px]">PIN: {selectedYazi.yazarlar?.pin || 'Belirlenmedi'}</span>
+                            {selectedYazi.yazarlar?.instagram && (
+                              <span className="text-[#00a693] font-bold">@{selectedYazi.yazarlar.instagram}</span>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <label className="text-[10px] font-bold text-[#32127a] uppercase block mb-1">Dergide Yayımla</label>
@@ -379,11 +380,10 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* 2. SEVİYE: DERGİ YÖNETİMİ */}
+            {/* DERGİ YÖNETİMİ */}
             {activeTab === 'dergiler' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
-                {/* Sol: Ekleme/Düzenleme Formu */}
                 <div className="lg:col-span-5">
                   <div className="glass-card p-5 border border-white/90 shadow-xl">
                     <div className="flex justify-between items-center mb-3 pb-2 border-b">
@@ -445,7 +445,6 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Sağ: Liste & Eylemler */}
                 <div className="lg:col-span-7 space-y-2.5">
                   <span className="text-[10px] font-black uppercase text-gray-500 block px-1">Mevcut Dergiler</span>
                   {dergiler.map(d => (
@@ -479,40 +478,47 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* 3. SEVİYE: YAZAR LİSTESİ & DÜZENLEME */}
+            {/* YAZAR LİSTESİ & INSTAGRAM DÜZENLEME */}
             {activeTab === 'yazarlar' && (
               <div className="space-y-4">
-                {/* Yazar Düzenleme Modalı */}
+                {/* Yazar Düzenleme Formu */}
                 {duzenlenenYazar && (
                   <div className="glass-card p-5 border border-[#32127a] mb-6 max-w-2xl mx-auto shadow-2xl">
                     <h3 className="text-sm font-black text-gray-900 mb-3 pb-1 border-b">
                       Yazar Düzenle: {duzenlenenYazar.ad_soyad}
                     </h3>
                     <form onSubmit={yazarGuncelle} className="space-y-3 text-xs">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="font-bold text-gray-600">Ad Soyad</label>
-                          <input type="text" value={duzenlenenYazar.ad_soyad} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, ad_soyad: e.target.value })} className="w-full bg-white border p-2 rounded-lg mt-1" />
+                          <label className="font-bold text-gray-600 block mb-1">Ad Soyad</label>
+                          <input type="text" value={duzenlenenYazar.ad_soyad} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, ad_soyad: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
                         </div>
                         <div>
-                          <label className="font-bold text-[#74112f]">PIN Kodu</label>
-                          <input type="text" value={duzenlenenYazar.pin || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, pin: e.target.value })} className="w-full bg-white border p-2 rounded-lg mt-1 font-mono font-bold" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="font-bold text-gray-600">Üniversite</label>
-                          <input type="text" value={duzenlenenYazar.universite || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, universite: e.target.value })} className="w-full bg-white border p-2 rounded-lg mt-1" />
+                          <label className="font-bold text-[#00a693] block mb-1">Instagram (@)</label>
+                          <input type="text" placeholder="kullaniciadi" value={duzenlenenYazar.instagram || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, instagram: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
                         </div>
                         <div>
-                          <label className="font-bold text-gray-600">Bölüm</label>
-                          <input type="text" value={duzenlenenYazar.bolum || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, bolum: e.target.value })} className="w-full bg-white border p-2 rounded-lg mt-1" />
+                          <label className="font-bold text-[#74112f] block mb-1">PIN Kodu</label>
+                          <input type="text" value={duzenlenenYazar.pin || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, pin: e.target.value })} className="w-full bg-white border p-2 rounded-lg font-mono font-bold" />
                         </div>
                       </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="font-bold text-gray-600 block mb-1">Üniversite</label>
+                          <input type="text" value={duzenlenenYazar.universite || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, universite: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
+                        </div>
+                        <div>
+                          <label className="font-bold text-gray-600 block mb-1">Bölüm</label>
+                          <input type="text" value={duzenlenenYazar.bolum || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, bolum: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
+                        </div>
+                      </div>
+
                       <div>
-                        <label className="font-bold text-gray-600">Biyografi</label>
-                        <textarea rows={2} value={duzenlenenYazar.biyografi || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, biyografi: e.target.value })} className="w-full bg-white border p-2 rounded-lg mt-1" />
+                        <label className="font-bold text-gray-600 block mb-1">Biyografi</label>
+                        <textarea rows={2} value={duzenlenenYazar.biyografi || ''} onChange={(e) => setDuzenlenenYazar({ ...duzenlenenYazar, biyografi: e.target.value })} className="w-full bg-white border p-2 rounded-lg" />
                       </div>
+
                       <div className="flex justify-end gap-2 pt-2">
                         <button type="button" onClick={() => setDuzenlenenYazar(null)} className="px-4 py-2 rounded-lg bg-gray-200 font-bold">İptal</button>
                         <button type="submit" className="px-4 py-2 rounded-lg bg-[#32127a] text-white font-bold">Kaydet</button>
@@ -532,6 +538,9 @@ export default function AdminPage() {
                           </span>
                         </div>
                         <p className="text-[10px] text-gray-500 truncate">{yz.universite} — {yz.bolum}</p>
+                        {yz.instagram && (
+                          <p className="text-[10px] text-[#00a693] font-bold mt-0.5">@{yz.instagram}</p>
+                        )}
                       </div>
                       <div className="mt-3 pt-2 border-t flex justify-between items-center text-[10px]">
                         <span className="font-bold text-gray-400">{yz.yazilar?.length || 0} Metin</span>
