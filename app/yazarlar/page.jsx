@@ -27,6 +27,7 @@ function YazarAvatar({ yazar }) {
 
 export default function YazarlarPage() {
   const [yazarlar, setYazarlar] = useState([]);
+  const [aramaMetni, setAramaMetni] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +45,19 @@ export default function YazarlarPage() {
     }
     fetchYazarlar();
   }, []);
+
+  // Canlı Filtreleme
+  const filtrelenmisYazarlar = yazarlar.filter((yazar) => {
+    if (!aramaMetni.trim()) return true;
+    const q = aramaMetni.toLowerCase();
+    return (
+      yazar.ad_soyad?.toLowerCase().includes(q) ||
+      yazar.universite?.toLowerCase().includes(q) ||
+      yazar.bolum?.toLowerCase().includes(q) ||
+      yazar.biyografi?.toLowerCase().includes(q) ||
+      yazar.instagram?.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -77,14 +91,42 @@ export default function YazarlarPage() {
           </nav>
         </header>
 
-        {/* BAŞLIK */}
-        <header className="text-center py-4 mb-6">
+        {/* BAŞLIK VE CANLI ARAMA */}
+        <header className="text-center py-4 mb-8">
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mb-1">
             Yazar <span className="text-[#00a693]">Topluluğu</span>
           </h1>
-          <p className="text-xs sm:text-sm text-gray-600 font-medium max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-gray-600 font-medium max-w-md mx-auto mb-6">
             Zemin arşivine katkı sunan bağımsız araştırmacılar ve yazarlar.
           </p>
+
+          {/* ARAMA ÇUBUĞU */}
+          <div className="relative max-w-md mx-auto">
+            <input
+              type="text"
+              placeholder="Yazar adı, üniversite veya mahlas ara..."
+              value={aramaMetni}
+              onChange={(e) => setAramaMetni(e.target.value)}
+              className="w-full bg-white border border-gray-200/90 rounded-2xl pl-10 pr-9 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00a693] shadow-xs transition-all"
+            />
+            <svg 
+              className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 pointer-events-none" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {aramaMetni && (
+              <button
+                onClick={() => setAramaMetni('')}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-700 text-xs font-bold"
+                title="Temizle"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </header>
 
         {/* TIKLANABİLİR 2 SÜTUNLU YAZAR KARTLARI */}
@@ -94,9 +136,20 @@ export default function YazarlarPage() {
           <div className="glass-card p-8 text-center max-w-md mx-auto">
             <p className="text-gray-500 font-medium text-xs">Henüz kayıtlı yazar bulunmuyor.</p>
           </div>
+        ) : filtrelenmisYazarlar.length === 0 ? (
+          <div className="glass-card p-8 text-center max-w-md mx-auto">
+            <p className="text-gray-800 font-bold text-xs mb-1">Eşleşen Yazar Bulunamadı</p>
+            <p className="text-[11px] text-gray-500 mb-3">Farklı bir isim veya üniversite aramayı deneyebilirsiniz.</p>
+            <button
+              onClick={() => setAramaMetni('')}
+              className="text-[#74112f] text-xs font-bold hover:underline"
+            >
+              Tüm Listeyi Göster
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {yazarlar.map((yazar) => {
+            {filtrelenmisYazarlar.map((yazar) => {
               const onayliYazilar = yazar.yazilar?.filter((y) => y.durum === 'onaylandi') || [];
               return (
                 <Link
@@ -113,7 +166,10 @@ export default function YazarlarPage() {
                           <h2 className="font-bold text-sm text-gray-900 truncate leading-snug group-hover:text-[#74112f] transition-colors">
                             {yazar.ad_soyad}
                           </h2>
-                          <p className="text-[11px] text-gray-500 truncate">{yazar.universite}</p>
+                          <p className="text-[11px] text-gray-500 truncate">
+                            {yazar.universite || 'Bağımsız Yazar'}
+                            {yazar.bolum ? ` • ${yazar.bolum}` : ''}
+                          </p>
                         </div>
                       </div>
 
