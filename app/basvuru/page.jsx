@@ -164,7 +164,7 @@ export default function BasvuruPage() {
     }
   };
 
-  // 2. Yazar Girişi (Doğrulama & Bilgileri/Yazıları Getir)
+  // 2. Yazar Girişi
   const handleYazarGiris = async (e) => {
     e.preventDefault();
     setPanelStatus({ type: '', msg: '' });
@@ -204,7 +204,6 @@ export default function BasvuruPage() {
       setEditBiyografi(yazar.biyografi || '');
       setEditInstagram(yazar.instagram || '');
 
-      // Yazarın metinlerini çek
       const { data: yazilarData } = await supabase
         .from('yazilar')
         .select('*')
@@ -215,7 +214,7 @@ export default function BasvuruPage() {
         setPanelYazilar(yazilarData);
       }
 
-      setPanelStatus({ type: 'success', msg: 'Giriş başarılı. Profilinizi ve yazılarınızı yönetebilirsiniz.' });
+      setPanelStatus({ type: 'success', msg: 'Giriş başarılı. Profilinizi ve metinlerinizi yönetebilirsiniz.' });
     } catch (err) {
       setPanelStatus({ type: 'error', msg: 'Hata: ' + (err.message || 'Giriş yapılamadı.') });
     } finally {
@@ -267,18 +266,18 @@ export default function BasvuruPage() {
     }
   };
 
-  // 4. Düzenlenecek Yazıyı Seç
+  // 4. Düzenlenecek Metni Seç (Varsa daha önce gönderdiği taslağı aç)
   const handleYaziSec = (yazi) => {
     setSeciliDuzenlenenYazi(yazi);
-    setEditYaziBaslik(yazi.baslik || '');
-    setEditYaziKategori(yazi.kategori || 'Felsefe');
-    setEditYaziIcerik(yazi.icerik || '');
-    setEditYaziKapakUrl(yazi.kapak_url || '');
-    setDuzeltmeNotu('');
+    setEditYaziBaslik(yazi.taslak_baslik || yazi.baslik || '');
+    setEditYaziKategori(yazi.taslak_kategori || yazi.kategori || 'Felsefe');
+    setEditYaziIcerik(yazi.taslak_icerik || yazi.icerik || '');
+    setEditYaziKapakUrl(yazi.taslak_kapak_url || yazi.kapak_url || '');
+    setDuzeltmeNotu(yazi.duzeltme_notu || '');
     setPanelStatus({ type: '', msg: '' });
   };
 
-  // 5. Yazı Düzenlemesini Onaya Gönder
+  // 5. Düzenleme Gönder (Canlı Yayını Bozmadan Taslak Olarak İletir)
   const handleYaziDuzenlemeGonder = async (e) => {
     e.preventDefault();
     if (!seciliDuzenlenenYazi) return;
@@ -289,7 +288,7 @@ export default function BasvuruPage() {
     }
 
     if (!duzeltmeNotu.trim()) {
-      setPanelStatus({ type: 'error', msg: 'Lütfen editöre iletilmek üzere neyi düzenlediğinizi belirten kısa bir açıklama yazın.' });
+      setPanelStatus({ type: 'error', msg: 'Lütfen editöre iletilmek üzere neyi değiştirdiğinizi belirten kısa bir not yazın.' });
       return;
     }
 
@@ -297,32 +296,33 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
 
     try {
+      // Önemli: durum 'onaylandi' ise öyle kalır, canlıdaki yazı kesilmez.
+      const guncelleme = {
+        taslak_baslik: editYaziBaslik.trim(),
+        taslak_kategori: editYaziKategori,
+        taslak_icerik: editYaziIcerik.trim(),
+        taslak_kapak_url: editYaziKapakUrl.trim() || null,
+        duzeltme_notu: duzeltmeNotu.trim()
+      };
+
       const { error } = await supabase
         .from('yazilar')
-        .update({
-          baslik: editYaziBaslik.trim(),
-          kategori: editYaziKategori,
-          icerik: editYaziIcerik.trim(),
-          kapak_url: editYaziKapakUrl.trim() || null,
-          duzeltme_notu: duzeltmeNotu.trim(),
-          durum: 'beklemede'
-        })
+        .update(guncelleme)
         .eq('id', seciliDuzenlenenYazi.id);
 
       if (error) throw error;
 
-      // Listeyi güncelle
       setPanelYazilar((prev) =>
         prev.map((y) =>
           y.id === seciliDuzenlenenYazi.id
-            ? { ...y, baslik: editYaziBaslik.trim(), durum: 'beklemede' }
+            ? { ...y, ...guncelleme }
             : y
         )
       );
 
       setPanelStatus({
         type: 'success',
-        msg: 'Yazıdaki düzenlemeler ve açıklama notunuz editör masasına iletildi. İncelendikten sonra tekrar onaylanacaktır.'
+        msg: 'Düzenleme talebiniz iletildi. Mevcut metniniz sitede kesintisiz yayında kalmaya devam eder; editör onayladığında yeni haliniz yayına girecektir.'
       });
       setSeciliDuzenlenenYazi(null);
     } catch (err) {
@@ -373,7 +373,7 @@ export default function BasvuruPage() {
           </div>
         </div>
 
-        {/* 1. SEKME: YENİ METİN GÖNDERME FORMU */}
+        {/* 1. SEKME: YENİ METİN GÖNDERME */}
         {aktifSekme === 'yazi' && (
           <div>
             <div className="text-center mb-8">
@@ -546,7 +546,7 @@ export default function BasvuruPage() {
           </div>
         )}
 
-        {/* 2. SEKME: YAZAR PANELİ (PROFİL & YAZI DÜZENLEME) */}
+        {/* 2. SEKME: YAZAR PANELİ */}
         {aktifSekme === 'panel' && (
           <div>
             <div className="text-center mb-8">
@@ -557,7 +557,7 @@ export default function BasvuruPage() {
                 Yazar Paneli
               </h1>
               <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                Profil bilgilerinizi güncelleyebilir veya yayımlanmış metinleriniz için düzenleme talebi gönderebilirsiniz.
+                Profil bilgilerinizi güncelleyebilir veya yayındaki yazılarınız için canlı yayını kesintiye uğratmadan düzenleme gönderebilirsiniz.
               </p>
             </div>
 
@@ -710,7 +710,7 @@ export default function BasvuruPage() {
                     </form>
                   )}
 
-                  {/* ALT SEKME 2: YAZILAR & DÜZENLEME FORMU */}
+                  {/* ALT SEKME 2: YAZILAR LİSTESİ & DÜZENLEME */}
                   {panelAltSekme === 'yazilar' && (
                     <div>
                       {!seciliDuzenlenenYazi ? (
@@ -732,8 +732,13 @@ export default function BasvuruPage() {
                                       {y.kategori}
                                     </span>
                                     <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${y.durum === 'onaylandi' ? 'bg-[#00a693]/15 text-[#00a693]' : 'bg-[#74112f]/15 text-[#74112f]'}`}>
-                                      {y.durum === 'onaylandi' ? 'Yayında' : 'Onay Bekliyor'}
+                                      {y.durum === 'onaylandi' ? 'Yayında' : 'İlk Onay Bekliyor'}
                                     </span>
+                                    {y.duzeltme_notu && (
+                                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                                        Düzenleme İnceleniyor
+                                      </span>
+                                    )}
                                   </div>
                                   <h4 className="font-bold text-xs text-gray-900 line-clamp-1">{y.baslik}</h4>
                                 </div>
@@ -752,7 +757,12 @@ export default function BasvuruPage() {
                         /* SEÇİLEN YAZIYI DÜZENLEME FORMU */
                         <form onSubmit={handleYaziDuzenlemeGonder} className="space-y-4">
                           <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-                            <span className="text-xs font-black text-gray-900">Metni Düzenle</span>
+                            <div>
+                              <span className="text-xs font-black text-gray-900">Metin Düzenleme Talebi</span>
+                              <span className="text-[10px] text-[#00a693] font-bold block">
+                                {seciliDuzenlenenYazi.durum === 'onaylandi' ? 'Mevcut yazınız sitede kesintisiz yayında kalmaya devam eder.' : 'İlk onay bekliyor.'}
+                              </span>
+                            </div>
                             <button
                               type="button"
                               onClick={() => setSeciliDuzenlenenYazi(null)}
@@ -776,7 +786,7 @@ export default function BasvuruPage() {
                               </select>
                             </div>
                             <div className="sm:col-span-2">
-                              <label className="block text-[11px] font-bold text-gray-700 mb-1">Metin Başlığı</label>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">Yeni Başlık</label>
                               <input
                                 type="text"
                                 required
@@ -788,7 +798,7 @@ export default function BasvuruPage() {
                           </div>
 
                           <div>
-                            <label className="block text-[11px] font-bold text-gray-700 mb-1">Metin İçeriği</label>
+                            <label className="block text-[11px] font-bold text-gray-700 mb-1">Yeni Metin İçeriği</label>
                             <textarea
                               required
                               rows={10}
@@ -808,7 +818,7 @@ export default function BasvuruPage() {
                             />
                           </div>
 
-                          {/* DÜZENLEME AÇIKLAMASI NOTU (ZORUNLU) */}
+                          {/* DÜZENLEME AÇIKLAMASI (ZORUNLU) */}
                           <div className="p-4 rounded-2xl bg-[#74112f]/5 border border-[#74112f]/20">
                             <label className="block text-[11px] font-black text-[#74112f] mb-1">
                               Düzenleme Notu / Açıklaması (Editör Masasına İletilecek) *
@@ -816,14 +826,11 @@ export default function BasvuruPage() {
                             <textarea
                               required
                               rows={2}
-                              placeholder="Örn: 2. paragraftaki imla hataları düzeltildi ve sonuç argümanı netleştirildi..."
+                              placeholder="Örn: 2. paragraftaki kaynakça güncellendi ve sonuç paragrafı netleştirildi..."
                               value={duzeltmeNotu}
                               onChange={(e) => setDuzeltmeNotu(e.target.value)}
                               className="w-full bg-white border border-[#74112f]/30 rounded-xl p-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#74112f]"
                             />
-                            <span className="text-[10px] text-gray-500 mt-1 block">
-                              Düzenleme kaydedildiğinde yazı tekrar editör incelemesine alınacaktır.
-                            </span>
                           </div>
 
                           <button
@@ -831,7 +838,7 @@ export default function BasvuruPage() {
                             disabled={panelLoading}
                             className="w-full bg-[#74112f] hover:bg-[#32127a] text-white py-3.5 rounded-2xl text-xs font-bold tracking-wider uppercase shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
                           >
-                            {panelLoading ? 'İletiliyor...' : 'Düzenlemeyi Editör Onayına Gönder'}
+                            {panelLoading ? 'İletiliyor...' : 'Düzenlemeyi Editör Masasına Gönder'}
                           </button>
                         </form>
                       )}
