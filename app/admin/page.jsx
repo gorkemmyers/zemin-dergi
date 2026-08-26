@@ -94,6 +94,27 @@ export default function AdminPage() {
     }
   }
 
+  // --- HIZLI KATEGORİ GÜNCELLEME ---
+  async function yaziKategoriGuncelle(id, yeniKategori) {
+    try {
+      const { data, error } = await supabase
+        .from('yazilar')
+        .update({ kategori: yeniKategori })
+        .eq('id', id)
+        .select('*, yazarlar(*)');
+
+      if (!error && data && data.length > 0) {
+        const guncel = data[0];
+        setYazilar(prev => prev.map(y => y.id === id ? guncel : y));
+        setSelectedYazi(guncel);
+      } else {
+        alert('Kategori güncellenemedi: ' + (error?.message || 'Bilinmeyen hata'));
+      }
+    } catch (err) {
+      alert('Hata: ' + err.message);
+    }
+  }
+
   // --- DÜZENLEME TALEBİNİ ONAYLA (CANLIYA AKTAR) ---
   async function duzenlemeTalebiniOnayla(yazi) {
     const guncelleme = {
@@ -109,14 +130,19 @@ export default function AdminPage() {
       durum: 'onaylandi'
     };
 
-    const { error } = await supabase.from('yazilar').update(guncelleme).eq('id', yazi.id);
-    if (!error) {
-      const guncel = { ...yazi, ...guncelleme };
-      setYazilar(yazilar.map(y => y.id === yazi.id ? guncel : y));
+    const { data, error } = await supabase
+      .from('yazilar')
+      .update(guncelleme)
+      .eq('id', yazi.id)
+      .select('*, yazarlar(*)');
+
+    if (!error && data && data.length > 0) {
+      const guncel = data[0];
+      setYazilar(prev => prev.map(y => y.id === yazi.id ? guncel : y));
       setSelectedYazi(guncel);
       alert('Yazarın düzenleme talebi onaylandı ve canlı yayına aktarıldı!');
     } else {
-      alert('Hata: ' + error.message);
+      alert('Hata: ' + error?.message);
     }
   }
 
@@ -132,47 +158,69 @@ export default function AdminPage() {
       duzeltme_notu: null
     };
 
-    const { error } = await supabase.from('yazilar').update(guncelleme).eq('id', yazi.id);
-    if (!error) {
-      const guncel = { ...yazi, ...guncelleme };
-      setYazilar(yazilar.map(y => y.id === yazi.id ? guncel : y));
+    const { data, error } = await supabase
+      .from('yazilar')
+      .update(guncelleme)
+      .eq('id', yazi.id)
+      .select('*, yazarlar(*)');
+
+    if (!error && data && data.length > 0) {
+      const guncel = data[0];
+      setYazilar(prev => prev.map(y => y.id === yazi.id ? guncel : y));
       setSelectedYazi(guncel);
       alert('Düzenleme talebi silindi. Orijinal metin yayında kalmaya devam ediyor.');
     } else {
-      alert('Hata: ' + error.message);
+      alert('Hata: ' + error?.message);
     }
   }
 
-  // Standart Durum Güncelle
+  // --- STANDART DURUM GÜNCELLE ---
   async function yaziDurumGuncelle(id, yeniDurum) {
-    const { error } = await supabase.from('yazilar').update({ durum: yeniDurum }).eq('id', id);
-    if (!error) {
-      setYazilar(yazilar.map(y => y.id === id ? { ...y, durum: yeniDurum } : y));
-      if (selectedYazi?.id === id) setSelectedYazi({ ...selectedYazi, durum: yeniDurum });
+    const { data, error } = await supabase
+      .from('yazilar')
+      .update({ durum: yeniDurum })
+      .eq('id', id)
+      .select('*, yazarlar(*)');
+
+    if (!error && data && data.length > 0) {
+      const guncel = data[0];
+      setYazilar(prev => prev.map(y => y.id === id ? guncel : y));
+      if (selectedYazi?.id === id) setSelectedYazi(guncel);
     } else {
-      alert('Hata: ' + error.message);
+      alert('Hata: ' + error?.message);
     }
   }
 
+  // --- YAZI SİL ---
   async function yaziSil(id) {
     if (!confirm('Bu metni kalıcı olarak silmek istediğinize emin misiniz?')) return;
     const { error } = await supabase.from('yazilar').delete().eq('id', id);
     if (!error) {
-      setYazilar(yazilar.filter(y => y.id !== id));
+      setYazilar(prev => prev.filter(y => y.id !== id));
       if (selectedYazi?.id === id) setSelectedYazi(null);
     } else {
       alert('Hata: ' + error.message);
     }
   }
 
+  // --- DERGİYE ATA ---
   async function dergiyeAta(yaziId, dergiId) {
-    const { error } = await supabase.from('yazilar').update({ dergi_id: dergiId || null }).eq('id', yaziId);
-    if (!error) {
-      setYazilar(yazilar.map(y => y.id === yaziId ? { ...y, dergi_id: dergiId || null } : y));
-      if (selectedYazi?.id === yaziId) setSelectedYazi({ ...selectedYazi, dergi_id: dergiId || null });
+    const { data, error } = await supabase
+      .from('yazilar')
+      .update({ dergi_id: dergiId || null })
+      .eq('id', yaziId)
+      .select('*, yazarlar(*)');
+
+    if (!error && data && data.length > 0) {
+      const guncel = data[0];
+      setYazilar(prev => prev.map(y => y.id === yaziId ? guncel : y));
+      if (selectedYazi?.id === yaziId) setSelectedYazi(guncel);
+    } else {
+      alert('Dergi atama hatası: ' + error?.message);
     }
   }
 
+  // --- EDİTÖR DETAYLI METİN DÜZENLEME ---
   const handleYaziDuzenleAc = (y) => {
     setEditYaziData({
       baslik: y.baslik || '',
@@ -187,31 +235,31 @@ export default function AdminPage() {
     e.preventDefault();
     if (!selectedYazi) return;
 
-    const { error } = await supabase.from('yazilar').update({
+    const payload = {
       baslik: editYaziData.baslik.trim(),
       kategori: editYaziData.kategori,
       icerik: editYaziData.icerik.trim(),
-      kapak_url: editYaziData.kapak_url.trim() || null
-    }).eq('id', selectedYazi.id);
+      kapak_url: editYaziData.kapak_url ? editYaziData.kapak_url.trim() : null
+    };
 
-    if (!error) {
-      const guncel = {
-        ...selectedYazi,
-        baslik: editYaziData.baslik.trim(),
-        kategori: editYaziData.kategori,
-        icerik: editYaziData.icerik.trim(),
-        kapak_url: editYaziData.kapak_url.trim() || null
-      };
-      setYazilar(yazilar.map(y => y.id === selectedYazi.id ? guncel : y));
+    const { data, error } = await supabase
+      .from('yazilar')
+      .update(payload)
+      .eq('id', selectedYazi.id)
+      .select('*, yazarlar(*)');
+
+    if (!error && data && data.length > 0) {
+      const guncel = data[0];
+      setYazilar(prev => prev.map(y => y.id === selectedYazi.id ? guncel : y));
       setSelectedYazi(guncel);
       setIsEditingYazi(false);
-      alert('Metin güncellendi.');
+      alert('Metin başarıyla güncellendi.');
     } else {
-      alert('Hata: ' + error.message);
+      alert('Hata: ' + (error?.message || 'Güncellenemedi.'));
     }
   };
 
-  // Dergi İşlemleri
+  // --- DERGİ İŞLEMLERİ ---
   async function dergiKaydet(e) {
     e.preventDefault();
     if (duzenlenenDergiId) {
@@ -263,7 +311,7 @@ export default function AdminPage() {
     if (!error) loadData();
   }
 
-  // Yazar İşlemleri
+  // --- YAZAR İŞLEMLERİ ---
   async function yazarGuncelle(e) {
     e.preventDefault();
     const { error } = await supabase.from('yazarlar').update({
@@ -284,7 +332,7 @@ export default function AdminPage() {
   }
 
   async function yazarSil(id) {
-    if (!confirm('Yazarı silerseniz bu yazara bağlı metinler de etkilenebilir. Devam edilsin mi?')) return;
+    if (!confirm('Yazarı silerseniz bu yazara bağlı tüm metinler de silinebilir. Devam edilsin mi?')) return;
     const { error } = await supabase.from('yazarlar').delete().eq('id', id);
     if (!error) loadData();
   }
@@ -562,13 +610,13 @@ export default function AdminPage() {
                             <>
                               <button
                                 onClick={() => yaziDurumGuncelle(selectedYazi.id, 'onaylandi')}
-                                className="bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700 shadow-xs"
+                                className="bg-emerald-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-emerald-700 shadow-xs"
                               >
                                 Yayına Al
                               </button>
                               <button
                                 onClick={() => yaziDurumGuncelle(selectedYazi.id, 'beklemede')}
-                                className="bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
+                                className="bg-amber-500 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
                               >
                                 Beklet
                               </button>
@@ -611,28 +659,45 @@ export default function AdminPage() {
                         </div>
                       )}
 
-                      {/* Yazar Bilgisi */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/70 border border-white text-xs">
+                      {/* YAZAR BİLGİSİ & HIZLI KATEGORİ SEÇİCİ & DERGİ ATAMA */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-white/80 border border-gray-200/80 text-xs">
                         <div>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">Yazar Bilgisi</span>
                           <p className="font-bold text-gray-900">{selectedYazi.yazarlar?.ad_soyad || 'İsimsiz'}</p>
                           <p className="text-[11px] text-gray-500">
                             {selectedYazi.yazarlar?.universite || 'Üniversite Yok'} {selectedYazi.yazarlar?.bolum ? `— ${selectedYazi.yazarlar.bolum}` : ''}
                           </p>
-                          <div className="pt-1 flex items-center gap-3">
+                          <div className="pt-1 flex items-center gap-2">
                             <span className="font-mono text-[#74112f] font-bold text-[10px]">PIN: {selectedYazi.yazarlar?.pin || '---'}</span>
                             {selectedYazi.yazarlar?.instagram && (
                               <span className="text-[#00a693] font-bold">@{selectedYazi.yazarlar.instagram}</span>
                             )}
                           </div>
                         </div>
+
+                        {/* HIZLI KATEGORİ DEĞİŞTİRME */}
                         <div>
-                          <label className="text-[10px] font-bold text-[#32127a] uppercase block mb-1">Dönemsel Dergiye Ata</label>
+                          <label className="text-[10px] font-bold text-[#00a693] uppercase block mb-1">Kategori Değiştir</label>
+                          <select
+                            value={selectedYazi.kategori || 'Felsefe'}
+                            onChange={(e) => yaziKategoriGuncelle(selectedYazi.id, e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-[#00a693]"
+                          >
+                            <option value="Felsefe">Felsefe</option>
+                            <option value="Sosyoloji">Sosyoloji</option>
+                            <option value="Psikoloji">Psikoloji</option>
+                          </select>
+                        </div>
+
+                        {/* DERGİ ATAMA */}
+                        <div>
+                          <label className="text-[10px] font-bold text-[#32127a] uppercase block mb-1">Dergide Yayımla</label>
                           <select
                             value={selectedYazi.dergi_id || ''}
                             onChange={(e) => dergiyeAta(selectedYazi.id, e.target.value)}
-                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none"
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-none focus:border-[#32127a]"
                           >
-                            <option value="">Dergiye Bağlı Değil (Yalnızca Web)</option>
+                            <option value="">Yalnızca Web (Dergi Yok)</option>
                             {dergiler.map(d => (
                               <option key={d.id} value={d.id}>Sayı {d.sayi_no}: {d.baslik}</option>
                             ))}
@@ -691,12 +756,11 @@ export default function AdminPage() {
                               type="submit"
                               className="px-4 py-2 rounded-xl text-xs font-bold bg-[#32127a] text-white"
                             >
-                              Kaydet
+                              Değişiklikleri Kaydet
                             </button>
                           </div>
                         </form>
                       ) : selectedYazi.duzeltme_notu ? (
-                        /* DÜZENLEME TALEBİ VARSA: YENİ VE MEVCUT METNİ AYRI AYRI GÖSTER */
                         <div className="space-y-4">
                           <div className="space-y-1">
                             <span className="text-[10px] font-black uppercase text-[#00a693] block">
@@ -717,7 +781,6 @@ export default function AdminPage() {
                           </div>
                         </div>
                       ) : (
-                        /* NORMAL METİN GÖRÜNÜMÜ */
                         <div className="font-serif text-sm leading-relaxed whitespace-pre-wrap p-4 rounded-xl bg-white/90 border max-h-[46vh] overflow-y-auto text-gray-800">
                           {selectedYazi.icerik}
                         </div>
@@ -828,7 +891,7 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* 3. SEKME: YAZARLAR (KOMPAKT SATIR LİSTESİ) */}
+            {/* 3. SEKME: YAZARLAR */}
             {activeTab === 'yazarlar' && (
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
