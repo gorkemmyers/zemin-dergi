@@ -4,9 +4,7 @@ import Link from 'next/link';
 
 export default function YaziIcerik({ yazi }) {
   const [fontSize, setFontSize] = useState('text-lg');
-  const [imgError, setImgError] = useState(false);
 
-  // Native Paylaşım (Tıklayınca Story/WP menüsünü açar)
   const handleShare = async () => {
     if (navigator.share) {
       try {
@@ -16,12 +14,11 @@ export default function YaziIcerik({ yazi }) {
           url: window.location.href,
         });
       } catch (err) {
-        console.log('Paylaşım iptal edildi veya desteklenmiyor.');
+        console.log('Paylaşım iptal edildi');
       }
     } else {
-      // Bilgisayarda tıklanırsa panoya kopyalar
       navigator.clipboard.writeText(window.location.href);
-      alert('Bağlantı kopyalandı!');
+      alert('Bağlantı panoya kopyalandı.');
     }
   };
 
@@ -36,8 +33,7 @@ export default function YaziIcerik({ yazi }) {
     );
   }
 
-  const okumaSuresi = Math.max(1, Math.ceil(yazi.icerik.trim().split(/\s+/).length / 200));
-  const temizInstagram = yazi.yazarlar?.instagram ? yazi.yazarlar.instagram.replace('@', '').trim() : '';
+  const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA]">
@@ -71,7 +67,7 @@ export default function YaziIcerik({ yazi }) {
           </nav>
         </header>
 
-        {/* MAKALE KAPSAYICI */}
+        {/* MAKALE KARTI */}
         <article className="glass-card p-6 sm:p-12 border border-white/90 shadow-2xl relative">
           
           <header className="border-b border-gray-200/70 pb-6 mb-8 text-center sm:text-left">
@@ -85,27 +81,45 @@ export default function YaziIcerik({ yazi }) {
                     Sayı {yazi.dergiler.sayi_no}
                   </span>
                 )}
-                <span className="text-[11px] font-bold text-gray-500 bg-white/60 border px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold text-gray-500 bg-white/70 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
                   ⏱ {okumaSuresi} dk okuma
                 </span>
               </div>
 
-              {/* PAYLAŞIM & FONT KONTROLLERİ */}
+              {/* MİNİMALİST KONTROL ALANI */}
               <div className="flex items-center gap-2">
-                {/* Font Ayarı */}
-                <div className="flex items-center gap-1 bg-white/70 border border-gray-200 p-1 rounded-full shadow-sm text-xs font-bold text-gray-700">
-                  <button onClick={() => setFontSize('text-base')} className={`px-2 py-0.5 rounded-full transition-colors ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`}>A-</button>
-                  <button onClick={() => setFontSize('text-lg')} className={`px-2 py-0.5 rounded-full transition-colors ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`}>A</button>
-                  <button onClick={() => setFontSize('text-xl')} className={`px-2 py-0.5 rounded-full transition-colors ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`}>A+</button>
+                {/* Ultra-Kompakt Yazı Boyutu Butonu */}
+                <div className="flex items-center bg-white/80 border border-gray-200/80 p-0.5 rounded-full shadow-sm text-[10px] font-bold text-gray-600">
+                  <button 
+                    onClick={() => setFontSize('text-base')} 
+                    className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-base' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
+                    title="Küçük Boyut"
+                  >
+                    A-
+                  </button>
+                  <button 
+                    onClick={() => setFontSize('text-lg')} 
+                    className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-lg' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
+                    title="Normal Boyut"
+                  >
+                    A
+                  </button>
+                  <button 
+                    onClick={() => setFontSize('text-xl')} 
+                    className={`px-2 py-0.5 rounded-full transition-all ${fontSize === 'text-xl' ? 'bg-gray-900 text-white' : 'hover:text-gray-900'}`}
+                    title="Büyük Boyut"
+                  >
+                    A+
+                  </button>
                 </div>
 
-                {/* Zarif Paylaşım İkonu */}
+                {/* Minimalist Paylaşım İkonu */}
                 <button
                   onClick={handleShare}
-                  className="p-1.5 text-gray-500 hover:text-[#74112f] hover:bg-white border border-transparent hover:border-gray-200 rounded-full transition-all shadow-sm bg-white/50"
+                  className="p-1.5 text-gray-600 hover:text-[#74112f] bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-sm"
                   aria-label="Paylaş"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
                   </svg>
                 </button>
@@ -116,13 +130,9 @@ export default function YaziIcerik({ yazi }) {
               {yazi.baslik}
             </h1>
 
-            <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="inline-flex items-center gap-2 group outline-none pt-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs shadow-sm">
-                {temizInstagram && !imgError ? (
-                  <img src={`https://unavatar.io/instagram/${temizInstagram}`} alt={yazi.yazarlar?.ad_soyad} onError={() => setImgError(true)} className="w-full h-full object-cover" />
-                ) : (
-                  yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'
-                )}
+            <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="inline-flex items-center gap-2.5 group outline-none pt-2">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xs shadow-sm">
+                {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
               </div>
               <div className="text-left">
                 <p className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#74112f] transition-colors">
@@ -133,18 +143,16 @@ export default function YaziIcerik({ yazi }) {
             </Link>
           </header>
 
+          {/* DİNAMİK METİN GÖVDESİ */}
           <div className={`font-serif text-gray-800 ${fontSize} leading-relaxed whitespace-pre-wrap selection:bg-[#74112f]/15`}>
             {yazi.icerik}
           </div>
 
+          {/* ALT YAZAR PROFİL BLOĞU */}
           <div className="mt-14 pt-6 border-t border-gray-200/70 font-sans">
             <Link href={`/yazar/${yazi.yazarlar?.slug}`} className="glass-panel p-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white/50 hover:bg-white/80 transition-all group">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-xl flex-shrink-0 shadow-md border border-white">
-                {temizInstagram && !imgError ? (
-                  <img src={`https://unavatar.io/instagram/${temizInstagram}`} alt={yazi.yazarlar?.ad_soyad} onError={() => setImgError(true)} className="w-full h-full object-cover" />
-                ) : (
-                  yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'
-                )}
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#74112f] to-[#32127a] flex items-center justify-center text-white font-black text-lg flex-shrink-0 shadow-md border border-white">
+                {yazi.yazarlar?.ad_soyad?.charAt(0) || 'Z'}
               </div>
               <div className="min-w-0 flex-grow text-center sm:text-left">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
