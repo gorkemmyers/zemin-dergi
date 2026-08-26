@@ -36,12 +36,10 @@ export default function Home() {
   const [yazilar, setYazilar] = useState([]);
   const [dergiler, setDergiler] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   useEffect(() => {
     async function verileriGetir() {
       try {
-        // En fazla 10 metin
         const { data: yazilarData } = await supabase
           .from('yazilar')
           .select('*, yazarlar(*)')
@@ -49,7 +47,6 @@ export default function Home() {
           .order('id', { ascending: false })
           .limit(10);
 
-        // En fazla 4 dergi
         const { data: dergilerData } = await supabase
           .from('dergiler')
           .select('*')
@@ -136,12 +133,12 @@ export default function Home() {
               >
                 Yazını Gönder
               </Link>
-              <button 
-                onClick={() => setIsGuideOpen(true)}
-                className="glass-panel text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:text-[#00a693] transition-all"
+              <Link 
+                href="/yazilar" 
+                className="glass-panel text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:text-[#00a693] border border-gray-200 shadow-xs transition-all"
               >
-                Nasıl Çalışır? 💡
-              </button>
+                Tüm Yazıları İncele
+              </Link>
             </div>
           </div>
         </section>
@@ -229,7 +226,7 @@ export default function Home() {
                             {y.kategori}
                           </span>
                           <span className="text-[9px] text-gray-500 font-bold bg-white/80 px-2 py-0.5 rounded-full">
-                            ⏱ {okumaSuresi} dk
+                            {okumaSuresi} dk okuma
                           </span>
                         </div>
                         <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-1 mb-1">
@@ -296,53 +293,6 @@ export default function Home() {
         )}
 
       </main>
-
-      {/* REHBER VE İŞLEYİŞ ÇEKMECESİ (MODAL) */}
-      {isGuideOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-card max-w-lg w-full p-6 sm:p-8 rounded-3xl border border-white/90 shadow-2xl relative animate-in fade-in zoom-in duration-150 max-h-[85vh] overflow-y-auto">
-            <button 
-              onClick={() => setIsGuideOpen(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-sm font-bold bg-black/5 w-7 h-7 rounded-full flex items-center justify-center"
-            >
-              ✕
-            </button>
-
-            <h3 className="text-base font-black text-gray-900 mb-4 pb-2 border-b border-gray-200">
-              ZEMİN Yayın Rehberi
-            </h3>
-
-            <div className="space-y-4 text-xs text-gray-700 leading-relaxed">
-              <div>
-                <h4 className="font-bold text-gray-900 mb-1">1. Kimler Yazabilir?</h4>
-                <p className="text-gray-600">Öğrenci olma veya unvan şartı yoktur. Felsefe, sosyoloji ve psikoloji alanlarında eleştirel düşünen, soru soran ve metin üreten herkes başvurabilir.</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-gray-900 mb-1">2. İsim & Mahlas Özgürlüğü</h4>
-                <p className="text-gray-600">Yazılarında gerçek adını kullanabileceğin gibi tamamen bir mahlasla da yazabilirsin. İkisi de aynı editoryal değerlendirmeden geçer.</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-gray-900 mb-1">3. İsim & PIN Eşleşmesi</h4>
-                <p className="text-gray-600">Hesap açma zorunluluğu yoktur. İlk yazında belirlediğin isim/mahlas ile 4 haneli PIN eşleşir. Sonraki yazılarını gönderirken aynı ismi ve PIN kodunu girmen yeterlidir; sistem seni tanır ve yeni yazını mevcut profiline ekler.</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-gray-900 mb-1">4. Web ve Dergi Yayını</h4>
-                <p className="text-gray-600">Gönderilen metin editör onayından geçtiğinde doğrudan web arşivinde ve yazar sayfanda yerini alır. Editör masasının seçtiği metinler dönemsel resmi PDF e-dergiye dahil edilir.</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsGuideOpen(false)}
-              className="w-full mt-6 bg-[#32127a] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-[#74112f] transition-all"
-            >
-              Anladım
-            </button>
-          </div>
-        </div>
-      )}
 
       <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
