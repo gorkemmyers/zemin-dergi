@@ -108,7 +108,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // Akıllı Künyeli Kopyalama (Ctrl+C / Menü)
+  // Akıllı Künyeli Kopyalama
   useEffect(() => {
     const handleCopy = (e) => {
       const selection = window.getSelection();
@@ -123,7 +123,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         const yazarAd = yazi?.yazarlar?.ad_soyad || 'Zemin Yazarı';
         const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
-        const zeminMetni = `“${selectedStr}”\n\n— ${yazarAd}, “${yazi?.baslik}”, ZEMİN (${yayinYili})\n${currentUrl}`;
+        const zeminMetni = `“${selectedStr}”\n\n— ${yazarAd}, “${yazi?.baslik}”, ZEMİN Dergisi (${yayinYili})\n${currentUrl}`;
 
         if (e.clipboardData) {
           e.clipboardData.setData('text/plain', zeminMetni);
@@ -135,7 +135,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     return () => document.removeEventListener('copy', handleCopy);
   }, [yazi]);
 
-  // Anında Beliren Seçim Takibi (selectionchange + touchend + mouseup)
+  // Seçilen Cümlenin Tam Altında Buton Konumlandırma
   const kontrolEtSecim = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
@@ -200,7 +200,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     const dergiDetay = yazi?.dergiler ? `, Sayı ${yazi.dergiler.sayi_no}` : '';
 
-    const apaFormat = `${yazarAd} (${yayinYili}). "${aktifBaslik}". ZEMİN — Açık Düşünce İnisiyatifi${dergiDetay}. ${currentUrl}`;
+    const apaFormat = `${yazarAd} (${yayinYili}). "${aktifBaslik}". ZEMİN Dergisi${dergiDetay}. ${currentUrl}`;
 
     try {
       await navigator.clipboard.writeText(apaFormat);
@@ -211,7 +211,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   };
 
-  // 1080x1920 INSTAGRAM STORY BOYUTUNDA LIQUID GLASS ALINTI KARTI MOTORU
+  // 1080x1920 TUVALDE KAREYE YAKIN (920x1120) LIQUID GLASS KART MOTORU
   useEffect(() => {
     if (!isAlintiModalOpen || !canvasRef.current || !yazi) return;
 
@@ -222,56 +222,48 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     canvas.width = width;
     canvas.height = height;
 
-    // 1. Zemin
+    // 1. Dış Tuval Zemin Rengi
     ctx.fillStyle = '#F3F4F6';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. Sıvı Işık Küreleri (Liquid Mesh Glows)
-    const gBordo = ctx.createRadialGradient(280, 320, 50, 280, 320, 700);
-    gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.22)');
+    // 2. Sıvı Işık Küreleri (Sitenin 3 İmzası)
+    const gBordo = ctx.createRadialGradient(280, 480, 50, 280, 480, 650);
+    gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.24)');
     gBordo.addColorStop(1, 'transparent');
     ctx.fillStyle = gBordo;
     ctx.fillRect(0, 0, width, height);
 
-    const gMor = ctx.createRadialGradient(880, 960, 50, 880, 960, 750);
-    gMor.addColorStop(0, 'rgba(50, 18, 122, 0.20)');
+    const gMor = ctx.createRadialGradient(860, 960, 50, 860, 960, 700);
+    gMor.addColorStop(0, 'rgba(50, 18, 122, 0.22)');
     gMor.addColorStop(1, 'transparent');
     ctx.fillStyle = gMor;
     ctx.fillRect(0, 0, width, height);
 
-    const gTurkuaz = ctx.createRadialGradient(320, 1620, 50, 320, 1620, 800);
-    gTurkuaz.addColorStop(0, 'rgba(0, 166, 147, 0.22)');
+    const gTurkuaz = ctx.createRadialGradient(340, 1460, 50, 340, 1460, 700);
+    gTurkuaz.addColorStop(0, 'rgba(0, 166, 147, 0.24)');
     gTurkuaz.addColorStop(1, 'transparent');
     ctx.fillStyle = gTurkuaz;
     ctx.fillRect(0, 0, width, height);
 
-    // Arka Planda Yarı Opak Büyük ZEMİN Filigranı
-    ctx.save();
-    ctx.fillStyle = 'rgba(17, 24, 39, 0.03)';
-    ctx.font = '900 240px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('ZEMİN', width / 2, 1060);
-    ctx.restore();
-
-    // 3. Ortalanmış Liquid Glass Kartı (Hafif Dikdörtgen / Geniş Gövde)
-    const cardX = 75;
-    const cardY = 220;
-    const cardW = 930;
-    const cardH = 1480;
-    const cardRadius = 56;
+    // 3. Ortalanmış Kareye Yakın Liquid Glass Kart (920 x 1120)
+    const cardW = 920;
+    const cardH = 1120;
+    const cardX = (width - cardW) / 2;
+    const cardY = (height - cardH) / 2;
+    const cardRadius = 52;
 
     ctx.save();
     ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-    ctx.shadowBlur = 65;
-    ctx.shadowOffsetY = 25;
+    ctx.shadowBlur = 60;
+    ctx.shadowOffsetY = 24;
 
     ctx.beginPath();
     ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.90)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
     ctx.fill();
     ctx.restore();
 
-    // Cam Kenar Yansıması (Specular Glass Border)
+    // Cam Kenar Yansıması
     ctx.save();
     ctx.lineWidth = 2.5;
     const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
@@ -285,54 +277,54 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     ctx.stroke();
     ctx.restore();
 
-    // 4. Kart Üst Başlığı (Logo & Kategori - Kutusuz, Büyük ve Net)
+    // 4. Kart İçi Üst Başlık (ZEMİN Dergisi & Kategori)
     ctx.fillStyle = '#74112f';
-    ctx.font = '900 52px sans-serif';
-    ctx.fillText('ZEMİN', cardX + 70, cardY + 110);
+    ctx.font = '900 44px sans-serif';
+    ctx.fillText('ZEMİN Dergisi', cardX + 65, cardY + 95);
 
     const kategori = (yazi.kategori || 'FELSEFE').toUpperCase();
     ctx.fillStyle = '#00a693';
     ctx.font = '900 24px sans-serif';
     ctx.letterSpacing = '3px';
     ctx.textAlign = 'right';
-    ctx.fillText(kategori, cardX + cardW - 70, cardY + 104);
+    ctx.fillText(kategori, cardX + cardW - 65, cardY + 92);
     ctx.letterSpacing = '0px';
     ctx.textAlign = 'left';
 
     // Üst İnce Gradyan Çizgi
-    const topDivider = ctx.createLinearGradient(cardX + 70, 0, cardX + cardW - 70, 0);
+    const topDivider = ctx.createLinearGradient(cardX + 65, 0, cardX + cardW - 65, 0);
     topDivider.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
     topDivider.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
     topDivider.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
     ctx.fillStyle = topDivider;
-    ctx.fillRect(cardX + 70, cardY + 150, cardW - 140, 2);
+    ctx.fillRect(cardX + 65, cardY + 130, cardW - 130, 2);
 
-    // 5. Seçilen Alıntı Metni (Geniş, Büyük ve Vurucu)
+    // 5. Seçilen Alıntı Metni (Büyük & Tok Punto)
     const metin = secilenMetin || aktifBaslik;
     const kelimeAdedi = metin.split(' ').length;
 
-    let fontSize = 54;
-    let lineHeight = 84;
+    let fontSize = 48;
+    let lineHeight = 74;
 
-    if (kelimeAdedi > 45) {
-      fontSize = 38;
-      lineHeight = 60;
-    } else if (kelimeAdedi > 25) {
+    if (kelimeAdedi > 40) {
+      fontSize = 34;
+      lineHeight = 52;
+    } else if (kelimeAdedi > 22) {
+      fontSize = 40;
+      lineHeight = 62;
+    } else if (kelimeAdedi > 12) {
       fontSize = 44;
-      lineHeight = 70;
-    } else if (kelimeAdedi > 15) {
-      fontSize = 50;
-      lineHeight = 78;
+      lineHeight = 68;
     }
 
-    const alintiBaslangicY = cardY + 280;
-    const alintiX = cardX + 100;
-    const maxWidth = cardW - 170;
+    const alintiBaslangicY = cardY + 235;
+    const alintiX = cardX + 90;
+    const maxWidth = cardW - 150;
 
     ctx.fillStyle = '#111827';
     ctx.font = `italic bold ${fontSize}px Georgia, "Times New Roman", serif`;
 
-    const wrapText = (text, x, y, maxW, lHeight, maxLines = 8) => {
+    const wrapText = (text, x, y, maxW, lHeight, maxLines = 7) => {
       const words = text.split(' ');
       let line = '';
       let lineCount = 0;
@@ -357,33 +349,33 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       return y;
     };
 
-    const sonMetinY = wrapText(`“${metin}”`, alintiX, alintiBaslangicY, maxWidth, lineHeight, 8);
+    const sonMetinY = wrapText(`“${metin}”`, alintiX, alintiBaslangicY, maxWidth, lineHeight, 7);
 
-    // Sol Sıvı Vurgu Çizgisi (Bordo -> Mor -> Turkuaz)
-    const accentGrad = ctx.createLinearGradient(0, alintiBaslangicY - 45, 0, sonMetinY + 15);
+    // Sol Sıvı Vurgu Çizgisi
+    const accentGrad = ctx.createLinearGradient(0, alintiBaslangicY - 40, 0, sonMetinY + 10);
     accentGrad.addColorStop(0, '#74112f');
     accentGrad.addColorStop(0.5, '#32127a');
     accentGrad.addColorStop(1, '#00a693');
 
     ctx.fillStyle = accentGrad;
     ctx.beginPath();
-    ctx.roundRect(cardX + 70, alintiBaslangicY - 45, 8, (sonMetinY - alintiBaslangicY) + 60, 4);
+    ctx.roundRect(cardX + 65, alintiBaslangicY - 40, 7, (sonMetinY - alintiBaslangicY) + 50, 4);
     ctx.fill();
 
-    // 6. Kartı Dolduran Büyük Yazar İmzası & Alt Bilgi (Büyük & Okunaklı)
-    const footerY = cardY + cardH - 180;
+    // 6. Kart Altı Yazar İmzası & Makale Başlığı
+    const footerY = cardY + cardH - 145;
 
-    const botDivider = ctx.createLinearGradient(cardX + 70, 0, cardX + cardW - 70, 0);
+    const botDivider = ctx.createLinearGradient(cardX + 65, 0, cardX + cardW - 65, 0);
     botDivider.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
     botDivider.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
     botDivider.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
     ctx.fillStyle = botDivider;
-    ctx.fillRect(cardX + 70, footerY - 25, cardW - 140, 2);
+    ctx.fillRect(cardX + 65, footerY - 20, cardW - 130, 2);
 
-    // Yazar İsmi (Çok Büyük ve Net)
+    // Yazar İsmi
     ctx.fillStyle = '#111827';
-    ctx.font = '900 52px sans-serif';
-    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 70, footerY + 45);
+    ctx.font = '900 46px sans-serif';
+    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 65, footerY + 38);
 
     // Üniversite / Makale Başlığı
     const altDetay = yazi.yazarlar?.universite
@@ -391,17 +383,8 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       : `“${aktifBaslik}”`;
 
     ctx.fillStyle = '#4B5563';
-    ctx.font = '600 26px sans-serif';
-    ctx.fillText(altDetay.length > 44 ? altDetay.slice(0, 41) + '...' : altDetay, cardX + 70, footerY + 95);
-
-    // Alt Slogan
-    ctx.fillStyle = '#74112f';
-    ctx.font = '800 22px sans-serif';
-    ctx.letterSpacing = '1.5px';
-    ctx.textAlign = 'right';
-    ctx.fillText('AÇIK DÜŞÜNCE İNİSİYATİFİ', cardX + cardW - 70, footerY + 70);
-    ctx.letterSpacing = '0px';
-    ctx.textAlign = 'left';
+    ctx.font = '600 22px sans-serif';
+    ctx.fillText(altDetay.length > 42 ? altDetay.slice(0, 39) + '...' : altDetay, cardX + 65, footerY + 80);
 
     setAlintiGorselUrl(canvas.toDataURL('image/png'));
   }, [isAlintiModalOpen, secilenMetin, yazi, aktifBaslik]);
@@ -529,15 +512,19 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
-      
+    <div 
+      className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]"
+      onMouseUp={kontrolEtSecim}
+      onTouchEnd={kontrolEtSecim}
+      onKeyUp={kontrolEtSecim}
+    >
       {/* ÜST OKUMA İLERLEME ÇUBUĞU */}
       <div 
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-xs"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      {/* SEÇİLEN CÜMLENİN TAM ALTINDA ANINDA BELİREN BUTON */}
+      {/* SEÇİLEN CÜMLENİN TAM ALTINDA ÇIKAN BUTON */}
       {secimPozisyonu && !isAlintiModalOpen && (
         <div 
           className="absolute z-[9999] transform -translate-x-1/2 pointer-events-auto"
@@ -592,46 +579,43 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         {/* METİN KARTI */}
         <article className="glass-card p-6 sm:p-10 border border-white/90 shadow-xl relative">
           
-          {/* DİNGİN DERGİ SEÇKİSİ MÜHRÜ */}
-          {yazi.dergiler && (
-            <div className="mb-4 px-3.5 py-2 rounded-xl bg-stone-100/90 border border-stone-200/80 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[#74112f] text-xs">●</span>
-                <span className="text-[10px] font-bold tracking-wide text-stone-700">
-                  ZEMİN Seçkisi — Sayı {yazi.dergiler.sayi_no}: {yazi.dergiler.baslik}
-                </span>
-              </div>
-              <Link href="/dergiler" className="text-[10px] font-bold text-stone-500 hover:text-stone-900 whitespace-nowrap">
-                Sayıyı İncele →
-              </Link>
-            </div>
-          )}
-
-          {/* ÜST BİLGİ & SADELEŞTİRİLMİŞ ARAÇ ÇUBUĞU */}
+          {/* TEK PARÇA ÜST BİLGİ & ARAÇ ÇUBUĞU */}
           <header className="border-b border-gray-200/70 pb-5 mb-6">
             
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               
+              {/* SOL TARAF: KATEGORİ, TARİH, OKUMA SÜRESİ, DÜŞÜNCE İZİ VE DERGİ SEÇKİSİ */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="bg-[#00a693]/15 text-[#00a693] text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                   {yazi.kategori}
                 </span>
+
+                {yazi.dergiler && (
+                  <Link 
+                    href="/dergiler" 
+                    className="bg-[#74112f]/10 hover:bg-[#74112f]/20 text-[#74112f] text-[10px] font-bold border border-[#74112f]/20 px-2.5 py-0.5 rounded-full transition-all"
+                  >
+                    ● Sayı {yazi.dergiler.sayi_no} Seçkisi
+                  </Link>
+                )}
+
                 {yayinTarihiFormat && (
                   <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
                     {yayinTarihiFormat}
                   </span>
                 )}
+
                 <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
                   {okumaSuresi} dk okuma
                 </span>
                 
-                {/* Üst Düşünce İzi Sayacı */}
+                {/* Düşünce İzi Sayacı (Aynı Satırda) */}
                 <span className="text-[10px] font-bold text-[#74112f] bg-[#74112f]/10 border border-[#74112f]/20 px-2.5 py-0.5 rounded-full">
                   ✦ {alkisSayisi} Düşünce İzi
                 </span>
               </div>
 
-              {/* ARAÇ BUTONLARI */}
+              {/* SAĞ TARAF: DİL + SESLİ DİNLE + PUNTO SEÇİCİ */}
               <div className="flex items-center gap-1.5">
                 
                 {/* DİL SEÇİMİ */}
@@ -801,7 +785,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               </button>
             </div>
             <p className="text-[11px] text-stone-700 font-mono bg-white p-2.5 rounded-xl border border-stone-200/60 break-all leading-relaxed select-all">
-              {yazi.yazarlar?.ad_soyad || 'Zemin Yazarı'} ({yazi.yayin_tarihi ? new Date(yazi.yayin_tarihi).getFullYear() : '2026'}). "{aktifBaslik}". ZEMİN — Açık Düşünce İnisiyatifi{yazi.dergiler ? `, Sayı ${yazi.dergiler.sayi_no}` : ''}.
+              {yazi.yazarlar?.ad_soyad || 'Zemin Yazarı'} ({yazi.yayin_tarihi ? new Date(yazi.yayin_tarihi).getFullYear() : '2026'}). "{aktifBaslik}". ZEMİN Dergisi{yazi.dergiler ? `, Sayı ${yazi.dergiler.sayi_no}` : ''}.
             </p>
           </div>
 
@@ -813,7 +797,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   <span className="text-[9px] font-black uppercase tracking-widest text-[#74112f]">Yazar Hakkında</span>
                   <h4 className="text-xs font-bold text-gray-900">{yazi.yazarlar.ad_soyad}</h4>
                   <p className="text-[11px] text-gray-600 leading-relaxed font-serif">
-                    {yazi.yazarlar.biyografi || 'ZEMİN düşünce topluluğu yazarı.'}
+                    {yazi.yazarlar.biyografi || 'ZEMİN Dergisi yazarı.'}
                   </p>
                 </div>
                 {yazi.yazarlar.instagram && (
@@ -870,7 +854,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       </main>
 
-      {/* 9:16 INSTAGRAM STORY ALINTI KARTI MODALI */}
+      {/* 9:16 TUVAL ÜZERİNDE KAREYE YAKIN LIQUID GLASS ALINTI KARTI MODALI */}
       {isAlintiModalOpen && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
           <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/90 shadow-2xl relative text-center">
@@ -881,7 +865,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               ✕
             </button>
             <span className="text-[10px] uppercase tracking-widest text-[#74112f] font-black block mb-3">
-              Alıntı Hikaye Kartı
+              ZEMİN Hikaye Kartı
             </span>
             {alintiGorselUrl && (
               <img
@@ -905,7 +889,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       {/* FOOTER */}
       <footer className="mt-auto border-t border-gray-200/70 bg-white py-6 text-center text-xs font-semibold text-gray-500">
-        ZEMİN — Açık Düşünce İnisiyatifi © 2026
+        ZEMİN Dergisi © 2026
       </footer>
 
     </div>
