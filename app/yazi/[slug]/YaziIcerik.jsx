@@ -58,7 +58,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [izBirakildi, setIzBirakildi] = useState(false);
   const [kunyeKopyalandi, setKunyeKopyalandi] = useState(false);
 
-  // Metin Seçimi ve Kare Alıntı Kartı State'leri
+  // Metin Seçimi ve Alıntı Kartı State'leri
   const [secilenMetin, setSecilenMetin] = useState('');
   const [secimPozisyonu, setSecimPozisyonu] = useState(null);
   const [isAlintiModalOpen, setIsAlintiModalOpen] = useState(false);
@@ -108,7 +108,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // Akıllı Künyeli Kopyalama
+  // Akıllı Künyeli Kopyalama (Ctrl+C / Menü)
   useEffect(() => {
     const handleCopy = (e) => {
       const selection = window.getSelection();
@@ -135,8 +135,8 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     return () => document.removeEventListener('copy', handleCopy);
   }, [yazi]);
 
-  // Seçilen Cümlenin Tam Altında Beliren Buton (Telefon ve Masaüstü Uyumlu)
-  const guncelleSecimPozisyonu = useCallback(() => {
+  // Anında Beliren Seçim Takibi (selectionchange + touchend + mouseup)
+  const kontrolEtSecim = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
       setSecimPozisyonu(null);
@@ -144,13 +144,12 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
 
     const text = selection.toString().trim();
-    if (text.length >= 8 && articleRef.current && articleRef.current.contains(selection.anchorNode)) {
+    if (text.length >= 6 && articleRef.current && articleRef.current.contains(selection.anchorNode)) {
       try {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         if (rect.width > 0 && rect.height > 0) {
           setSecilenMetin(text);
-          // Menüyü tam cümlenin altına konumlandırıyoruz
           const top = rect.bottom + window.scrollY + 10;
           const left = Math.max(90, Math.min(window.innerWidth - 90, rect.left + rect.width / 2));
           setSecimPozisyonu({ top, left });
@@ -162,6 +161,11 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       setSecimPozisyonu(null);
     }
   }, []);
+
+  useEffect(() => {
+    document.addEventListener('selectionchange', kontrolEtSecim);
+    return () => document.removeEventListener('selectionchange', kontrolEtSecim);
+  }, [kontrolEtSecim]);
 
   const aktifBaslik = seciliDil === 'tr' ? yazi?.baslik : (translations[seciliDil]?.baslik || yazi?.baslik);
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
@@ -207,123 +211,123 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   };
 
-  // 1080x1080 LIQUID GLASS KARE ALINTI KARTI MOTORU
+  // 1080x1920 INSTAGRAM STORY BOYUTUNDA LIQUID GLASS ALINTI KARTI MOTORU
   useEffect(() => {
     if (!isAlintiModalOpen || !canvasRef.current || !yazi) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const size = 1080;
-    canvas.width = size;
-    canvas.height = size;
+    const width = 1080;
+    const height = 1920;
+    canvas.width = width;
+    canvas.height = height;
 
     // 1. Zemin
-    ctx.fillStyle = '#F4F5F8';
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#F3F4F6';
+    ctx.fillRect(0, 0, width, height);
 
-    // 2. Sıvı Işık Küreleri (3 Renk Mesh Glows)
-    // Bordo Küre
-    const gBordo = ctx.createRadialGradient(220, 200, 30, 220, 200, 500);
+    // 2. Sıvı Işık Küreleri (Liquid Mesh Glows)
+    const gBordo = ctx.createRadialGradient(280, 320, 50, 280, 320, 700);
     gBordo.addColorStop(0, 'rgba(116, 17, 47, 0.22)');
     gBordo.addColorStop(1, 'transparent');
     ctx.fillStyle = gBordo;
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, width, height);
 
-    // Mor Küre
-    const gMor = ctx.createRadialGradient(900, 480, 40, 900, 480, 520);
+    const gMor = ctx.createRadialGradient(880, 960, 50, 880, 960, 750);
     gMor.addColorStop(0, 'rgba(50, 18, 122, 0.20)');
     gMor.addColorStop(1, 'transparent');
     ctx.fillStyle = gMor;
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, width, height);
 
-    // Turkuaz Küre
-    const gYesil = ctx.createRadialGradient(320, 920, 40, 320, 920, 540);
-    gYesil.addColorStop(0, 'rgba(0, 166, 147, 0.22)');
-    gYesil.addColorStop(1, 'transparent');
-    ctx.fillStyle = gYesil;
-    ctx.fillRect(0, 0, size, size);
+    const gTurkuaz = ctx.createRadialGradient(320, 1620, 50, 320, 1620, 800);
+    gTurkuaz.addColorStop(0, 'rgba(0, 166, 147, 0.22)');
+    gTurkuaz.addColorStop(1, 'transparent');
+    ctx.fillStyle = gTurkuaz;
+    ctx.fillRect(0, 0, width, height);
 
-    // 3. Monolitik Liquid Glass Kartı
-    const cardX = 60;
-    const cardY = 60;
-    const cardSize = 960;
-    const cardRadius = 48;
+    // Arka Planda Yarı Opak Büyük ZEMİN Filigranı
+    ctx.save();
+    ctx.fillStyle = 'rgba(17, 24, 39, 0.03)';
+    ctx.font = '900 240px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('ZEMİN', width / 2, 1060);
+    ctx.restore();
+
+    // 3. Ortalanmış Liquid Glass Kartı (Hafif Dikdörtgen / Geniş Gövde)
+    const cardX = 75;
+    const cardY = 220;
+    const cardW = 930;
+    const cardH = 1480;
+    const cardRadius = 56;
 
     ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
-    ctx.shadowBlur = 60;
-    ctx.shadowOffsetY = 20;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+    ctx.shadowBlur = 65;
+    ctx.shadowOffsetY = 25;
 
     ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardRadius);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.86)';
+    ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.90)';
     ctx.fill();
     ctx.restore();
 
-    // Cam Çerçeve (Specular Border)
+    // Cam Kenar Yansıması (Specular Glass Border)
     ctx.save();
     ctx.lineWidth = 2.5;
-    const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
-    borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-    borderGrad.addColorStop(0.3, 'rgba(116, 17, 47, 0.25)');
-    borderGrad.addColorStop(0.7, 'rgba(50, 18, 122, 0.25)');
-    borderGrad.addColorStop(1, 'rgba(0, 166, 147, 0.35)');
+    const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+    borderGrad.addColorStop(0, 'rgba(255, 255, 255, 0.98)');
+    borderGrad.addColorStop(0.3, 'rgba(116, 17, 47, 0.35)');
+    borderGrad.addColorStop(0.7, 'rgba(50, 18, 122, 0.30)');
+    borderGrad.addColorStop(1, 'rgba(0, 166, 147, 0.40)');
     ctx.strokeStyle = borderGrad;
     ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardRadius);
+    ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
     ctx.stroke();
     ctx.restore();
 
-    // 4. Üst Başlık & Yumuşak Kategori Rozeti
+    // 4. Kart Üst Başlığı (Logo & Kategori - Kutusuz, Büyük ve Net)
     ctx.fillStyle = '#74112f';
-    ctx.font = '900 44px sans-serif';
-    ctx.fillText('ZEMİN', cardX + 60, cardY + 95);
+    ctx.font = '900 52px sans-serif';
+    ctx.fillText('ZEMİN', cardX + 70, cardY + 110);
 
-    ctx.fillStyle = '#6B7280';
-    ctx.font = '700 13px sans-serif';
-    ctx.letterSpacing = '3px';
-    ctx.fillText('AÇIK DÜŞÜNCE', cardX + 60, cardY + 125);
-    ctx.letterSpacing = '0px';
-
-    // Buzlu Kategori Rozeti (Sert çerçevesiz, modern)
     const kategori = (yazi.kategori || 'FELSEFE').toUpperCase();
-    const badgeW = 160;
-    const badgeH = 44;
-    const badgeX = cardX + cardSize - 60 - badgeW;
-    const badgeY = cardY + 70;
-
-    ctx.fillStyle = 'rgba(0, 166, 147, 0.12)';
-    ctx.beginPath();
-    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 22);
-    ctx.fill();
-
     ctx.fillStyle = '#00a693';
-    ctx.font = '900 16px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(kategori, badgeX + badgeW / 2, badgeY + 28);
+    ctx.font = '900 24px sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.textAlign = 'right';
+    ctx.fillText(kategori, cardX + cardW - 70, cardY + 104);
+    ctx.letterSpacing = '0px';
     ctx.textAlign = 'left';
 
-    // 5. Seçilen Alıntı Metni ve Sol Gradyan Çubuğu
+    // Üst İnce Gradyan Çizgi
+    const topDivider = ctx.createLinearGradient(cardX + 70, 0, cardX + cardW - 70, 0);
+    topDivider.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
+    topDivider.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
+    topDivider.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
+    ctx.fillStyle = topDivider;
+    ctx.fillRect(cardX + 70, cardY + 150, cardW - 140, 2);
+
+    // 5. Seçilen Alıntı Metni (Geniş, Büyük ve Vurucu)
     const metin = secilenMetin || aktifBaslik;
     const kelimeAdedi = metin.split(' ').length;
 
-    let fontSize = 48;
-    let lineHeight = 72;
+    let fontSize = 54;
+    let lineHeight = 84;
 
     if (kelimeAdedi > 45) {
-      fontSize = 32;
-      lineHeight = 50;
-    } else if (kelimeAdedi > 25) {
       fontSize = 38;
-      lineHeight = 58;
-    } else if (kelimeAdedi > 15) {
+      lineHeight = 60;
+    } else if (kelimeAdedi > 25) {
       fontSize = 44;
-      lineHeight = 66;
+      lineHeight = 70;
+    } else if (kelimeAdedi > 15) {
+      fontSize = 50;
+      lineHeight = 78;
     }
 
-    const alintiBaslangicY = cardY + 240;
-    const alintiX = cardX + 90;
-    const maxWidth = cardSize - 160;
+    const alintiBaslangicY = cardY + 280;
+    const alintiX = cardX + 100;
+    const maxWidth = cardW - 170;
 
     ctx.fillStyle = '#111827';
     ctx.font = `italic bold ${fontSize}px Georgia, "Times New Roman", serif`;
@@ -353,54 +357,56 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       return y;
     };
 
-    const sonMetinY = wrapText(`“${metin}”`, alintiX, alintiBaslangicY, maxWidth, lineHeight, 7);
+    const sonMetinY = wrapText(`“${metin}”`, alintiX, alintiBaslangicY, maxWidth, lineHeight, 8);
 
-    // Sol Sıvı Vurgu Çizgisi
-    const accentGrad = ctx.createLinearGradient(0, alintiBaslangicY - 40, 0, sonMetinY + 10);
+    // Sol Sıvı Vurgu Çizgisi (Bordo -> Mor -> Turkuaz)
+    const accentGrad = ctx.createLinearGradient(0, alintiBaslangicY - 45, 0, sonMetinY + 15);
     accentGrad.addColorStop(0, '#74112f');
     accentGrad.addColorStop(0.5, '#32127a');
     accentGrad.addColorStop(1, '#00a693');
 
     ctx.fillStyle = accentGrad;
     ctx.beginPath();
-    ctx.roundRect(cardX + 60, alintiBaslangicY - 40, 6, (sonMetinY - alintiBaslangicY) + 50, 3);
+    ctx.roundRect(cardX + 70, alintiBaslangicY - 45, 8, (sonMetinY - alintiBaslangicY) + 60, 4);
     ctx.fill();
 
-    // 6. Kartı Dolduran Büyük Yazar İmzası & Alt Bilgi
-    const footerY = cardY + cardSize - 160;
+    // 6. Kartı Dolduran Büyük Yazar İmzası & Alt Bilgi (Büyük & Okunaklı)
+    const footerY = cardY + cardH - 180;
 
-    const lineGrad = ctx.createLinearGradient(cardX + 60, footerY, cardX + cardSize - 60, footerY);
-    lineGrad.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
-    lineGrad.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
-    lineGrad.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
-    ctx.fillStyle = lineGrad;
-    ctx.fillRect(cardX + 60, footerY - 20, cardSize - 120, 2);
+    const botDivider = ctx.createLinearGradient(cardX + 70, 0, cardX + cardW - 70, 0);
+    botDivider.addColorStop(0, 'rgba(116, 17, 47, 0.4)');
+    botDivider.addColorStop(0.5, 'rgba(50, 18, 122, 0.4)');
+    botDivider.addColorStop(1, 'rgba(0, 166, 147, 0.4)');
+    ctx.fillStyle = botDivider;
+    ctx.fillRect(cardX + 70, footerY - 25, cardW - 140, 2);
 
-    // Yazar İsmi
+    // Yazar İsmi (Çok Büyük ve Net)
     ctx.fillStyle = '#111827';
-    ctx.font = '900 48px sans-serif';
-    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 60, footerY + 45);
+    ctx.font = '900 52px sans-serif';
+    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', cardX + 70, footerY + 45);
 
-    // Alt Üniversite veya Makale Başlığı
-    const altDetay = yazi.yazarlar?.universite 
+    // Üniversite / Makale Başlığı
+    const altDetay = yazi.yazarlar?.universite
       ? `${yazi.yazarlar.universite}${yazi.yazarlar.bolum ? ` • ${yazi.yazarlar.bolum}` : ''}`
-      : `“${aktifBaslik}” • ZEMİN`;
+      : `“${aktifBaslik}”`;
 
     ctx.fillStyle = '#4B5563';
-    ctx.font = '600 22px sans-serif';
-    ctx.fillText(altDetay.length > 48 ? altDetay.slice(0, 45) + '...' : altDetay, cardX + 60, footerY + 85);
+    ctx.font = '600 26px sans-serif';
+    ctx.fillText(altDetay.length > 44 ? altDetay.slice(0, 41) + '...' : altDetay, cardX + 70, footerY + 95);
 
-    // Sağ Alt Marka Damgası
+    // Alt Slogan
     ctx.fillStyle = '#74112f';
-    ctx.font = '900 20px sans-serif';
+    ctx.font = '800 22px sans-serif';
+    ctx.letterSpacing = '1.5px';
     ctx.textAlign = 'right';
-    ctx.fillText('zemin.org', cardX + cardSize - 60, footerY + 65);
+    ctx.fillText('AÇIK DÜŞÜNCE İNİSİYATİFİ', cardX + cardW - 70, footerY + 70);
+    ctx.letterSpacing = '0px';
     ctx.textAlign = 'left';
 
     setAlintiGorselUrl(canvas.toDataURL('image/png'));
   }, [isAlintiModalOpen, secilenMetin, yazi, aktifBaslik]);
 
-  // Kare Görseli Paylaş / İndir
+  // Hikayede Paylaş / Görseli İndir
   const handleAlintiPaylasVeyaIndir = async () => {
     if (!canvasRef.current) return;
 
@@ -523,27 +529,25 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   };
 
   return (
-    <div 
-      className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]"
-      onMouseUp={guncelleSecimPozisyonu}
-      onTouchEnd={guncelleSecimPozisyonu}
-      onKeyUp={guncelleSecimPozisyonu}
-    >
+    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
+      
       {/* ÜST OKUMA İLERLEME ÇUBUĞU */}
       <div 
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-xs"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      {/* SEÇİLEN CÜMLENİN TAM ALTINDA ÇIKAN BUTON */}
+      {/* SEÇİLEN CÜMLENİN TAM ALTINDA ANINDA BELİREN BUTON */}
       {secimPozisyonu && !isAlintiModalOpen && (
         <div 
-          className="absolute z-50 transform -translate-x-1/2 animate-bounce pointer-events-auto"
+          className="absolute z-[9999] transform -translate-x-1/2 pointer-events-auto"
           style={{ top: `${secimPozisyonu.top}px`, left: `${secimPozisyonu.left}px` }}
         >
           <button
+            onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.stopPropagation()}
             onClick={() => { setIsAlintiModalOpen(true); setSecimPozisyonu(null); }}
-            className="flex items-center gap-1.5 bg-[#32127a] hover:bg-[#74112f] text-white text-[11px] font-black px-3.5 py-1.5 rounded-full shadow-2xl border border-white/80 transition-all active:scale-95 whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-[#32127a] hover:bg-[#74112f] text-white text-[11px] font-black px-4 py-2 rounded-full shadow-2xl border border-white/90 transition-all active:scale-95 whitespace-nowrap"
           >
             <span>✦</span>
             <span>Alıntı Kartı Oluştur</span>
@@ -866,9 +870,9 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       </main>
 
-      {/* 1:1 LIQUID GLASS ALINTI KARTI MODALI */}
+      {/* 9:16 INSTAGRAM STORY ALINTI KARTI MODALI */}
       {isAlintiModalOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
           <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/90 shadow-2xl relative text-center">
             <button
               onClick={() => setIsAlintiModalOpen(false)}
@@ -877,13 +881,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               ✕
             </button>
             <span className="text-[10px] uppercase tracking-widest text-[#74112f] font-black block mb-3">
-              1:1 Liquid Glass Alıntı Kartı
+              Alıntı Hikaye Kartı
             </span>
             {alintiGorselUrl && (
               <img
                 src={alintiGorselUrl}
                 alt="Alıntı Önizleme"
-                className="w-full aspect-square rounded-2xl shadow-xl border border-white/80 mb-4 object-cover mx-auto"
+                className="w-full max-h-[65vh] rounded-2xl shadow-xl border border-white/80 mb-4 object-contain mx-auto"
               />
             )}
             <button
