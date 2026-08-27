@@ -10,6 +10,20 @@ const DILLER = [
   { kod: 'ru', ad: 'Русский', sesKod: 'ru-RU', bayrak: '🇷🇺' },
 ];
 
+function formatOkumaTarihi(isoString) {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
 const getDisiplinStili = (kategori) => {
   switch (kategori) {
     case 'Felsefe':
@@ -67,7 +81,7 @@ async function translateText(text, targetLang) {
 }
 
 export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
-  const [fontBoyut, setFontBoyut] = useState('normal'); // 'kucuk' (14px) | 'normal' (15px) | 'buyuk' (16.5px)
+  const [fontBoyut, setFontBoyut] = useState('normal');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [seciliDil, setSeciliDil] = useState('tr');
@@ -428,8 +442,8 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
   const kelimeSayisi = (aktifIcerik || '').trim().split(/\s+/).length;
   const okumaSuresi = Math.max(1, Math.ceil(kelimeSayisi / 200));
+  const yayinTarihiFormat = formatOkumaTarihi(yazi.yayin_tarihi || yazi.olusturulma_tarihi || yazi.created_at);
 
-  // Punto Boyutu (Kompakt ve Göz Yormayan Kitap Boyutu)
   const getMetinPuntosu = () => {
     switch (fontBoyut) {
       case 'kucuk':
@@ -500,6 +514,11 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                 {yazi.dergiler && (
                   <span className="bg-[#74112f] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                     Sayı {yazi.dergiler.sayi_no}
+                  </span>
+                )}
+                {yayinTarihiFormat && (
+                  <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
+                    {yayinTarihiFormat}
                   </span>
                 )}
                 <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
