@@ -3,45 +3,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
-const MADDELER = [
-  {
-    no: '01',
-    sekme: 'Açık Kürsü',
-    baslik: 'Bağımsız Düşünce Alanı',
-    aciklama: 'Felsefe, sosyoloji ve psikoloji alanlarında sorgulayan, araştıran ve metin üreten herkese açıktır. Düşüncenin derinliği ve yöntemsel tutarlılığı dışında hiçbir kurumsal veya akademik unvan şartı aranmaz.',
-    rozet: 'AÇIK ARŞİV',
-    renk: '#00a693',
-    glow: 'rgba(0, 166, 147, 0.28)'
-  },
-  {
-    no: '02',
-    sekme: 'İfade Özgürlüğü',
-    baslik: 'İsim veya Mahlas Serbestisi',
-    aciklama: 'Düşüncelerinizi ister kendi adınızla, ister bağımsız bir mahlasla kaleme alabilirsiniz. Her iki tercih de ZEMİN editör masasında eşit editoryal saygı ve titizlikle değerlendirilir.',
-    rozet: 'ÖZGÜR İFADE',
-    renk: '#74112f',
-    glow: 'rgba(116, 17, 47, 0.28)'
-  },
-  {
-    no: '03',
-    sekme: 'Yazar Masası',
-    baslik: 'Pratik & Şifresiz Yönetim',
-    aciklama: 'İlk metninizle birlikte belirleyeceğiniz 4 haneli PIN kodu ile doğrudan yazar panelinize erişebilirsiniz. Metinlerinizin yayın durumunu görebilir, profilinizi güncelleyebilir ve okur etkileşimlerini takip edebilirsiniz.',
-    rozet: 'PIN MASASI',
-    renk: '#32127a',
-    glow: 'rgba(50, 18, 122, 0.28)'
-  },
-  {
-    no: '04',
-    sekme: 'Dergi Seçkisi',
-    baslik: 'Dönemsel ZEMİN Dergisi Yayını',
-    aciklama: 'Onaylanan tüm metinler web arşivinde kesintisiz yer alır. Editör masası tarafından öne çıkan düşünce ve çözümleme metinleri ise dönemsel ZEMİN Dergisi özel seçkisine dahil edilir.',
-    rozet: 'RESMİ SEÇKİ',
-    renk: '#74112f',
-    glow: 'rgba(116, 17, 47, 0.28)'
-  }
-];
-
 const getDisiplinStili = (kategori) => {
   switch (kategori) {
     case 'Felsefe':
@@ -75,7 +36,6 @@ export default function Home() {
   const [yazilar, setYazilar] = useState([]);
   const [dergiler, setDergiler] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [aktifMaddeIndex, setAktifMaddeIndex] = useState(0);
 
   useEffect(() => {
     async function verileriGetir() {
@@ -115,8 +75,6 @@ export default function Home() {
       window.location.href = `/yazi/${rastgeleYazi.slug}`;
     }
   };
-
-  const aktif = MADDELER[aktifMaddeIndex];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
@@ -186,83 +144,46 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TAKTİL LIQUID GLASS KONSOLU (4 TEMEL İLKE KARTI) */}
-        <section className="mb-12 relative">
-          <div className="relative p-6 sm:p-8 rounded-3xl backdrop-blur-2xl bg-white/70 border border-white/90 shadow-xl overflow-hidden">
-            
-            {/* 3 Renk Akışkan Sıvı Işık Katmanı */}
-            <div 
-              className="absolute -top-16 -right-16 w-80 h-80 rounded-full blur-3xl pointer-events-none transition-all duration-700 ease-out opacity-80"
-              style={{ backgroundColor: aktif.glow }}
-            />
-            <div 
-              className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full blur-3xl pointer-events-none bg-[#32127a]/15 opacity-60"
-            />
-
-            {/* Üst Taktil Kapsül Butonları */}
-            <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-              {MADDELER.map((m, idx) => {
-                const isSecili = aktifMaddeIndex === idx;
-                return (
-                  <button
-                    key={m.no}
-                    onClick={() => setAktifMaddeIndex(idx)}
-                    className={`py-3 px-3 rounded-2xl text-left transition-all duration-300 relative border ${
-                      isSecili
-                        ? 'bg-white/90 border-white shadow-md scale-[1.02]'
-                        : 'bg-white/40 hover:bg-white/70 border-white/40 text-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span 
-                        className="text-[10px] font-black"
-                        style={{ color: isSecili ? m.renk : '#9CA3AF' }}
-                      >
-                        {m.no}
-                      </span>
-                      {isSecili && (
-                        <span 
-                          className="w-1.5 h-1.5 rounded-full animate-pulse"
-                          style={{ backgroundColor: m.renk }}
-                        />
-                      )}
-                    </div>
-                    <div className={`text-xs font-bold truncate ${isSecili ? 'text-gray-900' : 'text-gray-600'}`}>
-                      {m.sekme}
-                    </div>
-                  </button>
-                );
-              })}
+        {/* 4 TEMEL İLKE KARTI (KOMPAKT & EKRANA TAM OTURAN IZGARA) */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+          <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#00a693]/50 transition-all flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-black text-[#00a693] block mb-1">01</span>
+              <h3 className="font-black text-xs text-gray-900 mb-1">Açık Kürsü</h3>
+              <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+                Düşünen herkese açıktır. Akademik unvan şartı aranmaz; metnin niteliği esastır.
+              </p>
             </div>
+          </div>
 
-            {/* Alt Akışkan İçerik Paneli */}
-            <div className="relative z-10 p-5 rounded-2xl bg-white/60 border border-white/80 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition-all duration-300">
-              <div className="space-y-1.5 max-w-2xl">
-                <div className="flex items-center gap-2.5">
-                  <span 
-                    className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full"
-                    style={{ backgroundColor: `${aktif.renk}18`, color: aktif.renk }}
-                  >
-                    {aktif.rozet}
-                  </span>
-                  <h3 className="text-sm sm:text-base font-black text-gray-900">
-                    {aktif.baslik}
-                  </h3>
-                </div>
-                <p className="text-xs text-gray-600 font-serif leading-relaxed">
-                  {aktif.aciklama}
-                </p>
-              </div>
-
-              <Link
-                href="/basvuru"
-                className="inline-flex items-center gap-2 text-xs font-black px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-[#32127a] text-white shadow-md transition-all active:scale-95 whitespace-nowrap self-end sm:self-center"
-              >
-                <span>Yazı Masasına Git</span>
-                <span>→</span>
-              </Link>
+          <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#74112f]/50 transition-all flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-black text-[#74112f] block mb-1">02</span>
+              <h3 className="font-black text-xs text-gray-900 mb-1">İfade Özgürlüğü</h3>
+              <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+                Gerçek adınızla veya mahlasla yazabilirsiniz. Her iki tercih de eşit editoryal saygı görür.
+              </p>
             </div>
+          </div>
 
+          <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#32127a]/50 transition-all flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-black text-[#32127a] block mb-1">03</span>
+              <h3 className="font-black text-xs text-gray-900 mb-1">Yazar Masası</h3>
+              <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+                4 haneli PIN kodu ile şifresiz, pratik yönetim ve yayın takibi.
+              </p>
+            </div>
+          </div>
+
+          <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#74112f]/50 transition-all flex flex-col justify-between">
+            <div>
+              <span className="text-xs font-black text-[#74112f] block mb-1">04</span>
+              <h3 className="font-black text-xs text-gray-900 mb-1">Dergi Seçkisi</h3>
+              <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
+                Onaylanan metinler webde yayımlanır; öne çıkanlar ZEMİN Dergisi özel sayısına seçilir.
+              </p>
+            </div>
           </div>
         </section>
 
