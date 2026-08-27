@@ -3,6 +3,45 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
+const MADDELER = [
+  {
+    no: '01',
+    kisaBaslik: 'Kimler Yazabilir?',
+    baslik: 'Öğrenci Olma Şartı Yoktur',
+    aciklama: 'Düşünen, araştıran, sorgulayan ve metin üreten herkese açıktır. Akademik unvan veya okul kaydı aranmaz; yalnızca metnin düşünsel derinliği ve tutarlılığı dikkate alınır.',
+    rozet: 'AÇIK MASA',
+    renk: '#00a693',
+    glow: 'rgba(0, 166, 147, 0.25)'
+  },
+  {
+    no: '02',
+    kisaBaslik: 'İsim / Mahlas',
+    baslik: 'Özgür İfade & Mahlas Hakkı',
+    aciklama: 'İster kendi gerçek adınla yaz, ister düşünceni bir mahlasın arkasından seslendir. Her iki tercih de eşit editoryal saygı ve titizlikle değerlendirilir.',
+    rozet: 'ÖZGÜR İFADE',
+    renk: '#74112f',
+    glow: 'rgba(116, 17, 47, 0.25)'
+  },
+  {
+    no: '03',
+    kisaBaslik: 'PIN Masası',
+    baslik: 'Şifresiz, Güvenli Yazar Masası',
+    aciklama: 'İlk metnini gönderirken belirlediğin 4 haneli PIN kodu isminle eşleşir. E-posta veya şifre olmadan profilini güncelleyebilir ve yayın durumunu takip edebilirsin.',
+    rozet: 'YAZAR MASASI',
+    renk: '#32127a',
+    glow: 'rgba(50, 18, 122, 0.25)'
+  },
+  {
+    no: '04',
+    kisaBaslik: 'Dergi Seçkisi',
+    baslik: 'Resmi ZEMİN Dergisi Yayını',
+    aciklama: 'Onaylanan tüm yazılar anında açık arşivde yayına alınır. Editör masası tarafından öne çıkan düşünce metinleri ise dönemsel basılı/dijital ZEMİN Dergisi özel sayısına seçilir.',
+    rozet: 'RESMİ SEÇKİ',
+    renk: '#74112f',
+    glow: 'rgba(116, 17, 47, 0.25)'
+  }
+];
+
 const getDisiplinStili = (kategori) => {
   switch (kategori) {
     case 'Felsefe':
@@ -36,13 +75,14 @@ export default function Home() {
   const [yazilar, setYazilar] = useState([]);
   const [dergiler, setDergiler] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [aktifMaddeIndex, setAktifMaddeIndex] = useState(0);
 
   useEffect(() => {
     async function verileriGetir() {
       try {
         const { data: yazilarData } = await supabase
           .from('yazilar')
-          .select('*, yazarlar(*)')
+          .select('*, yazarlar(*), dergiler(*)')
           .eq('durum', 'onaylandi')
           .order('id', { ascending: false })
           .limit(10);
@@ -76,8 +116,10 @@ export default function Home() {
     }
   };
 
+  const aktif = MADDELER[aktifMaddeIndex];
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative">
+    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
       <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
         
         {/* NAVBAR */}
@@ -90,6 +132,7 @@ export default function Home() {
               <button 
                 onClick={handleRastgele}
                 className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all shadow-xs"
+                title="Rastgele Bir Metin Keşfet"
               >
                 Rastgele
               </button>
@@ -114,8 +157,8 @@ export default function Home() {
         {/* HERO BÖLÜMÜ */}
         <section className="glass-card p-6 sm:p-12 mb-8 border border-white/90 shadow-2xl relative overflow-hidden text-center sm:text-left">
           <div className="relative z-10 max-w-2xl">
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#00a693] bg-[#00a693]/10 px-3 py-1 rounded-full inline-block mb-3">
-              Açık Düşünce İnisiyatifi
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#74112f] bg-[#74112f]/10 px-3.5 py-1 rounded-full inline-block mb-3">
+              ZEMİN Dergisi
             </span>
             <h1 className="text-3xl sm:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
               Düşüncenin Zemini, <br />
@@ -129,52 +172,84 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
               <Link 
                 href="/basvuru" 
-                className="bg-[#32127a] text-white px-5 py-2.5 rounded-full text-xs font-black shadow-md hover:bg-[#74112f] transition-all"
+                className="bg-[#32127a] text-white px-5 py-2.5 rounded-full text-xs font-black shadow-md hover:bg-[#74112f] transition-all active:scale-95"
               >
-                Yazını Gönder
+                Metnini Gönder
               </Link>
               <Link 
                 href="/yazilar" 
                 className="glass-panel text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:text-[#00a693] border border-gray-200 shadow-xs transition-all"
               >
-                Tüm Yazıları İncele
+                Tüm Arşivi İncele
               </Link>
             </div>
           </div>
         </section>
 
-        {/* 4 TEMEL BİLGİ KARTI */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-12">
-          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#00a693]/40 transition-all">
-            <span className="text-base font-black text-[#00a693] block mb-1">01</span>
-            <h3 className="font-black text-xs text-gray-900 mb-1">Kimler Yazabilir?</h3>
-            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
-              Öğrenci olma şartı yoktur. Düşünen, araştıran ve soru soran herkes metin gönderebilir.
-            </p>
-          </div>
+        {/* SIVI IŞIK MONOLİT KAPSÜL (4 TEMEL KURAL KARTI) */}
+        <section className="mb-12 relative">
+          <div className="glass-card p-5 sm:p-7 rounded-3xl border border-white/90 shadow-xl relative overflow-hidden">
+            
+            {/* Arka Plan Sıvı Işık Küresi (Aktif Sekmeye Göre Pürüzsüz Renk Değişimi) */}
+            <div 
+              className="absolute -top-12 -right-12 w-72 h-72 rounded-full blur-3xl pointer-events-none transition-all duration-700 ease-out"
+              style={{ backgroundColor: aktif.glow }}
+            />
 
-          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#74112f]/40 transition-all">
-            <span className="text-base font-black text-[#74112f] block mb-1">02</span>
-            <h3 className="font-black text-xs text-gray-900 mb-1">İsim veya Mahlas</h3>
-            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
-              İster gerçek adını, ister bir mahlas kullan. Her iki seçenek de eşit editoryal saygı görür.
-            </p>
-          </div>
+            {/* Üst Sekme Seçiciler (Yatay Akışkan Kapsül) */}
+            <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200/60 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden mb-6">
+              {MADDELER.map((m, idx) => {
+                const isSecili = aktifMaddeIndex === idx;
+                return (
+                  <button
+                    key={m.no}
+                    onClick={() => setAktifMaddeIndex(idx)}
+                    className={`flex-1 min-w-[120px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap select-none ${
+                      isSecili
+                        ? 'bg-white text-gray-900 shadow-md border border-white/90 scale-[1.02]'
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-white/50'
+                    }`}
+                  >
+                    <span 
+                      className={`text-[10px] font-black transition-colors ${isSecili ? 'opacity-100' : 'opacity-60'}`}
+                      style={{ color: isSecili ? m.renk : undefined }}
+                    >
+                      {m.no}
+                    </span>
+                    <span className="text-[11px] font-bold truncate">{m.kisaBaslik}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-[#32127a]/40 transition-all">
-            <span className="text-base font-black text-[#32127a] block mb-1">03</span>
-            <h3 className="font-black text-xs text-gray-900 mb-1">İsim & PIN Eşleşmesi</h3>
-            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
-              İlk yazında belirlediğin isim ve 4 haneli PIN eşleşir; sonraki yazıların doğrudan profiline eklenir.
-            </p>
-          </div>
+            {/* Alt Aktif Madde Açıklama Alanı (Editoryal Mizanpaj) */}
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-1">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="flex items-center gap-2.5">
+                  <span 
+                    className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: `${aktif.renk}18`, color: aktif.renk }}
+                  >
+                    {aktif.rozet}
+                  </span>
+                  <h3 className="text-sm sm:text-base font-black text-gray-900">
+                    {aktif.baslik}
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-600 font-serif leading-relaxed">
+                  {aktif.aciklama}
+                </p>
+              </div>
 
-          <div className="glass-card p-4 rounded-2xl border border-white/80 shadow-xs hover:border-gray-400 transition-all">
-            <span className="text-base font-black text-gray-900 block mb-1">04</span>
-            <h3 className="font-black text-xs text-gray-900 mb-1">Web & Dergi Yayını</h3>
-            <p className="text-[11px] text-gray-600 leading-relaxed font-medium">
-              Onaylanan metin anında webde yayımlanır; seçilenler dönemsel e-dergi sayısına dahil edilir.
-            </p>
+              <Link
+                href="/basvuru"
+                className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-xl bg-gray-900 hover:bg-[#32127a] text-white shadow-xs transition-all active:scale-95 whitespace-nowrap self-end sm:self-center"
+              >
+                <span>Yazı Gönder</span>
+                <span>→</span>
+              </Link>
+            </div>
+
           </div>
         </section>
 
@@ -182,13 +257,15 @@ export default function Home() {
         <section className="mb-14">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg font-black text-gray-900 tracking-tight">Son Metinler</h2>
-            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Arşivi Görüntüle →</Link>
+            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">
+              Tüm Arşivi Görüntüle →
+            </Link>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="glass-card p-5 rounded-2xl h-40 animate-pulse bg-white/40"></div>
+                <div key={n} className="glass-card p-5 rounded-2xl h-44 animate-pulse bg-white/40"></div>
               ))}
             </div>
           ) : yazilar.length === 0 ? (
@@ -222,9 +299,16 @@ export default function Home() {
 
                       <div className="relative z-10">
                         <div className="flex items-center justify-between mb-2">
-                          <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
-                            {y.kategori}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
+                              {y.kategori}
+                            </span>
+                            {y.dergiler && (
+                              <span className="text-[8.5px] font-bold text-[#74112f] bg-[#74112f]/10 border border-[#74112f]/20 px-2 py-0.5 rounded-full">
+                                ● Sayı {y.dergiler.sayi_no}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[9px] text-gray-500 font-bold bg-white/80 px-2 py-0.5 rounded-full">
                             {okumaSuresi} dk okuma
                           </span>
@@ -264,8 +348,10 @@ export default function Home() {
         {dergiler.length > 0 && (
           <section className="mb-12">
             <div className="flex items-center justify-between mb-4 px-1">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">Resmi E-Dergiler</h2>
-              <Link href="/dergiler" className="text-xs font-bold text-[#32127a] hover:underline">Tüm Sayılar →</Link>
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">ZEMİN Dergisi Sayıları</h2>
+              <Link href="/dergiler" className="text-xs font-bold text-[#32127a] hover:underline">
+                Tüm Sayılar →
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -276,15 +362,15 @@ export default function Home() {
                       Sayı {d.sayi_no}
                     </span>
                     <h3 className="font-bold text-sm text-gray-900 mt-1">{d.baslik}</h3>
-                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{d.aciklama || 'Tematik e-dergi sayısı.'}</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{d.aciklama || 'Tematik dergi sayısı.'}</p>
                   </div>
                   <a 
                     href={d.pdf_url} 
                     target="_blank" 
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer" 
                     className="bg-[#32127a] hover:bg-[#74112f] text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm transition-all"
                   >
-                    İndir
+                    İncele / İndir
                   </a>
                 </div>
               ))}
@@ -297,13 +383,13 @@ export default function Home() {
       <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
           <div>
-            <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN</span>
+            <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN Dergisi</span>
             <span>© 2026 Tüm hakları saklıdır.</span>
           </div>
           <div className="flex gap-6">
             <Link href="/iletisim" className="hover:text-[#00a693]">İletişim</Link>
             <Link href="/basvuru" className="hover:text-[#00a693]">Yayın Şartları</Link>
-            <Link href="/admin" className="text-[#32127a] hover:text-[#74112f]">Editör Girişi</Link>
+            <Link href="/admin" className="text-[#32127a] hover:text-[#74112f]">Editör Masası</Link>
           </div>
         </div>
       </footer>
