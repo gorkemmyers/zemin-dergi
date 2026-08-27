@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
 
@@ -58,8 +58,9 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [izBirakildi, setIzBirakildi] = useState(false);
   const [kunyeKopyalandi, setKunyeKopyalandi] = useState(false);
 
-  // Metin Seçimi ve Kare Alıntı Kartı State'leri
+  // Metin Seçimi ve Alıntı Kartı State'leri
   const [secilenMetin, setSecilenMetin] = useState('');
+  const [secimPozisyonu, setSecimPozisyonu] = useState(null);
   const [isAlintiModalOpen, setIsAlintiModalOpen] = useState(false);
   const [alintiGorselUrl, setAlintiGorselUrl] = useState('');
 
@@ -134,20 +135,34 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     return () => document.removeEventListener('copy', handleCopy);
   }, [yazi]);
 
-  // Mobil ve Masaüstü Seçim Takibi (selectionchange)
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed) return;
+  // Seçilen Cümlenin Tam Üstünde Buton Konumlandırma (Mobil + Masaüstü)
+  const guncelleSecimPozisyonu = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      setSecimPozisyonu(null);
+      return;
+    }
 
-      const text = selection.toString().trim();
-      if (text.length >= 8 && articleRef.current && articleRef.current.contains(selection.anchorNode)) {
-        setSecilenMetin(text);
+    const text = selection.toString().trim();
+    if (text.length >= 8 && articleRef.current && articleRef.current.contains(selection.anchorNode)) {
+      try {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setSecilenMetin(text);
+          const top = rect.top + window.scrollY - 52;
+          const left = Math.max(80, Math.min(window.innerWidth - 80, rect.left + rect.width / 2));
+          setSecimPozisyonu({
+            top: top > 10 ? top : rect.bottom + window.scrollY + 12,
+            left
+          });
+        }
+      } catch (e) {
+        setSecimPozisyonu(null);
       }
-    };
-
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+    } else {
+      setSecimPozisyonu(null);
+    }
   }, []);
 
   const aktifBaslik = seciliDil === 'tr' ? yazi?.baslik : (translations[seciliDil]?.baslik || yazi?.baslik);
@@ -194,7 +209,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   };
 
-  // 1080x1080 TAM KARE TİPOGRAFİK ALINTI KARTI MOTORU
+  // 1080x1080 DOLGUN & EDİTORYAL GAZETE/DERGİ ALINTI KARTI MOTORU
   useEffect(() => {
     if (!isAlintiModalOpen || !canvasRef.current || !yazi) return;
 
@@ -204,47 +219,84 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     canvas.width = size;
     canvas.height = size;
 
-    // 1. Zemin (Sıcak Fildişi)
-    ctx.fillStyle = '#FAF9F5';
+    // 1. Zemin (Sıcak Fildişi / Gazete Dokusu Hissi)
+    ctx.fillStyle = '#F8F6F0';
     ctx.fillRect(0, 0, size, size);
 
-    // 2. Zarif İnce İç Çerçeve
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#E8E5DD';
+    // 2. Mikro Gazete Çizgileri (Arka Planda Yarı Saydam Zarif Çizgiler)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.035)';
+    ctx.lineWidth = 1;
+    for (let i = 80; i < size - 80; i += 32) {
+      ctx.beginPath();
+      ctx.moveTo(80, i);
+      ctx.lineTo(size - 80, i);
+      ctx.stroke();
+    }
+
+    // 3. Yarı Opak Dev Tipografik Tırnak Filigranı
+    ctx.fillStyle = 'rgba(116, 17, 47, 0.07)';
+    ctx.font = '900 480px Georgia, "Times New Roman", serif';
+    ctx.fillText('“', 60, 520);
+
+    // 4. Editoryal Çift Çerçeve
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#1C1917';
     ctx.strokeRect(50, 50, size - 100, size - 100);
 
-    // 3. Üst Başlık (ZEMİN Logo + Kategori)
-    ctx.fillStyle = '#74112f';
-    ctx.font = '900 38px sans-serif';
-    ctx.fillText('ZEMİN', 90, 130);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#74112f';
+    ctx.strokeRect(62, 62, size - 124, size - 124);
 
-    ctx.fillStyle = '#00a693';
-    ctx.font = '800 16px sans-serif';
+    // 5. Üst Başlık & Kategori
+    ctx.fillStyle = '#74112f';
+    ctx.font = '900 48px sans-serif';
+    ctx.fillText('ZEMİN', 95, 140);
+
+    ctx.fillStyle = '#78716C';
+    ctx.font = '700 15px sans-serif';
     ctx.letterSpacing = '3px';
-    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), size - 250, 126);
+    ctx.fillText('AÇIK DÜŞÜNCE İNİSİYATİFİ', 95, 170);
     ctx.letterSpacing = '0px';
 
-    // Üst Çizgi
-    ctx.fillStyle = '#E8E5DD';
-    ctx.fillRect(90, 160, size - 180, 1.5);
+    // Kategori Rozeti
+    const kategoriAdi = (yazi.kategori || 'FELSEFE').toUpperCase();
+    ctx.fillStyle = '#1C1917';
+    ctx.beginPath();
+    ctx.roundRect(size - 280, 98, 185, 48, 10);
+    ctx.fill();
 
-    // 4. Seçilen Vurucu Cümle Metni
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 17px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(kategoriAdi, size - 187, 129);
+    ctx.textAlign = 'left';
+
+    // Üst Çift Çizgi Ayırıcı
+    ctx.fillStyle = '#1C1917';
+    ctx.fillRect(95, 205, size - 190, 3);
+    ctx.fillStyle = '#74112f';
+    ctx.fillRect(95, 212, size - 190, 1.5);
+
+    // 6. Seçilen Vurucu Cümle Metni (Dinamik ve Büyük Punto)
     const metin = secilenMetin || aktifBaslik;
     const kelimeAdedi = metin.split(' ').length;
-    
-    // Kelime uzunluğuna göre dinamik punto
-    let fontSize = 42;
-    let lineHeight = 64;
-    if (kelimeAdedi > 35) {
-      fontSize = 32;
-      lineHeight = 50;
-    } else if (kelimeAdedi > 20) {
+
+    let fontSize = 54;
+    let lineHeight = 80;
+
+    if (kelimeAdedi > 45) {
       fontSize = 36;
-      lineHeight = 56;
+      lineHeight = 54;
+    } else if (kelimeAdedi > 25) {
+      fontSize = 42;
+      lineHeight = 64;
+    } else if (kelimeAdedi > 15) {
+      fontSize = 48;
+      lineHeight = 72;
     }
 
     ctx.fillStyle = '#1C1917';
-    ctx.font = `italic ${fontSize}px Georgia, "Times New Roman", serif`;
+    ctx.font = `italic bold ${fontSize}px Georgia, "Times New Roman", serif`;
 
     const wrapText = (text, x, y, maxWidth, lHeight, maxLines = 8) => {
       const words = text.split(' ');
@@ -271,22 +323,33 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       return y;
     };
 
-    const alintiBaslangicY = 280;
-    wrapText(`“${metin}”`, 90, alintiBaslangicY, size - 180, lineHeight, 7);
+    const alintiBaslangicY = 320;
+    wrapText(`“${metin}”`, 95, alintiBaslangicY, size - 190, lineHeight, 7);
 
-    // 5. Alt Künye & Yazar İmzası
-    const footerY = size - 150;
-    ctx.fillStyle = '#E8E5DD';
-    ctx.fillRect(90, footerY - 30, size - 180, 1.5);
+    // 7. Alt Künye & Yazar İmzası (Görünür & Dolgun)
+    const footerY = size - 170;
 
     ctx.fillStyle = '#1C1917';
-    ctx.font = '900 32px sans-serif';
-    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', 90, footerY + 20);
+    ctx.fillRect(95, footerY - 35, size - 190, 2);
 
-    ctx.fillStyle = '#78716C';
-    ctx.font = '500 18px Georgia, serif';
-    const altMetin = `${aktifBaslik} • ZEMİN Düşünce Arşivi`;
-    ctx.fillText(altMetin.length > 55 ? altMetin.slice(0, 52) + '...' : altMetin, 90, footerY + 56);
+    // Yazar İsmi
+    ctx.fillStyle = '#74112f';
+    ctx.font = '900 44px sans-serif';
+    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', 95, footerY + 22);
+
+    // Üniversite & Bölüm
+    if (yazi.yazarlar?.universite) {
+      ctx.fillStyle = '#78716C';
+      ctx.font = '700 20px sans-serif';
+      const uniMetin = `${yazi.yazarlar.universite}${yazi.yazarlar.bolum ? ` • ${yazi.yazarlar.bolum}` : ''}`;
+      ctx.fillText(uniMetin, 95, footerY + 54);
+    }
+
+    // Makale Başlığı
+    ctx.fillStyle = '#44403C';
+    ctx.font = 'italic 22px Georgia, serif';
+    const makaleMetni = `“${aktifBaslik}” • ZEMİN Arşivi`;
+    ctx.fillText(makaleMetni.length > 50 ? makaleMetni.slice(0, 47) + '...' : makaleMetni, 95, footerY + 90);
 
     setAlintiGorselUrl(canvas.toDataURL('image/png'));
   }, [isAlintiModalOpen, secilenMetin, yazi, aktifBaslik]);
@@ -299,7 +362,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       if (!blob) return;
       const file = new File([blob], `zemin-${yazi.slug}.png`, { type: 'image/png' });
 
-      // Mobil cihazlarda doğrudan Instagram Hikaye/Galeri paylaşımı açar
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
@@ -415,23 +477,30 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
-      
+    <div 
+      className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]"
+      onMouseUp={guncelleSecimPozisyonu}
+      onTouchEnd={guncelleSecimPozisyonu}
+      onKeyUp={guncelleSecimPozisyonu}
+    >
       {/* ÜST OKUMA İLERLEME ÇUBUĞU */}
       <div 
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-xs"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      {/* METİN SEÇİLDİĞİNDE BELİREN MOBİL & MASAÜSTÜ ALINTI ÇUBUĞU */}
-      {secilenMetin && !isAlintiModalOpen && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in w-[90%] sm:w-auto text-center">
+      {/* SEÇİLEN CÜMLENİN TAM ÜSTÜNDE ÇIKAN ALINTI BUTONU */}
+      {secimPozisyonu && !isAlintiModalOpen && (
+        <div 
+          className="absolute z-50 transform -translate-x-1/2 animate-bounce pointer-events-auto"
+          style={{ top: `${secimPozisyonu.top}px`, left: `${secimPozisyonu.left}px` }}
+        >
           <button
-            onClick={() => setIsAlintiModalOpen(true)}
-            className="bg-[#1C1917] hover:bg-[#74112f] text-white text-xs font-bold px-5 py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 border border-white/20 transition-all active:scale-95 mx-auto"
+            onClick={() => { setIsAlintiModalOpen(true); setSecimPozisyonu(null); }}
+            className="flex items-center gap-1.5 bg-[#74112f] hover:bg-[#32127a] text-white text-[12px] font-black px-4 py-2 rounded-full shadow-2xl border-2 border-white transition-all active:scale-95 whitespace-nowrap"
           >
             <span>✦</span>
-            <span>Seçilen Cümleyi Alıntı Kartı Yap</span>
+            <span>Alıntı Kartı Oluştur</span>
           </button>
         </div>
       )}
@@ -512,7 +581,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                 </span>
               </div>
 
-              {/* ARAÇ BUTONLARI (DİL + SESLİ DİNLE + PUNTO) */}
+              {/* ARAÇ BUTONLARI */}
               <div className="flex items-center gap-1.5">
                 
                 {/* DİL SEÇİMİ */}
@@ -547,7 +616,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   )}
                 </div>
 
-                {/* SESLİ OKUMA İKONU */}
+                {/* SESLİ OKUMA */}
                 <button
                   onClick={handleToggleSpeech}
                   className={`p-1.5 rounded-full border transition-all shadow-xs ${
