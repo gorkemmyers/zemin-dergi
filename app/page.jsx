@@ -6,39 +6,39 @@ import { supabase } from '../lib/supabase';
 const MADDELER = [
   {
     no: '01',
-    kisaBaslik: 'Kimler Yazabilir?',
-    baslik: 'Öğrenci Olma Şartı Yoktur',
-    aciklama: 'Düşünen, araştıran, sorgulayan ve metin üreten herkese açıktır. Akademik unvan veya okul kaydı aranmaz; yalnızca metnin düşünsel derinliği ve tutarlılığı dikkate alınır.',
-    rozet: 'AÇIK MASA',
+    sekme: 'Açık Kürsü',
+    baslik: 'Bağımsız Düşünce Alanı',
+    aciklama: 'Felsefe, sosyoloji ve psikoloji alanlarında sorgulayan, araştıran ve metin üreten herkese açıktır. Düşüncenin derinliği ve yöntemsel tutarlılığı dışında hiçbir kurumsal veya akademik unvan şartı aranmaz.',
+    rozet: 'AÇIK ARŞİV',
     renk: '#00a693',
-    glow: 'rgba(0, 166, 147, 0.25)'
+    glow: 'rgba(0, 166, 147, 0.28)'
   },
   {
     no: '02',
-    kisaBaslik: 'İsim / Mahlas',
-    baslik: 'Özgür İfade & Mahlas Hakkı',
-    aciklama: 'İster kendi gerçek adınla yaz, ister düşünceni bir mahlasın arkasından seslendir. Her iki tercih de eşit editoryal saygı ve titizlikle değerlendirilir.',
+    sekme: 'İfade Özgürlüğü',
+    baslik: 'İsim veya Mahlas Serbestisi',
+    aciklama: 'Düşüncelerinizi ister kendi adınızla, ister bağımsız bir mahlasla kaleme alabilirsiniz. Her iki tercih de ZEMİN editör masasında eşit editoryal saygı ve titizlikle değerlendirilir.',
     rozet: 'ÖZGÜR İFADE',
     renk: '#74112f',
-    glow: 'rgba(116, 17, 47, 0.25)'
+    glow: 'rgba(116, 17, 47, 0.28)'
   },
   {
     no: '03',
-    kisaBaslik: 'PIN Masası',
-    baslik: 'Şifresiz, Güvenli Yazar Masası',
-    aciklama: 'İlk metnini gönderirken belirlediğin 4 haneli PIN kodu isminle eşleşir. E-posta veya şifre olmadan profilini güncelleyebilir ve yayın durumunu takip edebilirsin.',
-    rozet: 'YAZAR MASASI',
+    sekme: 'Yazar Masası',
+    baslik: 'Pratik & Şifresiz Yönetim',
+    aciklama: 'İlk metninizle birlikte belirleyeceğiniz 4 haneli PIN kodu ile doğrudan yazar panelinize erişebilirsiniz. Metinlerinizin yayın durumunu görebilir, profilinizi güncelleyebilir ve okur etkileşimlerini takip edebilirsiniz.',
+    rozet: 'PIN MASASI',
     renk: '#32127a',
-    glow: 'rgba(50, 18, 122, 0.25)'
+    glow: 'rgba(50, 18, 122, 0.28)'
   },
   {
     no: '04',
-    kisaBaslik: 'Dergi Seçkisi',
-    baslik: 'Resmi ZEMİN Dergisi Yayını',
-    aciklama: 'Onaylanan tüm yazılar anında açık arşivde yayına alınır. Editör masası tarafından öne çıkan düşünce metinleri ise dönemsel basılı/dijital ZEMİN Dergisi özel sayısına seçilir.',
+    sekme: 'Dergi Seçkisi',
+    baslik: 'Dönemsel ZEMİN Dergisi Yayını',
+    aciklama: 'Onaylanan tüm metinler web arşivinde kesintisiz yer alır. Editör masası tarafından öne çıkan düşünce ve çözümleme metinleri ise dönemsel ZEMİN Dergisi özel seçkisine dahil edilir.',
     rozet: 'RESMİ SEÇKİ',
     renk: '#74112f',
-    glow: 'rgba(116, 17, 47, 0.25)'
+    glow: 'rgba(116, 17, 47, 0.28)'
   }
 ];
 
@@ -186,44 +186,57 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SIVI IŞIK MONOLİT KAPSÜL (4 TEMEL KURAL KARTI) */}
+        {/* TAKTİL LIQUID GLASS KONSOLU (4 TEMEL İLKE KARTI) */}
         <section className="mb-12 relative">
-          <div className="glass-card p-5 sm:p-7 rounded-3xl border border-white/90 shadow-xl relative overflow-hidden">
+          <div className="relative p-6 sm:p-8 rounded-3xl backdrop-blur-2xl bg-white/70 border border-white/90 shadow-xl overflow-hidden">
             
-            {/* Arka Plan Sıvı Işık Küresi (Aktif Sekmeye Göre Pürüzsüz Renk Değişimi) */}
+            {/* 3 Renk Akışkan Sıvı Işık Katmanı */}
             <div 
-              className="absolute -top-12 -right-12 w-72 h-72 rounded-full blur-3xl pointer-events-none transition-all duration-700 ease-out"
+              className="absolute -top-16 -right-16 w-80 h-80 rounded-full blur-3xl pointer-events-none transition-all duration-700 ease-out opacity-80"
               style={{ backgroundColor: aktif.glow }}
             />
+            <div 
+              className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full blur-3xl pointer-events-none bg-[#32127a]/15 opacity-60"
+            />
 
-            {/* Üst Sekme Seçiciler (Yatay Akışkan Kapsül) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200/60 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden mb-6">
+            {/* Üst Taktil Kapsül Butonları */}
+            <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
               {MADDELER.map((m, idx) => {
                 const isSecili = aktifMaddeIndex === idx;
                 return (
                   <button
                     key={m.no}
                     onClick={() => setAktifMaddeIndex(idx)}
-                    className={`flex-1 min-w-[120px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap select-none ${
+                    className={`py-3 px-3 rounded-2xl text-left transition-all duration-300 relative border ${
                       isSecili
-                        ? 'bg-white text-gray-900 shadow-md border border-white/90 scale-[1.02]'
-                        : 'text-gray-500 hover:text-gray-900 hover:bg-white/50'
+                        ? 'bg-white/90 border-white shadow-md scale-[1.02]'
+                        : 'bg-white/40 hover:bg-white/70 border-white/40 text-gray-600'
                     }`}
                   >
-                    <span 
-                      className={`text-[10px] font-black transition-colors ${isSecili ? 'opacity-100' : 'opacity-60'}`}
-                      style={{ color: isSecili ? m.renk : undefined }}
-                    >
-                      {m.no}
-                    </span>
-                    <span className="text-[11px] font-bold truncate">{m.kisaBaslik}</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span 
+                        className="text-[10px] font-black"
+                        style={{ color: isSecili ? m.renk : '#9CA3AF' }}
+                      >
+                        {m.no}
+                      </span>
+                      {isSecili && (
+                        <span 
+                          className="w-1.5 h-1.5 rounded-full animate-pulse"
+                          style={{ backgroundColor: m.renk }}
+                        />
+                      )}
+                    </div>
+                    <div className={`text-xs font-bold truncate ${isSecili ? 'text-gray-900' : 'text-gray-600'}`}>
+                      {m.sekme}
+                    </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Alt Aktif Madde Açıklama Alanı (Editoryal Mizanpaj) */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-1">
+            {/* Alt Akışkan İçerik Paneli */}
+            <div className="relative z-10 p-5 rounded-2xl bg-white/60 border border-white/80 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition-all duration-300">
               <div className="space-y-1.5 max-w-2xl">
                 <div className="flex items-center gap-2.5">
                   <span 
@@ -243,9 +256,9 @@ export default function Home() {
 
               <Link
                 href="/basvuru"
-                className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-xl bg-gray-900 hover:bg-[#32127a] text-white shadow-xs transition-all active:scale-95 whitespace-nowrap self-end sm:self-center"
+                className="inline-flex items-center gap-2 text-xs font-black px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-[#32127a] text-white shadow-md transition-all active:scale-95 whitespace-nowrap self-end sm:self-center"
               >
-                <span>Yazı Gönder</span>
+                <span>Yazı Masasına Git</span>
                 <span>→</span>
               </Link>
             </div>
