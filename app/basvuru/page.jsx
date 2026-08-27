@@ -143,7 +143,8 @@ export default function BasvuruPage() {
             icerik: icerik.trim(),
             kapak_url: kapakUrl.trim() || null,
             yazar_id: yazarId,
-            durum: 'beklemede'
+            durum: 'beklemede',
+            alkis_sayisi: 0
           }
         ]);
 
@@ -270,7 +271,7 @@ export default function BasvuruPage() {
     setPanelStatus({ type: '', msg: '' });
   };
 
-  // 5. Düzenleme Talebini Gönderme (Canlı yayını bozmaz)
+  // 5. Düzenleme Talebini Gönderme
   const handleYaziDuzenlemeGonder = async (e) => {
     e.preventDefault();
     if (!seciliDuzenlenenYazi) return;
@@ -314,7 +315,7 @@ export default function BasvuruPage() {
 
       setPanelStatus({
         type: 'success',
-        msg: 'Düzenleme talebiniz iletildi. Mevcut metniniz sitede kesintisiz yayında kalmaya devam eder; editör onayladığında yenisiyle güncellenecektir.'
+        msg: 'Düzenleme talebiniz iletildi. Mevcut metniniz kesintisiz yayında kalmaya devam eder; editör onayladığında yenisiyle güncellenecektir.'
       });
       setSeciliDuzenlenenYazi(null);
     } catch (err) {
@@ -329,7 +330,7 @@ export default function BasvuruPage() {
       <main className="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-20 relative z-10">
         
         {/* NAVBAR */}
-        <header className="glass-panel mx-auto max-w-3xl p-3.5 mb-8 sticky top-3 z-50 rounded-2xl border border-white/80 shadow-lg flex justify-between items-center">
+        <header className="glass-panel mx-auto max-w-3xl p-3.5 mb-8 sticky top-3 z-50 rounded-2xl border border-white/80 shadow-md flex justify-between items-center">
           <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter">
             ZEMİN
           </Link>
@@ -376,7 +377,7 @@ export default function BasvuruPage() {
                 Düşünceni Zemine Bırak
               </h1>
               <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                Öğrenci olma şartı yoktur; yalnızca 5 temel alan zorunludur.
+                Öğrenci olma şartı yoktur; bağımsız tüm düşünce metinlerine açıktır.
               </p>
             </div>
 
@@ -458,7 +459,7 @@ export default function BasvuruPage() {
                   <label className="block text-[10px] font-bold text-gray-500 mb-1">Kısa Biyografi (İsteğe Bağlı)</label>
                   <textarea
                     rows={2}
-                    placeholder="Düşünce alanların veya kendin hakkında kısa bir not..."
+                    placeholder="Düşünce alanlarınız veya kendiniz hakkında kısa bir not..."
                     value={biyografi}
                     onChange={(e) => setBiyografi(e.target.value)}
                     className="w-full bg-white/60 border border-gray-200/80 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#74112f]"
@@ -548,7 +549,7 @@ export default function BasvuruPage() {
                 Yazar Paneli
               </h1>
               <p className="text-xs text-gray-600 mt-1 max-w-md mx-auto">
-                Profil bilgilerinizi güncelleyebilir veya yayındaki yazılarınız için düzenleme gönderebilirsiniz.
+                Metinlerinizin etkileşim durumunu görebilir, profilinizi güncelleyebilir veya düzenleme iletebilirsiniz.
               </p>
             </div>
 
@@ -622,7 +623,7 @@ export default function BasvuruPage() {
                       onClick={() => setPanelAltSekme('yazilar')}
                       className={`pb-2 transition-all ${panelAltSekme === 'yazilar' ? 'border-b-2 border-[#00a693] text-[#00a693]' : 'text-gray-500 hover:text-gray-900'}`}
                     >
-                      Metinlerim & Düzenleme ({panelYazilar.length})
+                      Metinlerim & Düşünce İzleri ({panelYazilar.length})
                     </button>
                   </div>
 
@@ -704,7 +705,7 @@ export default function BasvuruPage() {
                       {!seciliDuzenlenenYazi ? (
                         <div className="space-y-3">
                           <p className="text-xs text-gray-500 mb-3 font-medium">
-                            Düzenlemek istediğiniz metni seçin:
+                            Metinlerinizin yayındaki durumu ve okur etkileşimleri:
                           </p>
                           {panelYazilar.length === 0 ? (
                             <p className="text-xs font-bold text-gray-400 py-6 text-center">Henüz gönderilmiş bir metniniz bulunmuyor.</p>
@@ -712,16 +713,24 @@ export default function BasvuruPage() {
                             panelYazilar.map((y) => (
                               <div
                                 key={y.id}
-                                className="p-4 rounded-2xl border border-gray-200/80 bg-white/80 hover:border-[#00a693] transition-all flex items-center justify-between gap-4"
+                                className="p-4 rounded-2xl border border-gray-200/80 bg-white/80 hover:border-[#00a693] transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                               >
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
+                                <div className="space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
                                     <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
                                       {y.kategori}
                                     </span>
                                     <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${y.durum === 'onaylandi' ? 'bg-[#00a693]/15 text-[#00a693]' : 'bg-[#74112f]/15 text-[#74112f]'}`}>
                                       {y.durum === 'onaylandi' ? 'Yayında' : 'İlk Onay Bekliyor'}
                                     </span>
+                                    
+                                    {/* DÜŞÜNCE İZİ / ETKİLEŞİM SAYACI ROZETİ */}
+                                    {y.durum === 'onaylandi' && (
+                                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#74112f]/10 text-[#74112f] border border-[#74112f]/20">
+                                        {y.alkis_sayisi || 0} Düşünce İzi
+                                      </span>
+                                    )}
+
                                     {y.duzeltme_notu && (
                                       <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
                                         Düzenleme İnceleniyor
@@ -733,7 +742,7 @@ export default function BasvuruPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleYaziSec(y)}
-                                  className="bg-gray-900 hover:bg-[#74112f] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-xs transition-all"
+                                  className="bg-gray-900 hover:bg-[#74112f] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shadow-xs transition-all self-end sm:self-center"
                                 >
                                   Düzenle
                                 </button>
@@ -812,7 +821,7 @@ export default function BasvuruPage() {
                             <textarea
                               required
                               rows={2}
-                              placeholder="Örn: 2. paragraftaki kaynakça güncellendi..."
+                              placeholder="Örn: 2. paragraftaki alıntı kaynağı güncellendi..."
                               value={duzeltmeNotu}
                               onChange={(e) => setDuzeltmeNotu(e.target.value)}
                               className="w-full bg-white border border-[#74112f]/30 rounded-xl p-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#74112f]"
