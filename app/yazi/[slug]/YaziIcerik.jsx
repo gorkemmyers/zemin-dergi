@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
 
@@ -53,14 +53,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [translations, setTranslations] = useState({});
 
-  // Düşünce İzi State & LocalStorage Kilidi
+  // Düşünce İzi State
   const [alkisSayisi, setAlkisSayisi] = useState(yazi?.alkis_sayisi || 0);
   const [izBirakildi, setIzBirakildi] = useState(false);
   const [kunyeKopyalandi, setKunyeKopyalandi] = useState(false);
 
-  // Metin Seçimi ve Alıntı Kartı State'leri
+  // Metin Seçimi ve Kare Alıntı Kartı State'leri
   const [secilenMetin, setSecilenMetin] = useState('');
-  const [secimPozisyonu, setSecimPozisyonu] = useState(null);
   const [isAlintiModalOpen, setIsAlintiModalOpen] = useState(false);
   const [alintiGorselUrl, setAlintiGorselUrl] = useState('');
 
@@ -68,7 +67,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const canvasRef = useRef(null);
   const langMenuRef = useRef(null);
 
-  // 1. Düşünce İzi Durumunu LocalStorage'dan Oku
+  // LocalStorage Kontrolü (Düşünce İzi)
   useEffect(() => {
     if (typeof window !== 'undefined' && yazi?.id) {
       const kaydedilmis = localStorage.getItem(`zemin_iz_${yazi.id}`);
@@ -78,7 +77,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   }, [yazi?.id]);
 
-  // 2. Dış Tıklama & Scroll Takibi
+  // Dış Tıklama ve İlerleme Takibi
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (langMenuRef.current && !langMenuRef.current.contains(e.target)) {
@@ -108,7 +107,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     };
   }, []);
 
-  // 3. Akıllı Künyeli Kopyalama (Clipboard Interceptor)
+  // Akıllı Künyeli Kopyalama
   useEffect(() => {
     const handleCopy = (e) => {
       const selection = window.getSelection();
@@ -135,33 +134,27 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     return () => document.removeEventListener('copy', handleCopy);
   }, [yazi]);
 
-  // 4. Metin Seçim Takibi (Floating Quote Bubble)
-  const handleMouseUpOrTouchEnd = useCallback(() => {
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
-      setSecimPozisyonu(null);
-      return;
-    }
+  // Mobil ve Masaüstü Seçim Takibi (selectionchange)
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
 
-    const text = selection.toString().trim();
-    if (text.length >= 12 && articleRef.current && articleRef.current.contains(selection.anchorNode)) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      setSecilenMetin(text);
-      setSecimPozisyonu({
-        top: rect.top + window.scrollY - 42,
-        left: rect.left + rect.width / 2
-      });
-    } else {
-      setSecimPozisyonu(null);
-    }
+      const text = selection.toString().trim();
+      if (text.length >= 8 && articleRef.current && articleRef.current.contains(selection.anchorNode)) {
+        setSecilenMetin(text);
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, []);
 
   const aktifBaslik = seciliDil === 'tr' ? yazi?.baslik : (translations[seciliDil]?.baslik || yazi?.baslik);
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
 
-  // 5. Düşünce İzi Bırakma (Tek Tıklama Korumalı)
+  // Düşünce İzi Bırakma
   const handleDusunceIziBirak = async () => {
     if (izBirakildi || !yazi?.id) return;
 
@@ -183,7 +176,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   };
 
-  // 6. Akademik APA Künyesini Kopyala
+  // Akademik Künye Kopyalama
   const handleKunyeKopyala = async () => {
     const yazarAd = yazi?.yazarlar?.ad_soyad || 'Zemin Yazarı';
     const yayinYili = yazi?.yayin_tarihi ? new Date(yazi.yayin_tarihi).getFullYear() : '2026';
@@ -201,47 +194,59 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
     }
   };
 
-  // 7. Seçili Cümleden Tipografik Alıntı Kartı Üretici (Canvas)
+  // 1080x1080 TAM KARE TİPOGRAFİK ALINTI KARTI MOTORU
   useEffect(() => {
     if (!isAlintiModalOpen || !canvasRef.current || !yazi) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const width = 1080;
-    const height = 1350; // 4:5 İdeal Sosyal Paylaşım Oranı
-    canvas.width = width;
-    canvas.height = height;
+    const size = 1080;
+    canvas.width = size;
+    canvas.height = size;
 
-    // Arka Plan
-    ctx.fillStyle = '#F7F6F2';
-    ctx.fillRect(0, 0, width, height);
+    // 1. Zemin (Sıcak Fildişi)
+    ctx.fillStyle = '#FAF9F5';
+    ctx.fillRect(0, 0, size, size);
 
-    // Zarif İç Çerçeve
+    // 2. Zarif İnce İç Çerçeve
     ctx.lineWidth = 2;
-    ctx.strokeStyle = '#E5E2D9';
-    ctx.strokeRect(60, 60, width - 120, height - 120);
+    ctx.strokeStyle = '#E8E5DD';
+    ctx.strokeRect(50, 50, size - 100, size - 100);
 
-    // ZEMİN Logosu & Üst Başlık
+    // 3. Üst Başlık (ZEMİN Logo + Kategori)
     ctx.fillStyle = '#74112f';
-    ctx.font = '900 36px sans-serif';
-    ctx.fillText('ZEMİN', 110, 140);
+    ctx.font = '900 38px sans-serif';
+    ctx.fillText('ZEMİN', 90, 130);
 
-    ctx.fillStyle = '#8C887B';
+    ctx.fillStyle = '#00a693';
     ctx.font = '800 16px sans-serif';
     ctx.letterSpacing = '3px';
-    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), width - 260, 136);
+    ctx.fillText((yazi.kategori || 'FELSEFE').toUpperCase(), size - 250, 126);
     ctx.letterSpacing = '0px';
 
-    // Ayırıcı İnce Çizgi
-    ctx.fillStyle = '#E5E2D9';
-    ctx.fillRect(110, 175, width - 220, 1.5);
+    // Üst Çizgi
+    ctx.fillStyle = '#E8E5DD';
+    ctx.fillRect(90, 160, size - 180, 1.5);
 
-    // Seçilen Vurucu Cümle Metni
+    // 4. Seçilen Vurucu Cümle Metni
     const metin = secilenMetin || aktifBaslik;
-    ctx.fillStyle = '#1C1917';
-    ctx.font = 'italic 42px serif';
+    const kelimeAdedi = metin.split(' ').length;
+    
+    // Kelime uzunluğuna göre dinamik punto
+    let fontSize = 42;
+    let lineHeight = 64;
+    if (kelimeAdedi > 35) {
+      fontSize = 32;
+      lineHeight = 50;
+    } else if (kelimeAdedi > 20) {
+      fontSize = 36;
+      lineHeight = 56;
+    }
 
-    const wrapText = (text, x, y, maxWidth, lineHeight, maxLines = 8) => {
+    ctx.fillStyle = '#1C1917';
+    ctx.font = `italic ${fontSize}px Georgia, "Times New Roman", serif`;
+
+    const wrapText = (text, x, y, maxWidth, lHeight, maxLines = 8) => {
       const words = text.split(' ');
       let line = '';
       let lineCount = 0;
@@ -252,7 +257,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         if (metrics.width > maxWidth && n > 0) {
           ctx.fillText(line, x, y);
           line = words[n] + ' ';
-          y += lineHeight;
+          y += lHeight;
           lineCount++;
           if (lineCount >= maxLines - 1) {
             ctx.fillText(line.trim() + '...', x, y);
@@ -266,35 +271,53 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       return y;
     };
 
-    const alintiBaslangicY = 320;
-    wrapText(`“${metin}”`, 110, alintiBaslangicY, width - 220, 64, 8);
+    const alintiBaslangicY = 280;
+    wrapText(`“${metin}”`, 90, alintiBaslangicY, size - 180, lineHeight, 7);
 
-    // Alt Yazar İmzası & Makale Künyesi
-    const footerY = height - 180;
-    ctx.fillStyle = '#E5E2D9';
-    ctx.fillRect(110, footerY - 30, width - 220, 1.5);
+    // 5. Alt Künye & Yazar İmzası
+    const footerY = size - 150;
+    ctx.fillStyle = '#E8E5DD';
+    ctx.fillRect(90, footerY - 30, size - 180, 1.5);
 
     ctx.fillStyle = '#1C1917';
-    ctx.font = '900 34px sans-serif';
-    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', 110, footerY + 20);
+    ctx.font = '900 32px sans-serif';
+    ctx.fillText(yazi.yazarlar?.ad_soyad || 'Zemin Yazarı', 90, footerY + 20);
 
     ctx.fillStyle = '#78716C';
-    ctx.font = '500 20px serif';
+    ctx.font = '500 18px Georgia, serif';
     const altMetin = `${aktifBaslik} • ZEMİN Düşünce Arşivi`;
-    ctx.fillText(altMetin.length > 55 ? altMetin.slice(0, 52) + '...' : altMetin, 110, footerY + 60);
+    ctx.fillText(altMetin.length > 55 ? altMetin.slice(0, 52) + '...' : altMetin, 90, footerY + 56);
 
     setAlintiGorselUrl(canvas.toDataURL('image/png'));
   }, [isAlintiModalOpen, secilenMetin, yazi, aktifBaslik]);
 
-  const handleAlintiGorselIndir = () => {
-    if (!alintiGorselUrl) return;
-    const a = document.createElement('a');
-    a.href = alintiGorselUrl;
-    a.download = `zemin-alinti-${yazi.slug}.png`;
-    a.click();
+  // Kare Görseli Paylaş / İndir
+  const handleAlintiPaylasVeyaIndir = async () => {
+    if (!canvasRef.current) return;
+
+    canvasRef.current.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], `zemin-${yazi.slug}.png`, { type: 'image/png' });
+
+      // Mobil cihazlarda doğrudan Instagram Hikaye/Galeri paylaşımı açar
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'ZEMİN Alıntı',
+            text: window.location.href,
+          });
+        } catch (err) {}
+      } else {
+        const a = document.createElement('a');
+        a.href = alintiGorselUrl;
+        a.download = `zemin-alinti-${yazi.slug}.png`;
+        a.click();
+      }
+    }, 'image/png');
   };
 
-  // Sesli Okuma & Dil
+  // Dil ve Sesli Okuma
   const handleDilDegistir = async (yeniDil) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -392,29 +415,23 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   };
 
   return (
-    <div 
-      className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]"
-      onMouseUp={handleMouseUpOrTouchEnd}
-      onTouchEnd={handleMouseUpOrTouchEnd}
-    >
+    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
+      
       {/* ÜST OKUMA İLERLEME ÇUBUĞU */}
       <div 
         className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-xs"
         style={{ width: `${scrollProgress}%` }}
       />
 
-      {/* METİN SEÇİMİNDE ÇIKAN YÜZEN ALINTI BUTONU */}
-      {secimPozisyonu && (
-        <div 
-          className="absolute z-50 transform -translate-x-1/2 animate-fade-in"
-          style={{ top: `${secimPozisyonu.top}px`, left: `${secimPozisyonu.left}px` }}
-        >
+      {/* METİN SEÇİLDİĞİNDE BELİREN MOBİL & MASAÜSTÜ ALINTI ÇUBUĞU */}
+      {secilenMetin && !isAlintiModalOpen && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in w-[90%] sm:w-auto text-center">
           <button
-            onClick={() => { setIsAlintiModalOpen(true); setSecimPozisyonu(null); }}
-            className="flex items-center gap-1.5 bg-gray-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg hover:bg-[#74112f] transition-all"
+            onClick={() => setIsAlintiModalOpen(true)}
+            className="bg-[#1C1917] hover:bg-[#74112f] text-white text-xs font-bold px-5 py-3 rounded-full shadow-2xl flex items-center justify-center gap-2 border border-white/20 transition-all active:scale-95 mx-auto"
           >
             <span>✦</span>
-            <span>Alıntı Kartı</span>
+            <span>Seçilen Cümleyi Alıntı Kartı Yap</span>
           </button>
         </div>
       )}
@@ -474,7 +491,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
           {/* ÜST BİLGİ & SADELEŞTİRİLMİŞ ARAÇ ÇUBUĞU */}
           <header className="border-b border-gray-200/70 pb-5 mb-6">
             
-            {/* ETİKETLER & DÜŞÜNCE İZİ SAYACI */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               
               <div className="flex flex-wrap items-center gap-2">
@@ -490,13 +506,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   {okumaSuresi} dk okuma
                 </span>
                 
-                {/* ÜST STATİK DÜŞÜNCE İZİ SAYACI */}
+                {/* Üst Düşünce İzi Sayacı */}
                 <span className="text-[10px] font-bold text-[#74112f] bg-[#74112f]/10 border border-[#74112f]/20 px-2.5 py-0.5 rounded-full">
                   ✦ {alkisSayisi} Düşünce İzi
                 </span>
               </div>
 
-              {/* SADE VE GEREKLİ ARAÇ BUTONLARI (DİL + SESLİ + PUNTO) */}
+              {/* ARAÇ BUTONLARI (DİL + SESLİ DİNLE + PUNTO) */}
               <div className="flex items-center gap-1.5">
                 
                 {/* DİL SEÇİMİ */}
@@ -603,7 +619,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
           </header>
 
-          {/* EDİTORYAL KAPAK GÖRSELİ */}
+          {/* KAPAK GÖRSELİ */}
           {yazi.kapak_url && (
             <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs max-h-80">
               <img 
@@ -631,7 +647,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             )}
           </div>
 
-          {/* DÜŞÜNCE İZİ (TEK KULLANIMLIK BEĞENİ ALANI) */}
+          {/* DÜŞÜNCE İZİ (TEK TIKLAMALI BEĞENİ BUTONU) */}
           <div className="mt-12 pt-6 border-t border-gray-200/70 max-w-[650px] mx-auto flex justify-center">
             <button
               onClick={handleDusunceIziBirak}
@@ -735,9 +751,9 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       </main>
 
-      {/* SEÇİLEN CÜMLE ALINTI MODALI */}
+      {/* 1:1 TAM KARE ALINTI KARTI MODALI */}
       {isAlintiModalOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/90 shadow-2xl relative text-center">
             <button
               onClick={() => setIsAlintiModalOpen(false)}
@@ -745,21 +761,21 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             >
               ✕
             </button>
-            <span className="text-[10px] uppercase tracking-widest text-[#74112f] font-black block mb-2">
-              Alıntı Kartı
+            <span className="text-[10px] uppercase tracking-widest text-[#74112f] font-black block mb-3">
+              1:1 Kare Alıntı Kartı
             </span>
             {alintiGorselUrl && (
               <img
                 src={alintiGorselUrl}
                 alt="Alıntı Önizleme"
-                className="w-full h-auto rounded-2xl shadow-md border border-gray-200 mb-4 max-h-[60vh] object-contain mx-auto"
+                className="w-full aspect-square rounded-2xl shadow-md border border-gray-200 mb-4 object-cover mx-auto"
               />
             )}
             <button
-              onClick={handleAlintiGorselIndir}
-              className="w-full bg-[#32127a] hover:bg-[#74112f] text-white py-2.5 rounded-2xl text-xs font-bold tracking-wider uppercase transition-all shadow-md"
+              onClick={handleAlintiPaylasVeyaIndir}
+              className="w-full bg-[#1C1917] hover:bg-[#74112f] text-white py-3 rounded-2xl text-xs font-bold tracking-wider uppercase transition-all shadow-md active:scale-95"
             >
-              Görseli İndir
+              Hikayede Paylaş / Görseli İndir
             </button>
           </div>
         </div>
