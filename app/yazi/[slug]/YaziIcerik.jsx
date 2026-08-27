@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { supabase } from '../../../lib/supabase';
 
 const DILLER = [
   { kod: 'tr', ad: 'Türkçe', sesKod: 'tr-TR', bayrak: '🇹🇷' },
@@ -31,32 +32,28 @@ const getDisiplinStili = (kategori) => {
         renk: '#74112f',
         rgb: '116, 17, 47',
         badgeBg: 'bg-[#74112f]/15 text-[#74112f]',
-        cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent',
-        pattern: 'radial-gradient(circle at 100% 0%, rgba(116, 17, 47, 0.12) 0%, transparent 60%)'
+        cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent'
       };
     case 'Sosyoloji':
       return {
         renk: '#00a693',
         rgb: '0, 166, 147',
         badgeBg: 'bg-[#00a693]/15 text-[#00a693]',
-        cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent',
-        pattern: 'radial-gradient(circle at 100% 0%, rgba(0, 166, 147, 0.12) 0%, transparent 60%)'
+        cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent'
       };
     case 'Psikoloji':
       return {
         renk: '#32127a',
         rgb: '50, 18, 122',
         badgeBg: 'bg-[#32127a]/15 text-[#32127a]',
-        cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent',
-        pattern: 'radial-gradient(circle at 100% 0%, rgba(50, 18, 122, 0.12) 0%, transparent 60%)'
+        cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent'
       };
     default:
       return {
         renk: '#111827',
         rgb: '17, 24, 39',
         badgeBg: 'bg-gray-100 text-gray-700',
-        cardBg: 'from-gray-100 to-transparent',
-        pattern: 'none'
+        cardBg: 'from-gray-100 to-transparent'
       };
   }
 };
@@ -88,6 +85,11 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [translations, setTranslations] = useState({});
+
+  // Motivasyon Özellikleri State'leri
+  const [alkisSayisi, setAlkisSayisi] = useState(yazi?.alkis_sayisi || 0);
+  const [alkislaniyor, setAlkislaniyor] = useState(false);
+  const [kopyalandiBildirim, setKopyalandiBildirim] = useState('');
 
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const canvasRef = useRef(null);
@@ -126,6 +128,45 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
   const aktifBaslik = seciliDil === 'tr' ? yazi?.baslik : (translations[seciliDil]?.baslik || yazi?.baslik);
   const aktifIcerik = seciliDil === 'tr' ? yazi?.icerik : (translations[seciliDil]?.icerik || yazi?.icerik);
   const aktifDilObj = DILLER.find((d) => d.kod === seciliDil) || DILLER[0];
+
+  // 1. Düşünce İzi (Alkış) Bırakma
+  const handleAlkisla = async () => {
+    if (alkislaniyor) return;
+    setAlkislaniyor(true);
+    const yeniSayi = alkisSayisi + 1;
+    setAlkisSayisi(yeniSayi);
+
+    try {
+      await supabase
+        .from('yazilar')
+        .update({ alkis_sayisi: yeniSayi })
+        .eq('id', yazi.id);
+    } catch (e) {
+      console.error('Etkileşim kaydedilemedi:', e);
+    } finally {
+      setTimeout(() => setAlkislaniyor(false), 300);
+    }
+  };
+
+  // 2. APA Formatında Alıntı Künyesi Kopyalama
+  const handleAlintiKopyala = async () => {
+    const yazarIsmi = yazi.yazarlar?.ad_soyad || 'Zemin Yazarı';
+    const yayinYili = yazi.yayin_tarihi ? new Date(yazi.yayin_tarihi).getFullYear() : '2026';
+    const apaMetni = `${yazarIsmi} (${yayinYili}). "${aktifBaslik}". ZEMİN — Açık Düşünce İnisiyatifi${yazi.dergiler ? `, Sayı ${yazi.dergiler.sayi_no}` : ''}. ${typeof window !== 'undefined' ? window.location.href : ''}`;
+
+    try {
+      await navigator.clipboard.writeText(apaMetni);
+      setKopyalandiBildirim('Alıntı künyesi kopyalandı');
+      setTimeout(() => setKopyalandiBildirim(''), 2500);
+    } catch (e) {
+      alert('Alıntı kopyalanamadı.');
+    }
+  };
+
+  // 3. Yazdır / Temiz PDF Çıktısı Al
+  const handleYazdir = () => {
+    window.print();
+  };
 
   // 1080x1920 Story Motoru
   useEffect(() => {
@@ -400,7 +441,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
   const handleRastgele = async () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    const { supabase } = await import('../../../lib/supabase');
     const { data } = await supabase
       .from('yazilar')
       .select('slug')
@@ -460,14 +500,14 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       
       {/* ÜST OKUMA İLERLEME ÇUBUĞU */}
       <div 
-        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-xs"
+        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693] z-[99999] transition-all duration-75 ease-out shadow-xs print:hidden"
         style={{ width: `${scrollProgress}%` }}
       />
 
       <main className="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
         
         {/* NAVBAR */}
-        <header className="glass-panel mx-auto max-w-3xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-md">
+        <header className="glass-panel mx-auto max-w-3xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-md print:hidden">
           <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
             <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
               ZEMİN
@@ -499,8 +539,23 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
         </header>
 
         {/* METİN KARTI */}
-        <article className="glass-card p-6 sm:p-10 border border-white/90 shadow-xl relative">
+        <article className="glass-card p-6 sm:p-10 border border-white/90 shadow-xl relative print:shadow-none print:border-none print:p-0">
           
+          {/* DERGİ SEÇKİSİ MÜHRÜ (EĞER DERGİDE YAYIMLANDIYSA) */}
+          {yazi.dergiler && (
+            <div className="mb-4 p-2.5 rounded-2xl bg-[#74112f]/10 border border-[#74112f]/25 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#74112f] animate-ping" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#74112f]">
+                  ZEMİN Basılı Seçkisi — Sayı {yazi.dergiler.sayi_no}: {yazi.dergiler.baslik}
+                </span>
+              </div>
+              <Link href={`/dergiler`} className="text-[10px] font-bold text-[#74112f] hover:underline whitespace-nowrap">
+                Sayıyı İncele →
+              </Link>
+            </div>
+          )}
+
           {/* ÜST BİLGİ & ARAÇ ÇUBUĞU */}
           <header className="border-b border-gray-200/70 pb-5 mb-6">
             
@@ -511,11 +566,6 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                 <span className="bg-[#00a693]/15 text-[#00a693] text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                   {yazi.kategori}
                 </span>
-                {yazi.dergiler && (
-                  <span className="bg-[#74112f] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
-                    Sayı {yazi.dergiler.sayi_no}
-                  </span>
-                )}
                 {yayinTarihiFormat && (
                   <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/70 px-2.5 py-0.5 rounded-full">
                     {yayinTarihiFormat}
@@ -527,7 +577,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               </div>
 
               {/* SEMBOL / İKON BUTONLARI */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 print:hidden">
                 
                 {/* DİL SEÇİMİ */}
                 <div className="relative" ref={langMenuRef}>
@@ -582,6 +632,28 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                   )}
                 </button>
 
+                {/* ALINTILA (APA) İKONU */}
+                <button
+                  onClick={handleAlintiKopyala}
+                  className="p-1.5 text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
+                  title="Akademik Alıntı Künyesini Kopyala"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                </button>
+
+                {/* YAZDIR / PDF İNDİR İKONU */}
+                <button
+                  onClick={handleYazdir}
+                  className="p-1.5 text-gray-700 bg-white/80 hover:bg-white border border-gray-200/80 rounded-full transition-all shadow-xs"
+                  title="Metni Yazdır / PDF Olarak Kaydet"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                </button>
+
                 {/* STORY İKONU */}
                 <button
                   onClick={() => setIsStoryOpen(true)}
@@ -633,6 +705,13 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
               </div>
             </div>
 
+            {/* ALINTI KOPYALANDI BİLDİRİMİ */}
+            {kopyalandiBildirim && (
+              <div className="mb-3 text-[11px] font-bold text-[#00a693] bg-[#00a693]/10 px-3 py-1.5 rounded-xl border border-[#00a693]/20 animate-fade-in text-center">
+                {kopyalandiBildirim}
+              </div>
+            )}
+
             {/* BAŞLIK */}
             <h1 className="text-xl sm:text-2xl font-black font-serif text-gray-900 leading-snug tracking-tight mb-4 text-left">
               {isTranslating ? 'Çevriliyor...' : aktifBaslik}
@@ -658,7 +737,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
           {/* KAPAK GÖRSELİ */}
           {yazi.kapak_url && (
-            <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs max-h-80">
+            <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs max-h-80 print:hidden">
               <img 
                 src={yazi.kapak_url} 
                 alt={yazi.baslik} 
@@ -684,9 +763,43 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
             )}
           </div>
 
+          {/* DÜŞÜNCE İZİ (ALKIŞ) BUTONU & ALINTILAMA BARI */}
+          <div className="mt-12 pt-6 border-t border-gray-200/70 max-w-[650px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
+            
+            {/* Alkış Butonu */}
+            <button
+              onClick={handleAlkisla}
+              className={`flex items-center gap-2.5 px-4 py-2 rounded-full border transition-all shadow-xs ${
+                alkislaniyor
+                  ? 'scale-105 bg-[#74112f] text-white border-[#74112f]'
+                  : 'bg-white hover:bg-gray-50 text-gray-800 border-gray-200'
+              }`}
+              title="Bu metni değerli bulduğunuzu belirtin"
+            >
+              <svg className="w-4 h-4 text-[#74112f]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+              <span className="text-xs font-bold">Düşünce İzi Bırak</span>
+              <span className="text-[11px] font-black bg-[#74112f]/10 text-[#74112f] px-2 py-0.5 rounded-full">
+                {alkisSayisi}
+              </span>
+            </button>
+
+            {/* APA Alıntı Butonu */}
+            <button
+              onClick={handleAlintiKopyala}
+              className="text-[11px] font-bold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Akademik Alıntı Yap (APA)
+            </button>
+          </div>
+
           {/* YAZAR BİYOGRAFİSİ */}
           {yazi.yazarlar && (
-            <div className="mt-10 pt-5 border-t border-gray-200/80 max-w-[650px] mx-auto">
+            <div className="mt-8 pt-5 border-t border-gray-200/80 max-w-[650px] mx-auto print:border-t-2">
               <div className="glass-card p-4 border border-gray-200/80 bg-white/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="space-y-0.5 max-w-md">
                   <span className="text-[9px] font-black uppercase tracking-widest text-[#74112f]">Yazar Hakkında</span>
@@ -700,7 +813,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
                     href={`https://instagram.com/${yazi.yazarlar.instagram}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-gray-100 hover:bg-[#00a693]/10 text-gray-800 hover:text-[#00a693] px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap self-end sm:self-center"
+                    className="bg-gray-100 hover:bg-[#00a693]/10 text-gray-800 hover:text-[#00a693] px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap self-end sm:self-center print:hidden"
                   >
                     @{yazi.yazarlar.instagram}
                   </a>
@@ -711,7 +824,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
           {/* İLGİLİ DİĞER YAZILAR */}
           {ilgiliYazilar.length > 0 && (
-            <div className="mt-8 pt-5 border-t border-gray-200/80 max-w-[650px] mx-auto space-y-2.5">
+            <div className="mt-8 pt-5 border-t border-gray-200/80 max-w-[650px] mx-auto space-y-2.5 print:hidden">
               <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-900">
                 Bu Alandaki Diğer Metinler
               </h3>
@@ -736,7 +849,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
           )}
 
           {/* GERİ DÖN BAĞLANTISI */}
-          <div className="text-center mt-10">
+          <div className="text-center mt-10 print:hidden">
             <Link 
               href="/yazilar" 
               className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#74112f] transition-colors"
@@ -751,7 +864,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
 
       {/* STORY MODALI */}
       {isStoryOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm print:hidden">
           <div className="glass-card max-w-sm w-full p-5 rounded-3xl border border-white/90 shadow-2xl relative text-center">
             <button
               onClick={() => setIsStoryOpen(false)}
@@ -783,7 +896,7 @@ export default function YaziIcerik({ yazi, ilgiliYazilar = [] }) {
       <canvas ref={canvasRef} className="hidden" />
 
       {/* FOOTER */}
-      <footer className="mt-auto border-t border-gray-200/70 bg-white py-6 text-center text-xs font-semibold text-gray-500">
+      <footer className="mt-auto border-t border-gray-200/70 bg-white py-6 text-center text-xs font-semibold text-gray-500 print:hidden">
         ZEMİN — Açık Düşünce İnisiyatifi © 2026
       </footer>
 
