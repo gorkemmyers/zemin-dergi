@@ -38,7 +38,7 @@ export default async function YaziDetayServerPage({ params }) {
   const { data: yazi } = await supabase
     .from('yazilar')
     .select(`
-      id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi,
+      id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi, yayin_tarihi,
       dergiler (id, sayi_no, baslik),
       yazarlar (id, ad_soyad, slug, universite, bolum, instagram, biyografi)
     `)
@@ -51,7 +51,7 @@ export default async function YaziDetayServerPage({ params }) {
     const { data: ilgililer } = await supabase
       .from('yazilar')
       .select(`
-        id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi,
+        id, baslik, slug, kategori, icerik, kapak_url, olusturulma_tarihi, yayin_tarihi,
         yazarlar (ad_soyad, universite)
       `)
       .eq('kategori', yazi.kategori)
