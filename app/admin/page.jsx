@@ -3,6 +3,22 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 
+function formatTarih(isoString) {
+  if (!isoString) return 'Belirtilmemiş';
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    return 'Belirtilmemiş';
+  }
+}
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState('');
@@ -10,7 +26,7 @@ export default function AdminPage() {
 
   // Sekmeler & Filtreler
   const [activeTab, setActiveTab] = useState('yazilar');
-  const [yaziDurumFiltre, setYaziDurumFiltre] = useState('duzenleme'); // 'duzenleme' | 'beklemede' | 'onaylandi' | 'reddedildi' | 'tumu'
+  const [yaziDurumFiltre, setYaziDurumFiltre] = useState('duzenleme');
   const [yaziKategoriFiltre, setYaziKategoriFiltre] = useState('tumu');
   const [aramaMetni, setAramaMetni] = useState('');
   const [yazarAramaMetni, setYazarAramaMetni] = useState('');
@@ -108,14 +124,14 @@ export default function AdminPage() {
         setYazilar(prev => prev.map(y => y.id === id ? guncel : y));
         setSelectedYazi(guncel);
       } else {
-        alert('Kategori güncellenemedi: ' + (error?.message || 'Bilinmeyen hata'));
+        alert('Kategori güncellenemedi: ' + (error?.message || 'Hata'));
       }
     } catch (err) {
       alert('Hata: ' + err.message);
     }
   }
 
-  // --- DÜZENLEME TALEBİNİ ONAYLA (CANLIYA AKTAR) ---
+  // --- DÜZENLEME TALEBİNİ ONAYLA ---
   async function duzenlemeTalebiniOnayla(yazi) {
     const guncelleme = {
       baslik: yazi.taslak_baslik || yazi.baslik,
@@ -127,7 +143,8 @@ export default function AdminPage() {
       taslak_icerik: null,
       taslak_kapak_url: null,
       duzeltme_notu: null,
-      durum: 'onaylandi'
+      durum: 'onaylandi',
+      yayin_tarihi: yazi.yayin_tarihi || new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -146,9 +163,9 @@ export default function AdminPage() {
     }
   }
 
-  // --- DÜZENLEME TALEBİNİ REDDET (ORİJİNAL YAZI YAYINDA KALIR) ---
+  // --- DÜZENLEME TALEBİNİ REDDET ---
   async function duzenlemeTalebiniReddet(yazi) {
-    if (!confirm('Düzenleme talebini reddetmek istediğinize emin misiniz? (Canlıdaki orijinal metin bozulmadan yayında kalacaktır)')) return;
+    if (!confirm('Düzenleme talebini reddetmek istediğinize emin misiniz? (Orijinal metin yayında kalacaktır)')) return;
 
     const guncelleme = {
       taslak_baslik: null,
@@ -174,11 +191,16 @@ export default function AdminPage() {
     }
   }
 
-  // --- STANDART DURUM GÜNCELLE ---
+  // --- STANDART DURUM GÜNCELLE (YAYINA AL / BEKLET / REDDET) ---
   async function yaziDurumGuncelle(id, yeniDurum) {
+    const payload = { durum: yeniDurum };
+    if (yeniDurum === 'onaylandi') {
+      payload.yayin_tarihi = new Date().toISOString();
+    }
+
     const { data, error } = await supabase
       .from('yazilar')
-      .update({ durum: yeniDurum })
+      .update(payload)
       .eq('id', id)
       .select('*, yazarlar(*)');
 
@@ -220,7 +242,7 @@ export default function AdminPage() {
     }
   }
 
-  // --- EDİTÖR DETAYLI METİN DÜZENLEME ---
+  // --- EDİTÖR DETAYLI DÜZENLEME ---
   const handleYaziDuzenleAc = (y) => {
     setEditYaziData({
       baslik: y.baslik || '',
@@ -332,7 +354,7 @@ export default function AdminPage() {
   }
 
   async function yazarSil(id) {
-    if (!confirm('Yazarı silerseniz bu yazara bağlı tüm metinler de silinebilir. Devam edilsin mi?')) return;
+    if (!confirm('Yazarı silerseniz bu yazara bağlı metinler de etkilenebilir. Devam edilsin mi?')) return;
     const { error } = await supabase.from('yazarlar').delete().eq('id', id);
     if (!error) loadData();
   }
@@ -373,7 +395,7 @@ export default function AdminPage() {
   const yeniBasvurular = yazilar.filter(y => y.durum === 'beklemede' && (!y.duzeltme_notu || String(y.duzeltme_notu).trim() === ''));
   const yayindakiler = yazilar.filter(y => y.durum === 'onaylandi' && (!y.duzeltme_notu || String(y.duzeltme_notu).trim() === ''));
 
-  // Kesin ve Net Filtreleme
+  // Filtreleme
   const filtrelenmisYazilar = yazilar.filter(y => {
     let durumUygun = true;
     const hasDuzeltme = Boolean(y.duzeltme_notu && String(y.duzeltme_notu).trim() !== '');
@@ -616,7 +638,7 @@ export default function AdminPage() {
                               </button>
                               <button
                                 onClick={() => yaziDurumGuncelle(selectedYazi.id, 'beklemede')}
-                                className="bg-amber-500 text-white px-3.5 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
+                                className="bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:bg-amber-600 shadow-xs"
                               >
                                 Beklet
                               </button>
@@ -705,7 +727,19 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      {/* İÇERİK: DÜZENLEME MODU / TASLAK & CANLI KARŞILAŞTIRMASI */}
+                      {/* TARİH BİLGİ ŞERİDİ */}
+                      <div className="grid grid-cols-2 gap-3 px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200/70 text-[11px]">
+                        <div>
+                          <span className="text-gray-400 font-bold block text-[9.5px] uppercase">Gönderilme Tarihi</span>
+                          <span className="font-semibold text-gray-800">{formatTarih(selectedYazi.olusturulma_tarihi || selectedYazi.created_at)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-bold block text-[9.5px] uppercase">Yayına Alınma Tarihi</span>
+                          <span className="font-semibold text-[#00a693]">{selectedYazi.yayin_tarihi ? formatTarih(selectedYazi.yayin_tarihi) : 'Henüz Yayında Değil'}</span>
+                        </div>
+                      </div>
+
+                      {/* İÇERİK */}
                       {isEditingYazi ? (
                         <form onSubmit={handleYaziDuzenleKaydet} className="space-y-3 pt-2">
                           <div className="grid grid-cols-3 gap-2">
