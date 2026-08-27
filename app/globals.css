@@ -2,81 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobil ve masaüstünde daima açık temayı kilitler */
+/* Mobil cihazların karanlık moda geçmesini engelleyip açık temayı kilitler */
 :root {
   color-scheme: light !important;
-  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 html, body {
   color-scheme: light !important;
+  background-color: #F7F7F9;
+  color: #111827;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  color: #1a1a1a;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Sıcak Fildişi Zemin + Sabit Sıvı Işık Küreleri (Bordo, Mor, Turkuaz) + Mikro Kâğıt Greni */
-  background-color: #F4F1EA;
-  background-image: 
-    radial-gradient(at 15% 12%, rgba(116, 17, 47, 0.08) 0px, transparent 55%),
-    radial-gradient(at 85% 25%, rgba(50, 18, 122, 0.07) 0px, transparent 50%),
-    radial-gradient(at 20% 75%, rgba(0, 166, 147, 0.07) 0px, transparent 55%),
-    radial-gradient(at 80% 88%, rgba(116, 17, 47, 0.06) 0px, transparent 50%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
-  background-attachment: fixed;
-  background-repeat: repeat;
 }
 
 @layer utilities {
-  /* NAVBAR VE YÜZEN KAPSÜLLER (DONMAYAN SIVI CAM PANEL) */
+  /* Donma yapmayan, hafif ve temiz panel efekti */
   .glass-panel {
-    background: rgba(255, 255, 255, 0.74) !important;
-    backdrop-filter: blur(14px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.85) !important;
-    box-shadow: 
-      0 4px 20px -2px rgba(0, 0, 0, 0.04),
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.95) !important;
+    background-color: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(229, 231, 235, 0.85);
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+    border-radius: 1.5rem;
   }
-
-  /* YAZI KARTLARI, HERO VE KONSOL (FİZİKSEL CAM YANSIMALI KART) */
+  
+  /* Donma yapmayan, net okuma kartı efekti */
   .glass-card {
-    background: rgba(255, 255, 255, 0.78) !important;
-    backdrop-filter: blur(16px) saturate(170%) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(170%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.9) !important;
-    box-shadow: 
-      0 10px 30px -5px rgba(0, 0, 0, 0.05),
-      0 2px 6px -1px rgba(0, 0, 0, 0.02),
-      inset 0 1.5px 0 0 rgba(255, 255, 255, 1) !important; /* Üst kenardan vuran saf beyaz ışık yansıması */
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 2px 10px -1px rgba(0, 0, 0, 0.03);
+    border-radius: 1rem;
   }
-
-  /* KARTIN ÜZERİNE GELİNDİĞİNDE PARLAMA */
-  .glass-card:hover {
-    background: rgba(255, 255, 255, 0.92) !important;
-    box-shadow: 
-      0 16px 36px -6px rgba(50, 18, 122, 0.08),
-      0 4px 12px -2px rgba(0, 0, 0, 0.03),
-      inset 0 1.5px 0 0 rgba(255, 255, 255, 1) !important;
-  }
-}
-
-/* İNCE EDİTORYAL KAYDIRMA ÇUBUĞU */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
 }
