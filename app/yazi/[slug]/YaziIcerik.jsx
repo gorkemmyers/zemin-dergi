@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 
-// Saf SVG İkon Bileşenleri (react-icons paketi bağımlılığından kurtulmak için)
+// Saf SVG İkon Bileşenleri
 const HeartIcon = ({ solid }) => (
   <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill={solid ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={solid ? 0 : 2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -55,6 +55,8 @@ export default function YaziIcerik() {
 
         if (error) throw error;
         setYazi(data);
+        
+        // Simüle edilmiş rastgele başlangıç beğenisi (istersen Supabase'den gerçek like sayısını bağlayabilirsin)
         setLikeCount(Math.floor(Math.random() * 50) + 12);
       } catch (error) {
         console.error('Yazı çekme hatası:', error.message);
@@ -84,7 +86,8 @@ export default function YaziIcerik() {
     }
   };
 
-  const handleTranslate = (targetLang) => {
+  // Gerçek Google Translate API (Ücretsiz Uç Nokta) Entegrasyonu
+  const handleTranslate = async (targetLang) => {
     if (targetLang === 'tr') {
       setSelectedLanguage('tr');
       setTranslatedText('');
@@ -94,11 +97,32 @@ export default function YaziIcerik() {
     setIsTranslating(true);
     setSelectedLanguage(targetLang);
     
-    // Geçici Çeviri Simülasyonu
-    setTimeout(() => {
-      setTranslatedText(`[Translated to ${targetLang.toUpperCase()}]\n\n${yazi?.icerik || ''}`);
+    try {
+      const icerik = yazi?.icerik || '';
+      const paragraflar = icerik.split('\n\n');
+      let tamCeviri = '';
+
+      // API limitlerine takılmamak için paragraf paragraf çeviriyoruz
+      for (const paragraf of paragraflar) {
+        if (!paragraf.trim()) {
+          tamCeviri += '\n\n';
+          continue;
+        }
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${targetLang}&dt=t&q=${encodeURIComponent(paragraf)}`);
+        const data = await res.json();
+        const cevrilmisParagraf = data[0].map(item => item[0]).join('');
+        tamCeviri += cevrilmisParagraf + '\n\n';
+      }
+
+      setTranslatedText(tamCeviri.trim());
+    } catch (error) {
+      console.error('Çeviri hatası:', error);
+      alert('Çeviri motorunda geçici bir hata oluştu.');
+      setSelectedLanguage('tr');
+      setTranslatedText('');
+    } finally {
       setIsTranslating(false);
-    }, 1000);
+    }
   };
 
   const handleSpeech = () => {
@@ -145,7 +169,6 @@ export default function YaziIcerik() {
   }
 
   const renk = getDisiplinRenk(yazi.kategori);
-  // icerik null ise uygulamanın çökmemesi için boş string ataması
   const guvenliIcerik = yazi.icerik || '';
   const okumaSuresi = Math.max(1, Math.ceil(guvenliIcerik.trim().split(/\s+/).length / 200));
   const gosterilenIcerik = translatedText || guvenliIcerik;
@@ -159,7 +182,7 @@ export default function YaziIcerik() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F6F2] relative selection:bg-[#1a1a1a]/10 selection:text-[#1a1a1a]">
       <style jsx global>{`
-        /* Zemin Editoryal İlk Harf (Drop Cap) Stili */
+        /* Editoryal Büyük İlk Harf (Drop Cap) Stili */
         .editoryal-metin > p:first-of-type::first-letter {
           float: left;
           font-size: 4.5rem;
@@ -171,7 +194,7 @@ export default function YaziIcerik() {
           font-family: ui-sans-serif, system-ui, sans-serif;
         }
 
-        /* Yazdırma Stilleri */
+        /* Yazdırma (Print) Stilleri */
         @media print {
           header, footer, .no-print { display: none !important; }
           body { background: white !important; color: black !important; }
@@ -230,6 +253,7 @@ export default function YaziIcerik() {
         {/* ARAÇ ÇUBUĞU (Dil, Seslendirme, Paylaşım, Yazdırma) */}
         <div className="max-w-2xl mx-auto mb-10 flex flex-wrap items-center justify-between gap-4 bg-white/60 p-2 sm:p-3 rounded border border-[#1a1a1a]/10 no-print">
           
+          {/* Çeviri ve Ses Motoru */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="flex bg-[#ECEAE3] p-1 rounded">
               {['tr', 'en', 'fr'].map((lang) => (
@@ -237,7 +261,7 @@ export default function YaziIcerik() {
                   key={lang}
                   onClick={() => handleTranslate(lang)}
                   className={`px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded transition-colors ${
-                    selectedLanguage === lang ? 'bg-[#1a1a1a] text-white' : 'text-gray-500 hover:text-[#1a1a1a]'
+                    selectedLanguage === lang ? 'bg-[#1a1a1a] text-white shadow-sm' : 'text-gray-500 hover:text-[#1a1a1a]'
                   }`}
                 >
                   {lang}
@@ -247,12 +271,13 @@ export default function YaziIcerik() {
             <button
               onClick={handleSpeech}
               title="Metni Seslendir"
-              className={`p-1.5 sm:p-2 rounded transition-colors ${isSpeaking ? 'bg-[#74112f] text-white' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'}`}
+              className={`p-1.5 sm:p-2 rounded transition-colors ${isSpeaking ? 'bg-[#74112f] text-white shadow-sm' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'}`}
             >
               <SpeakerIcon />
             </button>
           </div>
 
+          {/* Aksiyon Butonları */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button onClick={handlePrint} title="Yazdır" className="p-1.5 sm:p-2 bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white rounded transition-colors">
               <PrinterIcon />
@@ -263,7 +288,7 @@ export default function YaziIcerik() {
             <button 
               onClick={handleLike} 
               className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded transition-colors font-bold text-[10px] sm:text-[11px] ${
-                isLiked ? 'bg-[#74112f] text-white' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'
+                isLiked ? 'bg-[#74112f] text-white shadow-sm' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'
               }`}
             >
               <HeartIcon solid={isLiked} />
@@ -289,13 +314,16 @@ export default function YaziIcerik() {
         {/* METİN GÖVDESİ */}
         <article className="max-w-2xl mx-auto">
           {isTranslating ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-300 rounded w-full"></div>
-              <div className="h-4 bg-gray-300 rounded w-5/6"></div>
-              <div className="h-4 bg-gray-300 rounded w-4/6"></div>
+            <div className="animate-pulse space-y-5">
+              <div className="h-5 bg-gray-300 rounded w-full"></div>
+              <div className="h-5 bg-gray-300 rounded w-11/12"></div>
+              <div className="h-5 bg-gray-300 rounded w-4/5"></div>
+              <div className="h-5 bg-gray-300 rounded w-full"></div>
+              <div className="h-5 bg-gray-300 rounded w-3/4"></div>
             </div>
           ) : (
             <div className="editoryal-metin text-[#1a1a1a] text-base sm:text-lg font-serif leading-relaxed sm:leading-loose whitespace-pre-wrap text-justify">
+              {/* Drop Cap (Büyük ilk harf) CSS'inin çalışması için metni ayrı p etiketlerine ayırıyoruz */}
               {gosterilenIcerik.split('\n\n').map((paragraf, index) => (
                 <p key={index} className="mb-6">{paragraf}</p>
               ))}
@@ -303,7 +331,7 @@ export default function YaziIcerik() {
           )}
         </article>
 
-        {/* MAKALE ALTI / YAZAR KARTUŞU */}
+        {/* YAZAR KARTUŞU */}
         <footer className="max-w-2xl mx-auto mt-16 pt-8 border-t-2 border-[#1a1a1a] no-print">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 bg-[#ECEAE3] p-6 rounded-lg border border-[#1a1a1a]/10">
             <div>
