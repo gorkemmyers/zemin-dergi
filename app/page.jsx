@@ -5,68 +5,72 @@ import { supabase } from '../lib/supabase';
 
 const MADDELER = [
   {
-    no: '01',
+    no: 'I',
+    numara: '01',
     kisaBaslik: 'Açık Kürsü',
-    baslik: 'Bağımsız Düşünce Alanı',
-    aciklama: 'Felsefe, sosyoloji ve psikoloji alanlarında sorgulayan, araştıran ve metin üreten herkese açıktır. Akademik unvan veya okul şartı aranmaz; yalnızca düşünsel derinlik ve tutarlılık esastır.',
-    rozet: 'AÇIK ARŞİV',
-    renk: '#00a693',
-    glow: 'rgba(0, 166, 147, 0.22)'
+    baslik: 'Bağımsız Düşünce & Açık Arşiv',
+    aciklama: 'Felsefe, sosyoloji ve psikoloji alanlarında sorgulayan, araştıran herkese açıktır. Akademik unvan veya zümre şartı aranmaz; yalnızca düşünsel derinlik, tutarlılık ve samimiyet esastır.',
+    rozet: 'AÇIK KÜRSÜ',
+    renk: '#74112f'
   },
   {
-    no: '02',
+    no: 'II',
+    numara: '02',
     kisaBaslik: 'İfade Özgürlüğü',
     baslik: 'İsim veya Mahlas Serbestisi',
-    aciklama: 'Düşüncelerinizi ister gerçek adınızla, ister bağımsız bir mahlasla kaleme alabilirsiniz. Her iki tercih de ZEMİN editör masasında eşit editoryal saygı ve titizlikle değerlendirilir.',
-    rozet: 'ÖZGÜR İFADE',
-    renk: '#74112f',
-    glow: 'rgba(116, 17, 47, 0.22)'
+    aciklama: 'Düşüncelerinizi ister kendi adınızla, ister bağımsız bir mahlasla kaleme alabilirsiniz. Her iki tercih de ZEMİN editör masasında eşit ciddiyet ve hürmetle değerlendirilir.',
+    rozet: 'SERBEST İFADE',
+    renk: '#32127a'
   },
   {
-    no: '03',
+    no: 'III',
+    numara: '03',
     kisaBaslik: 'Yazar Masası',
-    baslik: 'Pratik & Şifresiz Yönetim',
-    aciklama: 'İlk metninizle belirlediğiniz 4 haneli PIN kodu isminizle eşleşir. E-posta olmadan profilinizi düzenleyebilir, yeni metin gönderebilir ve okur etkileşimlerini takip edebilirsiniz.',
-    rozet: 'PIN MASASI',
-    renk: '#32127a',
-    glow: 'rgba(50, 18, 122, 0.22)'
+    baslik: '4 Haneli PIN ile Kimlik Masası',
+    aciklama: 'İlk metninizle belirlediğiniz 4 haneli PIN kodu adınızla eşleşir. E-posta bürokrasisi olmadan profilinizi yönetebilir, yeni metin gönderebilir ve arşivinizi büyütebilirsiniz.',
+    rozet: 'PIN SİSTEMİ',
+    renk: '#00a693'
   },
   {
-    no: '04',
+    no: 'IV',
+    numara: '04',
     kisaBaslik: 'Dergi Seçkisi',
-    baslik: 'Dönemsel ZEMİN Dergisi Yayını',
-    aciklama: 'Onaylanan tüm metinler web arşivinde kesintisiz yer alır. Editör masası tarafından öne çıkan düşünce metinleri ise dönemsel ZEMİN Dergisi resmi seçkisine dahil edilir.',
+    baslik: 'Dönemsel ZEMİN Dergisi Neşriyatı',
+    aciklama: 'Onaylanan tüm metinler web arşivinde kesintisiz yer alır. Editör masası tarafından öne çıkan düşünce metinleri ise dönemsel ZEMİN Dergisi resmi seçkisine (e-dergi) dahil edilir.',
     rozet: 'RESMİ SEÇKİ',
-    renk: '#74112f',
-    glow: 'rgba(116, 17, 47, 0.22)'
+    renk: '#8C6D31'
   }
 ];
 
 const getDisiplinStili = (kategori) => {
   switch (kategori) {
+    case 'Kavram Analizi':
     case 'Felsefe':
       return {
-        cardBg: 'from-[#74112f]/15 via-[#74112f]/5 to-transparent',
-        badgeBg: 'bg-[#74112f]/15 text-[#74112f]',
-        pattern: 'radial-gradient(circle at 100% 0%, rgba(116, 17, 47, 0.12) 0%, transparent 60%)'
+        badgeBorder: 'border-[#74112f]/40',
+        badgeBg: 'bg-[#74112f]/8 text-[#74112f]',
+        cardAccent: 'hover:border-[#74112f]/50'
       };
+    case 'Çağ & Yaşam Eleştirisi':
     case 'Sosyoloji':
       return {
-        cardBg: 'from-[#00a693]/15 via-[#00a693]/5 to-transparent',
-        badgeBg: 'bg-[#00a693]/15 text-[#00a693]',
-        pattern: 'radial-gradient(circle at 100% 0%, rgba(0, 166, 147, 0.12) 0%, transparent 60%)'
+        badgeBorder: 'border-[#00a693]/40',
+        badgeBg: 'bg-[#00a693]/8 text-[#00a693]',
+        cardAccent: 'hover:border-[#00a693]/50'
       };
+    case 'Kültür & Eser Çözümlemesi':
     case 'Psikoloji':
       return {
-        cardBg: 'from-[#32127a]/15 via-[#32127a]/5 to-transparent',
-        badgeBg: 'bg-[#32127a]/15 text-[#32127a]',
-        pattern: 'radial-gradient(circle at 100% 0%, rgba(50, 18, 122, 0.12) 0%, transparent 60%)'
+        badgeBorder: 'border-[#32127a]/40',
+        badgeBg: 'bg-[#32127a]/8 text-[#32127a]',
+        cardAccent: 'hover:border-[#32127a]/50'
       };
+    case 'Serbest Sorgulama':
     default:
       return {
-        cardBg: 'from-gray-100 to-transparent',
-        badgeBg: 'bg-gray-100 text-gray-700',
-        pattern: 'none'
+        badgeBorder: 'border-[#8C6D31]/40',
+        badgeBg: 'bg-[#8C6D31]/8 text-[#8C6D31]',
+        cardAccent: 'hover:border-[#8C6D31]/50'
       };
   }
 };
@@ -119,214 +123,268 @@ export default function Home() {
   const aktif = MADDELER[aktifMaddeIndex];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
-      <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
+    <div className="flex flex-col min-h-screen bg-[#F7F4EB] text-[#1C1917] font-serif selection:bg-[#8C6D31]/20 selection:text-[#1C1917]">
+      
+      {/* ÜST BİLGİ & KLASİK EDİTORYAL MASTHEAD */}
+      <header className="w-full border-b border-[#D8CEBA] bg-[#FAF7EE] relative z-20">
         
-        {/* NAVBAR */}
-        <header className="glass-panel mx-auto max-w-5xl p-3 sm:p-4 mb-8 sticky top-3 z-50 rounded-2xl sm:rounded-3xl border border-white/80 shadow-lg">
-          <div className="flex justify-between items-center px-2 pb-2.5 border-b border-gray-200/50">
-            <Link href="/" className="text-[#74112f] font-black text-2xl tracking-tighter hover:opacity-90">
-              ZEMİN
-            </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button 
-                onClick={handleRastgele}
-                className="glass-panel px-3 py-1.5 rounded-full text-[11px] font-bold text-gray-700 hover:text-[#74112f] transition-all shadow-xs"
-                title="Rastgele Bir Metin Keşfet"
-              >
-                Rastgele
-              </button>
-              <Link 
-                href="/basvuru" 
-                className="bg-[#32127a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold tracking-wider hover:bg-[#32127a]/85 shadow-md shadow-[#32127a]/20 transition-all"
-              >
-                METİN GÖNDER
-              </Link>
-            </div>
+        {/* En Üst İnce Latin / Tarih Şeridi */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-1.5 flex justify-between items-center text-[10px] uppercase tracking-[0.2em] text-[#78716C] border-b border-[#E8DFC8]">
+          <span>Acta Philosophica & Humaniora</span>
+          <span>Eskişehir • Açık Neşriyat</span>
+          <span className="hidden sm:inline">MMXXVI</span>
+        </div>
+
+        {/* Ana Roma Lapidar Başlık (Z E M İ N) */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-center relative">
+          
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <span className="h-px w-12 sm:w-24 bg-gradient-to-r from-transparent to-[#8C6D31]/60"></span>
+            <span className="text-[#8C6D31] text-xs">❖</span>
+            <span className="text-[11px] font-sans font-bold uppercase tracking-[0.3em] text-[#8C6D31]">
+              Düşünce Dergisi
+            </span>
+            <span className="text-[#8C6D31] text-xs">❖</span>
+            <span className="h-px w-12 sm:w-24 bg-gradient-to-l from-transparent to-[#8C6D31]/60"></span>
           </div>
 
-          <nav className="flex items-center justify-between sm:justify-center gap-4 sm:gap-8 pt-2.5 px-2 overflow-x-auto whitespace-nowrap text-xs sm:text-sm font-bold text-gray-700 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <Link href="/" className="text-[#00a693] flex-shrink-0">Ana Sayfa</Link>
-            <Link href="/yazilar" className="hover:text-[#00a693] transition-colors flex-shrink-0">Yazılar</Link>
-            <Link href="/dergiler" className="hover:text-[#00a693] transition-colors flex-shrink-0">Dergiler</Link>
-            <Link href="/yazarlar" className="hover:text-[#00a693] transition-colors flex-shrink-0">Yazarlar</Link>
-            <Link href="/iletisim" className="hover:text-[#00a693] transition-colors flex-shrink-0">İletişim</Link>
-          </nav>
-        </header>
+          <Link href="/" className="inline-block group">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-normal tracking-[0.2em] sm:tracking-[0.28em] text-[#1C1917] hover:text-[#74112f] transition-colors duration-300 font-serif">
+              ZEMİN
+            </h1>
+          </Link>
 
-        {/* HERO BÖLÜMÜ */}
-        <section className="glass-card p-6 sm:p-12 mb-8 border border-white/90 shadow-2xl relative overflow-hidden text-center sm:text-left">
-          <div className="relative z-10 max-w-2xl">
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#74112f] bg-[#74112f]/10 px-3.5 py-1 rounded-full inline-block mb-3">
-              ZEMİN Dergisi
+          <p className="text-xs sm:text-sm text-[#57534E] italic mt-2 tracking-wide font-serif max-w-lg mx-auto">
+            Felsefe, Sosyoloji ve Psikoloji Alanında Bağımsız Açık Kürsü
+          </p>
+
+          {/* Sağ ve Sol Hızlı Butonlar */}
+          <div className="mt-4 sm:mt-0 sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2 flex items-center justify-center gap-2">
+            <button
+              onClick={handleRastgele}
+              className="px-3 py-1.5 border border-[#C5A059]/60 hover:border-[#8C6D31] bg-[#FCFAF5] text-[11px] font-sans font-semibold tracking-wider uppercase text-[#57534E] hover:text-[#1C1917] transition-all shadow-xs"
+              title="Rastgele Bir Metin Keşfet"
+            >
+              Rastgele ✦
+            </button>
+            <Link
+              href="/basvuru"
+              className="px-4 py-1.5 bg-[#1C1917] hover:bg-[#74112f] text-[#FAF7EE] text-[11px] font-sans font-bold tracking-widest uppercase transition-all shadow-sm"
+            >
+              Metin Gönder
+            </Link>
+          </div>
+        </div>
+
+        {/* Klasik Çift Çizgili Menü Şeridi */}
+        <nav className="border-t-2 border-b-2 border-double border-[#D8CEBA] bg-[#F5F0E4]">
+          <div className="max-w-5xl mx-auto px-4 flex items-center justify-center gap-6 sm:gap-10 py-2.5 text-xs font-sans uppercase tracking-[0.2em] font-semibold text-[#57534E] overflow-x-auto whitespace-nowrap [scrollbar-width:none]">
+            <Link href="/" className="text-[#74112f] font-bold border-b border-[#74112f] pb-0.5">Ana Sayfa</Link>
+            <Link href="/yazilar" className="hover:text-[#1C1917] transition-colors">Yazılar</Link>
+            <Link href="/dergiler" className="hover:text-[#1C1917] transition-colors">Dergiler</Link>
+            <Link href="/yazarlar" className="hover:text-[#1C1917] transition-colors">Yazarlar</Link>
+            <Link href="/iletisim" className="hover:text-[#1C1917] transition-colors">İletişim</Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* ANA GÖVDE */}
+      <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-20 relative z-10">
+        
+        {/* HERO: KLASİK BOISERIE / ANTİK NİŞ PANELİ */}
+        <section className="p-6 sm:p-12 mb-12 bg-[#FCFAF5] border-2 border-[#D8CEBA] relative shadow-[0_4px_25px_rgba(0,0,0,0.03)] text-center">
+          
+          {/* Klasik Köşe Süsleri */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-[#8C6D31]"></div>
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-[#8C6D31]"></div>
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-[#8C6D31]"></div>
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-[#8C6D31]"></div>
+
+          <div className="max-w-2xl mx-auto">
+            <span className="text-[10px] sm:text-[11px] font-sans font-bold uppercase tracking-[0.25em] text-[#8C6D31] bg-[#8C6D31]/10 px-3 py-1 border border-[#8C6D31]/30 inline-block mb-4">
+              Açık Felsefe & Toplum Kürsüsü
             </span>
-            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-4">
+            
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-normal text-[#1C1917] tracking-tight leading-tight mb-4 font-serif">
               Düşüncenin Zemini, <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#74112f] via-[#32127a] to-[#00a693]">
+              <span className="italic font-serif text-[#74112f]">
                 Özgür İfade Alanı.
               </span>
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 font-medium leading-relaxed mb-6">
-              Felsefe, sosyoloji ve psikoloji alanlarında düşünen herkes için bağımsız açık yayın platformu.
+            </h2>
+
+            <div className="w-16 h-px bg-[#8C6D31] mx-auto my-4"></div>
+
+            <p className="text-xs sm:text-sm text-[#57534E] leading-relaxed mb-6 font-serif max-w-lg mx-auto">
+              Akademik unvan, kurum veya bürokrasi şartı aranmaksızın; felsefe, sosyoloji ve psikoloji merceğinden dünyayı anlamlandıran herkes için açık yayın mecrası.
             </p>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-              <Link 
-                href="/basvuru" 
-                className="bg-[#32127a] text-white px-5 py-2.5 rounded-full text-xs font-black shadow-md hover:bg-[#74112f] transition-all active:scale-95"
-              >
-                Metnini Gönder
-              </Link>
-              <Link 
-                href="/yazilar" 
-                className="glass-panel text-gray-800 px-5 py-2.5 rounded-full text-xs font-bold hover:text-[#00a693] border border-gray-200 shadow-xs transition-all"
-              >
-                Tüm Arşivi İncele
-              </Link>
-            </div>
-          </div>
-        </section>
 
-        {/* EKRANA TAM SIĞAN 4'LÜ LIQUID GLASS KONSOLU */}
-        <section className="mb-12 relative">
-          <div className="glass-card p-4 sm:p-7 rounded-3xl border border-white/90 shadow-xl relative overflow-hidden">
-            
-            {/* Sıvı Işık Küresi */}
-            <div 
-              className="absolute -top-12 -right-12 w-72 h-72 rounded-full blur-3xl pointer-events-none transition-all duration-700 ease-out opacity-70"
-              style={{ backgroundColor: aktif.glow }}
-            />
-
-            {/* Üst 4 Buton (Yatayda Asla Kaydırmayan Grid-cols-4) */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 p-1 bg-gray-100/80 rounded-2xl border border-gray-200/60 mb-5">
-              {MADDELER.map((m, idx) => {
-                const isSecili = aktifMaddeIndex === idx;
-                return (
-                  <button
-                    key={m.no}
-                    onClick={() => setAktifMaddeIndex(idx)}
-                    className={`py-2 px-1 sm:px-3 rounded-xl transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-center select-none ${
-                      isSecili
-                        ? 'bg-white text-gray-900 shadow-sm border border-white/90 font-black scale-[1.02]'
-                        : 'text-gray-500 hover:text-gray-900 hover:bg-white/40 font-bold'
-                    }`}
-                  >
-                    <span 
-                      className="text-[9px] sm:text-[11px] font-black leading-none"
-                      style={{ color: isSecili ? m.renk : undefined }}
-                    >
-                      {m.no}
-                    </span>
-                    <span className="text-[9.5px] sm:text-xs truncate leading-tight">
-                      {m.kisaBaslik}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Alt Aktif Açıklama Paneli */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-1">
-              <div className="space-y-1.5 max-w-2xl">
-                <div className="flex items-center gap-2">
-                  <span 
-                    className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full"
-                    style={{ backgroundColor: `${aktif.renk}18`, color: aktif.renk }}
-                  >
-                    {aktif.rozet}
-                  </span>
-                  <h3 className="text-xs sm:text-sm font-black text-gray-900">
-                    {aktif.baslik}
-                  </h3>
-                </div>
-                <p className="text-[11.5px] sm:text-xs text-gray-600 font-serif leading-relaxed">
-                  {aktif.aciklama}
-                </p>
-              </div>
-
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/basvuru"
-                className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded-xl bg-gray-900 hover:bg-[#32127a] text-white shadow-xs transition-all active:scale-95 whitespace-nowrap self-end sm:self-center"
+                className="px-6 py-2.5 bg-[#74112f] hover:bg-[#1C1917] text-[#FAF7EE] text-xs font-sans font-bold uppercase tracking-widest transition-all shadow-sm"
               >
-                <span>Yazı Masasına Git</span>
-                <span>→</span>
+                Metnini Masaya Gönder
+              </Link>
+              <Link
+                href="/yazilar"
+                className="px-6 py-2.5 bg-[#FAF7EE] hover:bg-[#F5F0E4] text-[#1C1917] border border-[#C5A059] text-xs font-sans font-bold uppercase tracking-widest transition-all"
+              >
+                Arşivi İncele →
               </Link>
             </div>
-
           </div>
         </section>
 
-        {/* SON METİNLER (MAX 10) */}
+        {/* 4 TEMEL İLKE KONSOLU (ROMA NUMARALARI VE KLASİK ÇERÇEVELER) */}
+        <section className="mb-14 bg-[#FCFAF5] border border-[#D8CEBA] p-4 sm:p-8 relative">
+          
+          <div className="text-center mb-6">
+            <span className="text-[10px] font-sans font-bold uppercase tracking-[0.25em] text-[#8C6D31]">
+              Yayın Manifestosu & İşleyiş
+            </span>
+            <h3 className="text-lg sm:text-xl font-normal text-[#1C1917] mt-1 font-serif">
+              Dört Temel Esas
+            </h3>
+            <div className="w-12 h-px bg-[#C5A059] mx-auto mt-2"></div>
+          </div>
+
+          {/* 4 Seçim Sekmesi (I, II, III, IV) */}
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-3 p-1.5 bg-[#F5F0E4] border border-[#E8DFC8] mb-6">
+            {MADDELER.map((m, idx) => {
+              const isSecili = aktifMaddeIndex === idx;
+              return (
+                <button
+                  key={m.numara}
+                  onClick={() => setAktifMaddeIndex(idx)}
+                  className={`py-2 sm:py-3 px-1 sm:px-4 transition-all duration-200 text-center select-none border ${
+                    isSecili
+                      ? 'bg-[#FAF7EE] border-[#8C6D31] text-[#1C1917] shadow-xs'
+                      : 'border-transparent text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF7EE]/60'
+                  }`}
+                >
+                  <span className={`block text-xs sm:text-sm font-serif font-bold ${isSecili ? 'text-[#8C6D31]' : 'text-[#78716C]'}`}>
+                    {m.no}
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-sans uppercase tracking-wider font-semibold truncate block mt-0.5">
+                    {m.kisaBaslik}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Aktif Açıklama Kitabesi */}
+          <div className="border border-[#E8DFC8] bg-[#FAF7EE] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-sans font-bold uppercase tracking-widest px-2 py-0.5 border border-[#8C6D31]/40 bg-[#8C6D31]/10 text-[#8C6D31]">
+                  {aktif.rozet}
+                </span>
+                <h4 className="text-sm sm:text-base font-serif font-bold text-[#1C1917]">
+                  {aktif.baslik}
+                </h4>
+              </div>
+              <p className="text-xs sm:text-sm text-[#57534E] leading-relaxed font-serif">
+                {aktif.aciklama}
+              </p>
+            </div>
+
+            <Link
+              href="/basvuru"
+              className="inline-flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-wider px-4 py-2 bg-[#1C1917] hover:bg-[#74112f] text-[#FAF7EE] transition-all whitespace-nowrap self-end sm:self-center"
+            >
+              <span>Yazı Gönder</span>
+              <span>→</span>
+            </Link>
+          </div>
+
+        </section>
+
+        {/* SON DÜŞÜNCE METİNLERİ (ANTİK KEMER / KLASİK EDİTORYAL KARTLAR) */}
         <section className="mb-14">
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">Son Metinler</h2>
-            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">
-              Tüm Arşivi Görüntüle →
+          
+          <div className="flex items-center justify-between mb-6 pb-2 border-b border-[#D8CEBA]">
+            <div>
+              <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C6D31] block">
+                Arşivden Seçkiler
+              </span>
+              <h2 className="text-xl sm:text-2xl font-serif font-normal text-[#1C1917]">
+                Son Yayımlanan Metinler
+              </h2>
+            </div>
+            <Link 
+              href="/yazilar" 
+              className="text-xs font-sans font-semibold uppercase tracking-wider text-[#74112f] hover:underline"
+            >
+              Tüm Kütüphane ({yazilar.length}) →
             </Link>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="glass-card p-5 rounded-2xl h-44 animate-pulse bg-white/40"></div>
+                <div key={n} className="bg-[#FCFAF5] border border-[#D8CEBA] p-6 h-48 animate-pulse"></div>
               ))}
             </div>
           ) : yazilar.length === 0 ? (
-            <div className="glass-card p-8 rounded-2xl border border-white/90 text-center">
-              <p className="text-xs font-bold text-gray-600 mb-3">Henüz onaylanmış bir düşünce metni bulunmuyor.</p>
+            <div className="bg-[#FCFAF5] border-2 border-dashed border-[#D8CEBA] p-10 text-center">
+              <p className="text-sm font-serif italic text-[#57534E] mb-4">
+                Kürsü henüz sessiz. İlk düşünce metnini kaleme alan siz olun.
+              </p>
               <Link 
                 href="/basvuru" 
-                className="inline-block bg-[#74112f] text-white px-5 py-2 rounded-full text-xs font-bold shadow-sm hover:opacity-90"
+                className="inline-block bg-[#74112f] text-[#FAF7EE] px-6 py-2.5 text-xs font-sans font-bold uppercase tracking-widest"
               >
-                İlk Metni Sen Gönder
+                İlk Metni Gönder
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {yazilar.map((y) => {
                 const stil = getDisiplinStili(y.kategori);
                 const okumaSuresi = Math.max(1, Math.ceil((y.icerik || '').trim().split(/\s+/).length / 200));
 
                 return (
                   <Link href={`/yazi/${y.slug}`} key={y.id} className="group outline-none">
-                    <article 
-                      style={{ backgroundImage: !y.kapak_url ? stil.pattern : 'none' }}
-                      className={`glass-card p-4 rounded-2xl h-44 flex flex-col justify-between hover:bg-white hover:shadow-lg transition-all border border-white/80 group-hover:-translate-y-0.5 relative overflow-hidden ${!y.kapak_url ? `bg-gradient-to-br ${stil.cardBg}` : 'bg-white/95'}`}
-                    >
-                      {y.kapak_url && (
-                        <>
-                          <img src={y.kapak_url} alt="" className="absolute right-0 inset-y-0 w-3/5 h-full object-cover opacity-80 pointer-events-none" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent pointer-events-none"></div>
-                        </>
-                      )}
-
+                    <article className={`bg-[#FCFAF5] border border-[#D8CEBA] ${stil.cardAccent} p-5 sm:p-6 h-52 flex flex-col justify-between transition-all duration-300 relative overflow-hidden group-hover:-translate-y-0.5 group-hover:shadow-md`}>
+                      
+                      {/* Üst Kemer Detayı / İnce Çift Çizgi */}
                       <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${stil.badgeBg}`}>
+                        <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-[#E8DFC8]">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[9px] font-sans font-bold uppercase tracking-widest px-2 py-0.5 border ${stil.badgeBorder} ${stil.badgeBg}`}>
                               {y.kategori}
                             </span>
                             {y.dergiler && (
-                              <span className="text-[8.5px] font-bold text-[#74112f] bg-[#74112f]/10 border border-[#74112f]/20 px-2 py-0.5 rounded-full">
-                                ● Sayı {y.dergiler.sayi_no}
+                              <span className="text-[9px] font-sans font-semibold text-[#74112f] bg-[#74112f]/8 border border-[#74112f]/20 px-2 py-0.5">
+                                Sayı {y.dergiler.sayi_no}
                               </span>
                             )}
                           </div>
-                          <span className="text-[9px] text-gray-500 font-bold bg-white/80 px-2 py-0.5 rounded-full">
-                            {okumaSuresi} dk okuma
+                          <span className="text-[10px] font-serif italic text-[#78716C]">
+                            ~ {okumaSuresi} dk okuma
                           </span>
                         </div>
-                        <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#74112f] transition-colors line-clamp-1 mb-1">
+
+                        <h3 className="font-serif text-base sm:text-lg font-bold text-[#1C1917] group-hover:text-[#74112f] transition-colors line-clamp-1 mb-1.5">
                           {y.baslik}
                         </h3>
-                        <p className="text-[11px] text-gray-600 line-clamp-2 font-serif">
-                          {y.icerik}
+
+                        <p className="text-xs text-[#57534E] line-clamp-2 font-serif leading-relaxed italic">
+                          "{y.icerik}"
                         </p>
                       </div>
 
-                      <div className="relative z-10 pt-2 border-t border-gray-200/50 flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-gray-700 truncate max-w-[150px]">{y.yazarlar?.ad_soyad}</span>
-                        <span className="font-black text-[#32127a]">Oku →</span>
+                      {/* Alt Yazar & Okuma İmzası */}
+                      <div className="relative z-10 pt-2.5 border-t border-[#E8DFC8] flex items-center justify-between text-xs">
+                        <span className="font-serif font-bold text-[#1C1917] truncate max-w-[170px]">
+                          — {y.yazarlar?.ad_soyad || 'Anonim / Mahlas'}
+                        </span>
+                        <span className="font-sans font-bold uppercase text-[10px] tracking-wider text-[#74112f] group-hover:translate-x-1 transition-transform">
+                          Metni Oku →
+                        </span>
                       </div>
+
                     </article>
                   </Link>
                 );
@@ -338,64 +396,75 @@ export default function Home() {
             <div className="text-center mt-8">
               <Link 
                 href="/yazilar" 
-                className="inline-block glass-panel px-6 py-3 rounded-full text-xs font-bold text-gray-800 hover:text-[#74112f] border border-gray-200/80 shadow-xs transition-all"
+                className="inline-block px-8 py-3 bg-[#FAF7EE] hover:bg-[#F5F0E4] border border-[#8C6D31] text-xs font-sans font-bold uppercase tracking-widest text-[#1C1917] transition-all shadow-xs"
               >
-                Tüm Metin Arşivini Görüntüle →
+                Tüm Düşünce Arşivini Görüntüle ❖
               </Link>
             </div>
           )}
+
         </section>
 
-        {/* E-DERGİLER (MAX 4) */}
+        {/* DÖNEMSEL NEŞRİYAT: ZEMİN DERGİSİ CİLTLERİ */}
         {dergiler.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-4 px-1">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">ZEMİN Dergisi Sayıları</h2>
-              <Link href="/dergiler" className="text-xs font-bold text-[#32127a] hover:underline">
+          <section className="mb-12 border-t-2 border-double border-[#D8CEBA] pt-8">
+            
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <span className="text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#8C6D31] block">
+                  Resmi Seçki Arşivi
+                </span>
+                <h2 className="text-xl sm:text-2xl font-serif font-normal text-[#1C1917]">
+                  ZEMİN Dergisi Sayıları
+                </h2>
+              </div>
+              <Link href="/dergiler" className="text-xs font-sans font-semibold uppercase tracking-wider text-[#74112f] hover:underline">
                 Tüm Sayılar →
               </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {dergiler.map((d) => (
-                <div key={d.id} className="glass-panel p-5 rounded-2xl border border-white/90 shadow-md flex items-center justify-between gap-4">
+                <div key={d.id} className="bg-[#FCFAF5] border border-[#D8CEBA] p-5 flex items-center justify-between gap-4">
                   <div>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-[#74112f] bg-[#74112f]/10 px-2 py-0.5 rounded-full">
-                      Sayı {d.sayi_no}
+                    <span className="text-[9px] font-sans font-bold uppercase tracking-widest text-[#74112f] bg-[#74112f]/10 border border-[#74112f]/20 px-2 py-0.5">
+                      Fasikül / Sayı {d.sayi_no}
                     </span>
-                    <h3 className="font-bold text-sm text-gray-900 mt-1">{d.baslik}</h3>
-                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{d.aciklama || 'Tematik dergi sayısı.'}</p>
+                    <h3 className="font-serif font-bold text-base text-[#1C1917] mt-1.5">{d.baslik}</h3>
+                    <p className="text-xs font-serif italic text-[#78716C] mt-0.5 line-clamp-1">{d.aciklama || 'Tematik neşriyat sayısı.'}</p>
                   </div>
                   <a 
                     href={d.pdf_url} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="bg-[#32127a] hover:bg-[#74112f] text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm transition-all"
+                    className="px-4 py-2 bg-[#1C1917] hover:bg-[#74112f] text-[#FAF7EE] text-[11px] font-sans font-bold uppercase tracking-wider whitespace-nowrap transition-all shadow-xs"
                   >
-                    İncele / İndir
+                    PDF İndir
                   </a>
                 </div>
               ))}
             </div>
+
           </section>
         )}
 
       </main>
 
-      {/* FOOTER */}
-      <footer className="mt-auto w-full border-t border-white/40 bg-white/40 backdrop-blur-md py-6 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
-          <div>
-            <span className="text-lg font-black text-[#74112f] tracking-tighter mr-2">ZEMİN Dergisi</span>
-            <span>© 2026 Tüm hakları saklıdır.</span>
+      {/* KLASİK MATBAA / KOLOFON ALT BİLGİ (FOOTER) */}
+      <footer className="mt-auto w-full border-t-2 border-double border-[#D8CEBA] bg-[#FAF7EE] py-8 relative z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#78716C]">
+          <div className="text-center md:text-left">
+            <span className="font-serif font-bold text-sm text-[#1C1917] tracking-widest mr-2 uppercase">ZEMİN</span>
+            <span className="italic font-serif">© MMXXVI • Bağımsız Düşünce ve İfade Kürsüsü.</span>
           </div>
-          <div className="flex gap-6">
-            <Link href="/iletisim" className="hover:text-[#00a693]">İletişim</Link>
-            <Link href="/basvuru" className="hover:text-[#00a693]">Yayın Şartları</Link>
-            <Link href="/admin" className="text-[#32127a] hover:text-[#74112f]">Editör Masası</Link>
+          <div className="flex gap-6 font-sans text-[11px] uppercase tracking-wider font-semibold">
+            <Link href="/iletisim" className="hover:text-[#1C1917] transition-colors">İletişim</Link>
+            <Link href="/basvuru" className="hover:text-[#1C1917] transition-colors">Yayın Şartları</Link>
+            <Link href="/admin" className="text-[#74112f] hover:underline">Editör Masası</Link>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
