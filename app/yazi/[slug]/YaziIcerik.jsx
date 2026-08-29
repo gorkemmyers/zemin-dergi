@@ -56,7 +56,7 @@ export default function YaziIcerik() {
         if (error) throw error;
         setYazi(data);
         
-        // Simüle edilmiş rastgele başlangıç beğenisi
+        // Simüle edilmiş başlangıç beğenisi
         setLikeCount(Math.floor(Math.random() * 50) + 12);
       } catch (error) {
         console.error('Yazı çekme hatası:', error.message);
@@ -64,7 +64,6 @@ export default function YaziIcerik() {
         setLoading(false);
       }
     }
-
     yaziGetir();
   }, [slug]);
 
@@ -86,6 +85,7 @@ export default function YaziIcerik() {
     }
   };
 
+  // Çift Kademeli (Proxy + Fallback) Çeviri Motoru
   const handleTranslate = async (targetLang) => {
     if (targetLang === 'tr') {
       setSelectedLanguage('tr');
@@ -106,21 +106,42 @@ export default function YaziIcerik() {
           tamCeviri += '\n\n';
           continue;
         }
-        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${targetLang}&dt=t&q=${encodeURIComponent(paragraf)}`);
         
-        // Eğer CORS hatası veya limit aşımı olursa hatayı yakala
-        if (!res.ok) throw new Error('API Bağlantı Hatası');
+        // CORS Güvenlik duvarını AllOrigins Proxy ile aşıyoruz
+        const googleUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${targetLang}&dt=t&q=${encodeURIComponent(paragraf)}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(googleUrl)}`;
+        
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error('Proxy API Reddedildi');
         
         const data = await res.json();
         const cevrilmisParagraf = data[0].map(item => item[0]).join('');
         tamCeviri += cevrilmisParagraf + '\n\n';
       }
-
       setTranslatedText(tamCeviri.trim());
+
     } catch (error) {
-      console.error('Çeviri hatası:', error);
-      // Alert yerine sessizce önizleme (fallback) moduna geçiyoruz.
-      setTranslatedText(`[${targetLang.toUpperCase()} Çevirisi - Önizleme]\n\n${yazi?.icerik || ''}`);
+      console.warn('Google Çeviri Proxy başarısız oldu, Yedek API devrede...', error);
+      
+      // B Planı: MyMemory API (Proxy çalışmazsa burası devreye girer)
+      try {
+        const icerik = yazi?.icerik || '';
+        const paragraflar = icerik.split('\n\n');
+        let tamCeviri = '';
+
+        for (const paragraf of paragraflar) {
+          if (!paragraf.trim()) {
+            tamCeviri += '\n\n';
+            continue;
+          }
+          const backupRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(paragraf)}&langpair=tr|${targetLang}`);
+          const backupData = await backupRes.json();
+          tamCeviri += backupData.responseData.translatedText + '\n\n';
+        }
+        setTranslatedText(tamCeviri.trim());
+      } catch (backupError) {
+        setTranslatedText(`[ÇEVİRİ SUNUCUSU YANIT VERMİYOR]\n\nLütfen daha sonra tekrar deneyiniz.\n\n${yazi?.icerik || ''}`);
+      }
     } finally {
       setIsTranslating(false);
     }
@@ -183,16 +204,16 @@ export default function YaziIcerik() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F6F2] relative selection:bg-[#1a1a1a]/10 selection:text-[#1a1a1a]">
       <style jsx global>{`
-        /* Editoryal Büyük İlk Harf (Drop Cap) Stili */
+        /* Editoryal Büyük İlk Harf (Drop Cap) Stili - Harf Boşluğu Düzeltildi */
         .editoryal-metin > p:first-of-type::first-letter {
           float: left;
-          font-size: 4.5rem;
-          line-height: 0.8;
+          font-size: 4.2rem;
+          line-height: 0.85;
           font-weight: 900;
-          margin-right: 0.12em;
+          margin-right: 0.08em;
           margin-top: 0.05em;
           color: #1a1a1a;
-          font-family: ui-sans-serif, system-ui, sans-serif;
+          font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
         }
 
         /* Yazdırma (Print) Stilleri */
@@ -247,14 +268,13 @@ export default function YaziIcerik() {
             <span className="hidden sm:inline text-gray-300">|</span>
             <div>{tarihFormatla(yazi.created_at)}</div>
             <span className="hidden sm:inline text-gray-300">|</span>
-            <div>{okumaSuresi} Dk Okuma</div>
+            <div>{okumaSuresi} DK Okuma</div>
           </div>
         </header>
 
         {/* ARAÇ ÇUBUĞU (Dil, Seslendirme, Paylaşım, Yazdırma) */}
         <div className="max-w-2xl mx-auto mb-10 flex flex-wrap items-center justify-between gap-4 bg-white/60 p-2 sm:p-3 rounded border border-[#1a1a1a]/10 no-print">
           
-          {/* Çeviri ve Ses Motoru */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="flex bg-[#ECEAE3] p-1 rounded">
               {['tr', 'en', 'fr'].map((lang) => (
@@ -278,7 +298,6 @@ export default function YaziIcerik() {
             </button>
           </div>
 
-          {/* Aksiyon Butonları */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button onClick={handlePrint} title="Yazdır" className="p-1.5 sm:p-2 bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white rounded transition-colors">
               <PrinterIcon />
@@ -352,7 +371,7 @@ export default function YaziIcerik() {
               href="/basvuru"
               className="inline-block bg-[#1a1a1a] text-white px-5 py-2.5 rounded text-[11px] font-black uppercase tracking-widest hover:bg-[#74112f] transition-colors whitespace-nowrap"
             >
-              Yazar Ol
+              Kürsüye Katıl
             </Link>
           </div>
         </footer>
