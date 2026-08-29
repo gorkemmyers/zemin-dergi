@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
-import { HiOutlineHeart, HiHeart, HiShare, HiTranslate, HiOutlineSpeakerWave, HiOutlinePrinter } from 'react-icons/hi2';
 
 const DISIPLIN_RENK = {
   'Kavram Analizi': { text: '#74112f', bg: 'rgba(116,17,47,0.08)' },
