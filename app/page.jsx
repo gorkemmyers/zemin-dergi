@@ -97,7 +97,7 @@ export default function Home() {
   const digerYazilar = yazilar.slice(1);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F7F6F2] relative selection:bg-[#74112f]/10 selection:text-[#74112f]">
+    <div className="flex flex-col min-h-screen bg-[#F7F6F2] relative selection:bg-[#1a1a1a]/10 selection:text-[#1a1a1a]">
       <style jsx global>{`
         @keyframes zeminFadeUp {
           from { opacity: 0; transform: translateY(14px); }
@@ -112,30 +112,30 @@ export default function Home() {
       <main className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 md:pt-6 pb-20 relative z-10">
 
         {/* NAVBAR */}
-        <header className="mx-auto max-w-5xl mb-8 sticky top-0 z-50 bg-[#F7F6F2]/95 backdrop-blur-sm border-b border-[#1a1a1a]">
+        <header className="mx-auto max-w-5xl mb-10 sticky top-0 z-50 bg-[#F7F6F2]/95 backdrop-blur-md border-b border-[#1a1a1a]">
           <div className="flex justify-between items-center px-1 py-3">
-            <Link href="/" className="text-[#1a1a1a] font-black text-xl tracking-tight hover:opacity-80">
+            <Link href="/" className="text-[#1a1a1a] font-black text-2xl tracking-tighter hover:opacity-80 transition-opacity">
               ZEMİN
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={handleRastgele}
-                className="px-3 py-1.5 rounded text-[11px] font-bold text-gray-600 hover:text-[#74112f] transition-colors"
+                className="px-3 py-1.5 rounded text-[11px] font-bold text-gray-600 hover:text-[#1a1a1a] transition-colors"
                 title="Rastgele Bir Metin Keşfet"
               >
                 Rastgele
               </button>
               <Link
                 href="/basvuru"
-                className="bg-[#1a1a1a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded text-[11px] sm:text-xs font-bold tracking-wide hover:bg-[#74112f] transition-colors"
+                className="bg-[#1a1a1a] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded text-[11px] sm:text-xs font-bold tracking-wide hover:bg-[#74112f] transition-colors shadow-sm"
               >
                 METİN GÖNDER
               </Link>
             </div>
           </div>
 
-          <nav className="flex items-center justify-between sm:justify-start gap-4 sm:gap-8 pb-3 px-1 overflow-x-auto whitespace-nowrap text-xs sm:text-sm font-bold text-gray-600 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <Link href="/" className="text-[#74112f] flex-shrink-0">Ana Sayfa</Link>
+          <nav className="flex items-center justify-between sm:justify-start gap-4 sm:gap-8 pb-3 px-1 overflow-x-auto whitespace-nowrap text-xs sm:text-sm font-bold text-gray-500 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <Link href="/" className="text-[#1a1a1a] flex-shrink-0">Ana Sayfa</Link>
             <Link href="/yazilar" className="hover:text-[#1a1a1a] transition-colors flex-shrink-0">Yazılar</Link>
             <Link href="/dergiler" className="hover:text-[#1a1a1a] transition-colors flex-shrink-0">Dergiler</Link>
             <Link href="/yazarlar" className="hover:text-[#1a1a1a] transition-colors flex-shrink-0">Yazarlar</Link>
@@ -144,26 +144,25 @@ export default function Home() {
         </header>
 
         {/* HERO BÖLÜMÜ */}
-        <section className="mb-10 pt-2">
+        <section className="mb-12 pt-2">
           <div className="max-w-2xl">
-            <h1 className="text-4xl sm:text-6xl font-black text-[#1a1a1a] tracking-tight leading-[0.92] mb-5">
+            <h1 className="text-5xl sm:text-7xl font-black text-[#1a1a1a] tracking-tighter leading-[0.90] mb-6">
               DÜŞÜNCENİN<br />
-              <span className="text-[#74112f]">ZEMİNİ.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1a1a1a] to-[#74112f]">ZEMİNİ.</span>
             </h1>
-            <p className="text-sm text-gray-600 font-medium leading-relaxed mb-6 max-w-md">
+            <p className="text-sm text-gray-600 font-medium leading-relaxed mb-8 max-w-md">
               Kavram analizi, yaşam eleştirisi, kültür ve eser çözümlemesi, serbest sorgulama — düşünen herkes için bağımsız açık yayın platformu.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/basvuru"
-                className="bg-[#1a1a1a] text-white px-5 py-2.5 rounded text-xs font-black hover:bg-[#74112f] transition-colors active:scale-95"
+                className="bg-[#1a1a1a] text-white px-6 py-3 rounded text-xs font-black hover:bg-[#74112f] transition-colors shadow-sm active:scale-95"
               >
                 Metnini Gönder
               </Link>
               <Link
                 href="/yazilar"
-                className="text-[#1a1a1a] px-5 py-2.5 rounded text-xs font-bold border-1.5 border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white transition-colors"
-                style={{ borderWidth: '1.5px', borderStyle: 'solid' }}
+                className="text-[#1a1a1a] px-6 py-3 rounded text-xs font-bold border-[1.5px] border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white transition-colors active:scale-95"
               >
                 Tüm Arşivi İncele
               </Link>
@@ -171,8 +170,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 4'LÜ KONSOL */}
-        <section className="mb-12">
+        {/* 4'LÜ EDİTORYAL KONSOL */}
+        <section className="mb-16">
           <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-4">
             {MADDELER.map((m, idx) => {
               const isSecili = aktifMaddeIndex === idx;
@@ -180,91 +179,102 @@ export default function Home() {
                 <button
                   key={m.no}
                   onClick={() => setAktifMaddeIndex(idx)}
-                  className="py-2.5 px-1 sm:px-3 rounded flex flex-col items-center justify-center gap-1 text-center select-none transition-colors"
+                  className="py-3 px-1 sm:px-3 rounded flex flex-col items-center justify-center gap-1.5 text-center select-none transition-all duration-300"
                   style={{
-                    backgroundColor: isSecili ? m.renk : '#ECEAE3',
-                    color: isSecili ? '#fff' : '#777'
+                    backgroundColor: isSecili ? m.renk : 'rgba(26,26,26,0.04)',
+                    color: isSecili ? '#fff' : '#1a1a1a',
+                    transform: isSecili ? 'scale(1.02)' : 'scale(1)'
                   }}
                 >
-                  <span className="text-[9px] sm:text-[10px] font-black leading-none">{m.no}</span>
-                  <span className="text-[9.5px] sm:text-xs truncate leading-tight font-bold">{m.kisaBaslik}</span>
+                  <span className="text-[10px] sm:text-xs font-black leading-none opacity-80">{m.no}</span>
+                  <span className="text-[9.5px] sm:text-[11px] truncate leading-tight font-bold tracking-wide">{m.kisaBaslik}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-[#1a1a1a] pt-4">
-            <div className="space-y-1.5 max-w-2xl">
-              <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-t border-[#1a1a1a]/20 pt-5">
+            <div className="space-y-2 max-w-2xl">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <span
                   className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded"
-                  style={{ backgroundColor: `${aktif.renk}18`, color: aktif.renk }}
+                  style={{ backgroundColor: `${aktif.renk}15`, color: aktif.renk }}
                 >
                   {aktif.rozet}
                 </span>
-                <h3 className="text-xs sm:text-sm font-black text-[#1a1a1a]">{aktif.baslik}</h3>
+                <h3 className="text-sm sm:text-base font-black text-[#1a1a1a] tracking-tight">{aktif.baslik}</h3>
               </div>
-              <p className="text-[11.5px] sm:text-xs text-gray-600 font-serif leading-relaxed">{aktif.aciklama}</p>
+              <p className="text-xs text-gray-600 font-serif leading-relaxed italic">{aktif.aciklama}</p>
             </div>
 
             <Link
               href="/basvuru"
-              className="inline-flex items-center gap-1.5 text-xs font-black px-4 py-2 rounded bg-[#1a1a1a] hover:bg-[#74112f] text-white transition-colors active:scale-95 whitespace-nowrap self-end sm:self-center"
+              className="inline-flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase px-5 py-2.5 rounded bg-[#1a1a1a] hover:bg-[#74112f] text-white transition-colors active:scale-95 whitespace-nowrap self-end sm:self-center"
             >
-              <span>Yazı Masasına Git</span>
+              <span>Yazı Masası</span>
               <span>→</span>
             </Link>
           </div>
         </section>
 
-        {/* SON METİNLER — 1 büyük öne çıkan + küçük kartlar */}
-        <section className="mb-14">
-          <div className="flex items-center justify-between mb-4 px-1">
+        {/* SON METİNLER (Grid-flow-dense ile asimetrik dizilim) */}
+        <section className="mb-16">
+          <div className="flex items-center justify-between mb-5 px-1 border-b border-[#1a1a1a]/20 pb-2">
             <h2 className="text-lg font-black text-[#1a1a1a] tracking-tight">Son Metinler</h2>
-            <Link href="/yazilar" className="text-xs font-bold text-[#32127a] hover:underline">
-              Tüm Arşivi Görüntüle →
+            <Link href="/yazilar" className="text-[11px] font-bold text-[#1a1a1a] hover:text-[#74112f] uppercase tracking-wider transition-colors">
+              Arşivi Gör →
             </Link>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="rounded h-44 animate-pulse bg-[#ECEAE3]"></div>
+                <div key={n} className="rounded-lg h-48 animate-pulse bg-black/5"></div>
               ))}
             </div>
           ) : yazilar.length === 0 ? (
-            <div className="p-8 rounded border border-[#1a1a1a] text-center">
-              <p className="text-xs font-bold text-gray-600 mb-3">Henüz onaylanmış bir düşünce metni bulunmuyor.</p>
+            <div className="p-10 rounded-lg border border-[#1a1a1a] text-center bg-white/40">
+              <p className="text-xs font-bold text-gray-600 mb-4">Henüz onaylanmış bir düşünce metni bulunmuyor.</p>
               <Link
                 href="/basvuru"
-                className="inline-block bg-[#74112f] text-white px-5 py-2 rounded text-xs font-bold hover:opacity-90"
+                className="inline-block bg-[#1a1a1a] text-white px-6 py-2.5 rounded text-xs font-bold hover:bg-[#74112f] transition-colors"
               >
-                İlk Metni Sen Gönder
+                İlk Metni Gönder
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-flow-dense gap-4">
+              
+              {/* Manşet Kartı (2 Satır Kaplar) */}
               {oneCikan && (() => {
-                const renk = getDisiplinRenk(oneCikan.kategori);
                 const okumaSuresi = Math.max(1, Math.ceil((oneCikan.icerik || '').trim().split(/\s+/).length / 200));
+                
                 return (
-                  <Link href={`/yazi/${oneCikan.slug}`} className="group sm:row-span-2 zemin-fade" style={{ animationDelay: '0.05s' }}>
-                    <article className="h-full min-h-[220px] rounded-lg p-5 flex flex-col justify-end bg-[#1a1a1a] text-white group-hover:bg-[#74112f] transition-colors relative overflow-hidden">
+                  <Link href={`/yazi/${oneCikan.slug}`} className="group sm:row-span-2 zemin-fade outline-none" style={{ animationDelay: '0.05s' }}>
+                    <article className="h-full min-h-[260px] rounded-lg p-6 flex flex-col justify-end bg-[#1a1a1a] text-white group-hover:bg-[#74112f] transition-colors relative overflow-hidden shadow-sm">
                       {oneCikan.kapak_url && (
-                        <img src={oneCikan.kapak_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" />
+                        <>
+                          <img src={oneCikan.kapak_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                        </>
                       )}
+                      
                       <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded bg-white/15">
+                          <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded bg-white/20 backdrop-blur-sm text-white">
                             {oneCikan.kategori}
                           </span>
-                          <span className="text-[9px] font-bold text-white/70">{okumaSuresi} dk okuma</span>
+                          <span className="text-[9px] font-bold text-white/80">{okumaSuresi} dk okuma</span>
                         </div>
-                        <h3 className="font-bold text-lg leading-snug mb-2">{oneCikan.baslik}</h3>
-                        <p className="text-[11px] text-white/70 line-clamp-2 font-serif mb-3">{oneCikan.icerik}</p>
-                        <div className="flex items-center justify-between text-[11px] pt-3 border-t border-white/15">
-                          <span className="font-semibold truncate max-w-[150px]">{oneCikan.yazarlar?.ad_soyad}</span>
-                          <span className="font-black">Oku →</span>
+                        <h3 className="font-bold text-xl sm:text-2xl leading-snug mb-2 group-hover:text-white transition-colors">
+                          {oneCikan.baslik}
+                        </h3>
+                        <p className="text-[11px] sm:text-xs text-white/80 line-clamp-2 font-serif mb-4 leading-relaxed">
+                          {oneCikan.icerik}
+                        </p>
+                        <div className="flex items-center justify-between text-[11px] pt-4 border-t border-white/20">
+                          <span className="font-semibold truncate max-w-[150px] uppercase tracking-wider">{oneCikan.yazarlar?.ad_soyad}</span>
+                          <span className="font-black tracking-widest uppercase">Oku →</span>
                         </div>
                       </div>
                     </article>
@@ -272,29 +282,30 @@ export default function Home() {
                 );
               })()}
 
+              {/* Standart Kartlar */}
               {digerYazilar.map((y, i) => {
                 const renk = getDisiplinRenk(y.kategori);
                 const okumaSuresi = Math.max(1, Math.ceil((y.icerik || '').trim().split(/\s+/).length / 200));
 
                 return (
-                  <Link href={`/yazi/${y.slug}`} key={y.id} className="group zemin-fade" style={{ animationDelay: `${0.15 + i * 0.08}s` }}>
-                    <article className="h-full rounded-lg p-4 flex flex-col justify-between bg-[#ECEAE3] group-hover:bg-white group-hover:shadow-md transition-all relative overflow-hidden">
+                  <Link href={`/yazi/${y.slug}`} key={y.id} className="group zemin-fade outline-none" style={{ animationDelay: `${0.15 + i * 0.08}s` }}>
+                    <article className="h-full min-h-[140px] rounded-lg p-5 flex flex-col justify-between bg-black/5 group-hover:bg-white border border-transparent group-hover:border-[#1a1a1a]/10 group-hover:shadow-sm transition-all relative">
                       <div>
-                        <div className="flex items-center justify-between mb-2 gap-2">
+                        <div className="flex items-center justify-between mb-3 gap-2">
                           <span
-                            className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded"
+                            className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded"
                             style={{ backgroundColor: renk.bg, color: renk.text }}
                           >
                             {y.kategori}
                           </span>
                           <span className="text-[9px] text-gray-500 font-bold whitespace-nowrap">{okumaSuresi} dk</span>
                         </div>
-                        <h3 className="font-bold text-sm text-[#1a1a1a] group-hover:text-[#74112f] transition-colors line-clamp-1 mb-1">
+                        <h3 className="font-bold text-sm sm:text-base text-[#1a1a1a] group-hover:text-[#74112f] transition-colors line-clamp-2 mb-1.5 leading-snug">
                           {y.baslik}
                         </h3>
-                        <p className="text-[11px] text-gray-600 line-clamp-2 font-serif">{y.icerik}</p>
+                        <p className="text-[11px] text-gray-600 line-clamp-2 font-serif italic">{y.icerik}</p>
                       </div>
-                      <div className="pt-2 mt-2 border-t border-gray-300/60 flex items-center justify-between text-[11px]">
+                      <div className="pt-3 mt-3 border-t border-[#1a1a1a]/10 flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-gray-700 truncate max-w-[150px]">{y.yazarlar?.ad_soyad}</span>
                         <span className="font-black" style={{ color: renk.text }}>Oku →</span>
                       </div>
@@ -304,46 +315,35 @@ export default function Home() {
               })}
             </div>
           )}
-
-          {yazilar.length > 0 && (
-            <div className="text-center mt-8">
-              <Link
-                href="/yazilar"
-                className="inline-block px-6 py-3 rounded text-xs font-bold text-[#1a1a1a] border border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white transition-colors"
-              >
-                Tüm Metin Arşivini Görüntüle →
-              </Link>
-            </div>
-          )}
         </section>
 
-        {/* E-DERGİLER (MAX 4) */}
+        {/* E-DERGİLER (RESMİ SEÇKİ) */}
         {dergiler.length > 0 && (
           <section className="mb-12">
-            <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center justify-between mb-5 px-1 border-b border-[#1a1a1a]/20 pb-2">
               <h2 className="text-lg font-black text-[#1a1a1a] tracking-tight">ZEMİN Dergisi Sayıları</h2>
-              <Link href="/dergiler" className="text-xs font-bold text-[#32127a] hover:underline">
+              <Link href="/dergiler" className="text-[11px] font-bold text-[#1a1a1a] hover:text-[#74112f] uppercase tracking-wider transition-colors">
                 Tüm Sayılar →
               </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {dergiler.map((d) => (
-                <div key={d.id} className="p-5 rounded-lg border border-[#1a1a1a] flex items-center justify-between gap-4">
+                <div key={d.id} className="p-5 rounded-lg border border-[#1a1a1a] flex items-center justify-between gap-4 bg-white/40 hover:bg-white transition-colors shadow-sm">
                   <div>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-[#74112f] bg-[#74112f]/10 px-2 py-0.5 rounded">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-[#1a1a1a] bg-black/5 px-2.5 py-0.5 rounded">
                       Sayı {d.sayi_no}
                     </span>
-                    <h3 className="font-bold text-sm text-[#1a1a1a] mt-1">{d.baslik}</h3>
-                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{d.aciklama || 'Tematik dergi sayısı.'}</p>
+                    <h3 className="font-bold text-sm text-[#1a1a1a] mt-2 mb-0.5">{d.baslik}</h3>
+                    <p className="text-[11px] text-gray-500 line-clamp-1 italic font-serif">{d.aciklama || 'Tematik dergi sayısı.'}</p>
                   </div>
                   <a
                     href={d.pdf_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#1a1a1a] hover:bg-[#74112f] text-white px-4 py-2 rounded text-xs font-bold whitespace-nowrap transition-colors"
+                    className="bg-[#1a1a1a] hover:bg-[#74112f] text-white px-5 py-2.5 rounded text-[10px] uppercase tracking-widest font-black whitespace-nowrap transition-colors shadow-sm"
                   >
-                    İncele / İndir
+                    İncele
                   </a>
                 </div>
               ))}
@@ -354,16 +354,17 @@ export default function Home() {
       </main>
 
       {/* FOOTER */}
-      <footer className="mt-auto w-full border-t border-[#1a1a1a] py-6 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-600">
-          <div>
-            <span className="text-lg font-black text-[#1a1a1a] tracking-tight mr-2">ZEMİN Dergisi</span>
+      <footer className="mt-auto w-full border-t border-[#1a1a1a]/20 py-8 relative z-10 bg-[#F7F6F2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-black text-[#1a1a1a] tracking-tighter normal-case">ZEMİN</span>
+            <span className="text-gray-400">|</span>
             <span>© 2026 Tüm hakları saklıdır.</span>
           </div>
           <div className="flex gap-6">
-            <Link href="/iletisim" className="hover:text-[#74112f]">İletişim</Link>
-            <Link href="/basvuru" className="hover:text-[#74112f]">Yayın Şartları</Link>
-            <Link href="/admin" className="text-[#32127a] hover:text-[#74112f]">Editör Masası</Link>
+            <Link href="/iletisim" className="hover:text-[#1a1a1a] transition-colors">İletişim</Link>
+            <Link href="/basvuru" className="hover:text-[#1a1a1a] transition-colors">Yayın Şartları</Link>
+            <Link href="/admin" className="text-[#74112f] hover:text-[#1a1a1a] transition-colors">Editör Masası</Link>
           </div>
         </div>
       </footer>
