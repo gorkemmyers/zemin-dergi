@@ -406,4 +406,101 @@ export default function Home() {
                             {y.dergiler && (
                               <span className="text-[9px] font-sans tracking-widest uppercase text-[#8B2635] bg-[#8B2635]/10 border border-[#8B2635]/30 px-2 py-0.5 font-bold">
                                 Sayı #{y.dergiler.sayi_no}
-                    
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-sans text-[#78716C] italic font-medium">
+                            {okumaSuresi} dk okuma
+                          </span>
+                        </div>
+
+                        {/* Başlık ve Metin */}
+                        <h3 className="font-normal text-xl text-[#1A1816] group-hover:text-[#8B2635] transition-colors line-clamp-2 mb-3 leading-snug">
+                          {y.baslik}
+                        </h3>
+                        <p className="text-xs text-[#4A453F] line-clamp-3 leading-relaxed font-serif italic mb-6">
+                          {y.icerik}
+                        </p>
+                      </div>
+
+                      {/* Yazar İmzası */}
+                      <div className="relative z-10 pt-3 border-t border-[#D4AF37]/30 flex items-center justify-between text-xs">
+                        <span className="font-sans text-[11px] uppercase tracking-wider text-[#1A1816] font-bold truncate max-w-[170px]">
+                          {y.yazarlar?.ad_soyad}
+                        </span>
+                        <span className="font-sans text-[10px] font-bold uppercase tracking-widest text-[#8C6D37] group-hover:text-[#8B2635] flex items-center gap-1 transition-colors">
+                          Yazıyı Oku <span>→</span>
+                        </span>
+                      </div>
+
+                    </article>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* DÖNEMSEL DERGİLER (EDİSYONLAR) */}
+        {dergiler.length > 0 && (
+          <section className="mb-12 border-t-2 border-[#D4AF37]/50 pt-10">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <span className="text-[9px] font-sans uppercase tracking-[0.3em] text-[#8C6D37] block font-bold">Koleksiyon</span>
+                <h2 className="text-2xl font-normal text-[#1A1816]">ZEMİN Dergi Edisyonları</h2>
+              </div>
+              <Link href="/dergiler" className="text-xs font-sans tracking-widest uppercase font-bold text-[#8C6D37] hover:text-[#8B2635]">
+                Tüm Sayılar →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {dergiler.map((d) => (
+                <div 
+                  key={d.id} 
+                  className="border-2 border-[#D4AF37] bg-[#FFFFFF] p-6 shadow-md flex items-center justify-between gap-4 relative"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-sans font-bold uppercase tracking-[0.2em] text-[#8B2635] bg-[#8B2635]/10 border border-[#8B2635]/30 px-2.5 py-0.5">
+                      Sayı #{d.sayi_no}
+                    </span>
+                    <h3 className="font-normal text-base text-[#1A1816] mt-2">{d.baslik}</h3>
+                    <p className="text-[11px] text-[#57534E] font-serif italic line-clamp-1">{d.aciklama || 'Tematik dergi sayısı.'}</p>
+                  </div>
+                  <a 
+                    href={d.pdf_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="px-5 py-2.5 border-2 border-[#8C6D37] bg-[#1A1816] text-[#FFFDF9] text-[10px] font-sans uppercase tracking-widest font-bold hover:bg-[#8B2635] transition-all whitespace-nowrap shadow-xs"
+                  >
+                    PDF İncele
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+      </main>
+
+      {/* RÖNESANS KOLOFON & FOOTER */}
+      <footer className="mt-auto w-full border-t-2 border-[#D4AF37] bg-[#FAF5EB] py-8 relative z-10 text-[#44403C]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-sans">
+          <div className="text-center md:text-left">
+            <span className="font-serif text-xl tracking-[0.25em] text-[#1A1816] block font-bold">ZEMİN</span>
+            <p className="text-[10px] text-[#78716C] uppercase tracking-widest mt-1">
+              © MMXXVI • Bağımsız Felsefe, Sosyoloji ve Psikoloji Dergisi
+            </p>
+          </div>
+
+          <div className="flex gap-8 text-[11px] uppercase tracking-widest font-bold">
+            <Link href="/iletisim" className="hover:text-[#8C6D37] transition-colors">İletişim</Link>
+            <Link href="/basvuru" className="hover:text-[#8C6D37] transition-colors">Yayın İlkeleri</Link>
+            <Link href="/admin" className="text-[#8B2635] hover:underline">Editör Paneli</Link>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
