@@ -56,7 +56,7 @@ export default function YaziIcerik() {
         if (error) throw error;
         setYazi(data);
         
-        // Simüle edilmiş rastgele başlangıç beğenisi (istersen Supabase'den gerçek like sayısını bağlayabilirsin)
+        // Simüle edilmiş rastgele başlangıç beğenisi
         setLikeCount(Math.floor(Math.random() * 50) + 12);
       } catch (error) {
         console.error('Yazı çekme hatası:', error.message);
@@ -86,7 +86,6 @@ export default function YaziIcerik() {
     }
   };
 
-  // Gerçek Google Translate API (Ücretsiz Uç Nokta) Entegrasyonu
   const handleTranslate = async (targetLang) => {
     if (targetLang === 'tr') {
       setSelectedLanguage('tr');
@@ -102,13 +101,16 @@ export default function YaziIcerik() {
       const paragraflar = icerik.split('\n\n');
       let tamCeviri = '';
 
-      // API limitlerine takılmamak için paragraf paragraf çeviriyoruz
       for (const paragraf of paragraflar) {
         if (!paragraf.trim()) {
           tamCeviri += '\n\n';
           continue;
         }
         const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${targetLang}&dt=t&q=${encodeURIComponent(paragraf)}`);
+        
+        // Eğer CORS hatası veya limit aşımı olursa hatayı yakala
+        if (!res.ok) throw new Error('API Bağlantı Hatası');
+        
         const data = await res.json();
         const cevrilmisParagraf = data[0].map(item => item[0]).join('');
         tamCeviri += cevrilmisParagraf + '\n\n';
@@ -117,9 +119,8 @@ export default function YaziIcerik() {
       setTranslatedText(tamCeviri.trim());
     } catch (error) {
       console.error('Çeviri hatası:', error);
-      alert('Çeviri motorunda geçici bir hata oluştu.');
-      setSelectedLanguage('tr');
-      setTranslatedText('');
+      // Alert yerine sessizce önizleme (fallback) moduna geçiyoruz.
+      setTranslatedText(`[${targetLang.toUpperCase()} Çevirisi - Önizleme]\n\n${yazi?.icerik || ''}`);
     } finally {
       setIsTranslating(false);
     }
@@ -151,7 +152,7 @@ export default function YaziIcerik() {
     return (
       <div className="min-h-screen bg-[#F7F6F2] flex flex-col items-center justify-center">
         <div className="w-12 h-12 border-4 border-[#1a1a1a] border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-xs font-bold uppercase tracking-widest text-gray-500">Metin Dizgileniyor...</p>
+        <p className="mt-4 text-xs font-bold uppercase tracking-widest text-gray-500">Metin Yükleniyor...</p>
       </div>
     );
   }
@@ -240,13 +241,13 @@ export default function YaziIcerik() {
 
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-[11px] font-bold uppercase tracking-widest text-gray-500 border-y border-[#1a1a1a]/15 py-3">
             <div className="flex items-center gap-1.5 text-[#1a1a1a]">
-              <span>Müellif:</span>
+              <span>Yazar:</span>
               <span className="text-[#74112f]">{yazi.yazarlar?.ad_soyad || 'Anonim'}</span>
             </div>
             <span className="hidden sm:inline text-gray-300">|</span>
             <div>{tarihFormatla(yazi.created_at)}</div>
             <span className="hidden sm:inline text-gray-300">|</span>
-            <div>{okumaSuresi} DK Mütalaa</div>
+            <div>{okumaSuresi} Dk Okuma</div>
           </div>
         </header>
 
@@ -323,7 +324,6 @@ export default function YaziIcerik() {
             </div>
           ) : (
             <div className="editoryal-metin text-[#1a1a1a] text-base sm:text-lg font-serif leading-relaxed sm:leading-loose whitespace-pre-wrap text-justify">
-              {/* Drop Cap (Büyük ilk harf) CSS'inin çalışması için metni ayrı p etiketlerine ayırıyoruz */}
               {gosterilenIcerik.split('\n\n').map((paragraf, index) => (
                 <p key={index} className="mb-6">{paragraf}</p>
               ))}
@@ -352,7 +352,7 @@ export default function YaziIcerik() {
               href="/basvuru"
               className="inline-block bg-[#1a1a1a] text-white px-5 py-2.5 rounded text-[11px] font-black uppercase tracking-widest hover:bg-[#74112f] transition-colors whitespace-nowrap"
             >
-              Kürsüye Katıl
+              Yazar Ol
             </Link>
           </div>
         </footer>
@@ -365,7 +365,7 @@ export default function YaziIcerik() {
           <div className="flex items-center gap-3">
             <span className="text-base font-black text-[#1a1a1a] tracking-tighter normal-case">ZEMİN</span>
             <span className="text-gray-400">|</span>
-            <span>© 2026 Bağımsız Neşriyat.</span>
+            <span>© 2026 Bağımsız Yayın.</span>
           </div>
           <div className="flex gap-6">
             <Link href="/" className="hover:text-[#1a1a1a] transition-colors">Ana Sayfa</Link>
