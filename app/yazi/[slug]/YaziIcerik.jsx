@@ -2,7 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
+
+// Saf SVG İkon Bileşenleri (react-icons paketi bağımlılığından kurtulmak için)
+const HeartIcon = ({ solid }) => (
+  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill={solid ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={solid ? 0 : 2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+  </svg>
+);
+const ShareIcon = () => (
+  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+);
+const SpeakerIcon = () => (
+  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+);
+const PrinterIcon = () => (
+  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+);
 
 const DISIPLIN_RENK = {
   'Kavram Analizi': { text: '#74112f', bg: 'rgba(116,17,47,0.08)' },
@@ -13,8 +30,10 @@ const DISIPLIN_RENK = {
 
 const getDisiplinRenk = (kategori) => DISIPLIN_RENK[kategori] || { text: '#1a1a1a', bg: 'rgba(0,0,0,0.05)' };
 
-export default function YaziIcerik({ params }) {
-  const { slug } = params;
+export default function YaziIcerik() {
+  const params = useParams();
+  const slug = params?.slug;
+
   const [yazi, setYazi] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
@@ -26,6 +45,7 @@ export default function YaziIcerik({ params }) {
 
   useEffect(() => {
     async function yaziGetir() {
+      if (!slug) return;
       try {
         const { data, error } = await supabase
           .from('yazilar')
@@ -35,8 +55,6 @@ export default function YaziIcerik({ params }) {
 
         if (error) throw error;
         setYazi(data);
-        
-        // Simüle edilmiş beğeni sayısı (Supabase'den eklenebilir)
         setLikeCount(Math.floor(Math.random() * 50) + 12);
       } catch (error) {
         console.error('Yazı çekme hatası:', error.message);
@@ -45,7 +63,7 @@ export default function YaziIcerik({ params }) {
       }
     }
 
-    if (slug) yaziGetir();
+    yaziGetir();
   }, [slug]);
 
   const handleLike = () => {
@@ -56,8 +74,8 @@ export default function YaziIcerik({ params }) {
   const handleShare = async () => {
     try {
       await navigator.share({
-        title: yazi.baslik,
-        text: `ZEMİN Dergisi: ${yazi.baslik}`,
+        title: yazi?.baslik || 'ZEMİN Dergisi',
+        text: yazi?.baslik,
         url: window.location.href,
       });
     } catch (err) {
@@ -66,7 +84,7 @@ export default function YaziIcerik({ params }) {
     }
   };
 
-  const handleTranslate = async (targetLang) => {
+  const handleTranslate = (targetLang) => {
     if (targetLang === 'tr') {
       setSelectedLanguage('tr');
       setTranslatedText('');
@@ -76,33 +94,33 @@ export default function YaziIcerik({ params }) {
     setIsTranslating(true);
     setSelectedLanguage(targetLang);
     
-    // Basit bir Google Translate simülasyonu (Gerçek projede API eklenecek)
+    // Geçici Çeviri Simülasyonu
     setTimeout(() => {
-      setTranslatedText(`(Translated to ${targetLang}) ${yazi.icerik}`);
+      setTranslatedText(`[Translated to ${targetLang.toUpperCase()}]\n\n${yazi?.icerik || ''}`);
       setIsTranslating(false);
     }, 1000);
   };
 
   const handleSpeech = () => {
     if (!window.speechSynthesis) return;
-
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
+    const textToSpeak = translatedText || yazi?.icerik || '';
+    if (!textToSpeak) return;
 
-    const textToSpeak = translatedText || yazi.icerik;
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = selectedLanguage === 'tr' ? 'tr-TR' : selectedLanguage === 'en' ? 'en-US' : 'fr-FR';
-    
     utterance.onend = () => setIsSpeaking(false);
+    
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
   };
 
   const handlePrint = () => {
-    window.print();
+    if (typeof window !== 'undefined') window.print();
   };
 
   if (loading) {
@@ -127,15 +145,16 @@ export default function YaziIcerik({ params }) {
   }
 
   const renk = getDisiplinRenk(yazi.kategori);
-  const okumaSuresi = Math.max(1, Math.ceil((yazi.icerik || '').trim().split(/\s+/).length / 200));
+  // icerik null ise uygulamanın çökmemesi için boş string ataması
+  const guvenliIcerik = yazi.icerik || '';
+  const okumaSuresi = Math.max(1, Math.ceil(guvenliIcerik.trim().split(/\s+/).length / 200));
+  const gosterilenIcerik = translatedText || guvenliIcerik;
   
   const tarihFormatla = (tarihString) => {
     if (!tarihString) return '';
     const date = new Date(tarihString);
     return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
   };
-
-  const gosterilenIcerik = translatedText || yazi.icerik;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F6F2] relative selection:bg-[#1a1a1a]/10 selection:text-[#1a1a1a]">
@@ -209,16 +228,15 @@ export default function YaziIcerik({ params }) {
         </header>
 
         {/* ARAÇ ÇUBUĞU (Dil, Seslendirme, Paylaşım, Yazdırma) */}
-        <div className="max-w-2xl mx-auto mb-10 flex flex-wrap items-center justify-between gap-4 bg-white/60 p-3 rounded-lg border border-[#1a1a1a]/10 no-print">
+        <div className="max-w-2xl mx-auto mb-10 flex flex-wrap items-center justify-between gap-4 bg-white/60 p-2 sm:p-3 rounded border border-[#1a1a1a]/10 no-print">
           
-          {/* Dil ve Seslendirme */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="flex bg-[#ECEAE3] p-1 rounded">
               {['tr', 'en', 'fr'].map((lang) => (
                 <button
                   key={lang}
                   onClick={() => handleTranslate(lang)}
-                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded transition-colors ${
+                  className={`px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded transition-colors ${
                     selectedLanguage === lang ? 'bg-[#1a1a1a] text-white' : 'text-gray-500 hover:text-[#1a1a1a]'
                   }`}
                 >
@@ -229,27 +247,26 @@ export default function YaziIcerik({ params }) {
             <button
               onClick={handleSpeech}
               title="Metni Seslendir"
-              className={`p-2 rounded transition-colors ${isSpeaking ? 'bg-[#74112f] text-white' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'}`}
+              className={`p-1.5 sm:p-2 rounded transition-colors ${isSpeaking ? 'bg-[#74112f] text-white' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'}`}
             >
-              <HiOutlineSpeakerWave size={16} />
+              <SpeakerIcon />
             </button>
           </div>
 
-          {/* Aksiyonlar */}
-          <div className="flex items-center gap-2">
-            <button onClick={handlePrint} title="Yazdır" className="p-2 bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white rounded transition-colors">
-              <HiOutlinePrinter size={16} />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button onClick={handlePrint} title="Yazdır" className="p-1.5 sm:p-2 bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white rounded transition-colors">
+              <PrinterIcon />
             </button>
-            <button onClick={handleShare} title="Paylaş" className="p-2 bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white rounded transition-colors">
-              <HiShare size={16} />
+            <button onClick={handleShare} title="Paylaş" className="p-1.5 sm:p-2 bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white rounded transition-colors">
+              <ShareIcon />
             </button>
             <button 
               onClick={handleLike} 
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors font-bold text-[11px] ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded transition-colors font-bold text-[10px] sm:text-[11px] ${
                 isLiked ? 'bg-[#74112f] text-white' : 'bg-[#ECEAE3] text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white'
               }`}
             >
-              {isLiked ? <HiHeart size={14} /> : <HiOutlineHeart size={14} />}
+              <HeartIcon solid={isLiked} />
               <span>{likeCount}</span>
             </button>
           </div>
@@ -279,7 +296,6 @@ export default function YaziIcerik({ params }) {
             </div>
           ) : (
             <div className="editoryal-metin text-[#1a1a1a] text-base sm:text-lg font-serif leading-relaxed sm:leading-loose whitespace-pre-wrap text-justify">
-              {/* React'te string'i güvenli paragraflara bölmek (Drop Cap'in çalışması için p etiketleri oluşturuyoruz) */}
               {gosterilenIcerik.split('\n\n').map((paragraf, index) => (
                 <p key={index} className="mb-6">{paragraf}</p>
               ))}
